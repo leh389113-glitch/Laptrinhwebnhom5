@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Hồ sơ mua sắm - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-folder-open text-primary me-2"></i> HỒ SƠ MUA SẮM CƠ SỞ VẬT CHẤT</h2>
+      <small class="text-muted">Quản lý các hợp đồng, báo giá và hồ sơ pháp lý liên quan đến các gói mua sắm</small>
+    </div>
+    <div>
+      <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách đề nghị
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-file-contract me-2"></i> Danh sách hợp đồng & hồ sơ</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Gói thầu / Nội dung đề nghị</th>
+            <th>Đơn vị đề xuất</th>
+            <th>Nhà cung cấp</th>
+            <th>Số hợp đồng</th>
+            <th>Giá trị hợp đồng</th>
+            <th>Ngày tạo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if ho_so_list %}
+            {% for hs in ho_so_list %}
+            <tr>
+              <td><a href="{{ url_for('mua_sam.chi_tiet', id=hs.de_nghi_id) }}" class="fw-bold text-primary">{{ hs.ma_de_nghi }}</a></td>
+              <td>{{ hs.tieu_de }}</td>
+              <td>{{ hs.don_vi_de_nghi }}</td>
+              <td><strong>{{ hs.nha_cung_cap or 'Đang lựa chọn' }}</strong></td>
+              <td>{{ hs.so_hop_dong or '-' }}</td>
+              <td class="text-danger fw-bold">{{ hs.gia_tri_hop_dong | tien_vnd }}</td>
+              <td class="text-muted small">{{ hs.ngay_tao | dinh_dang_ngay }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-folder-closed fa-2x mb-2 d-block"></i> Chưa có hồ sơ mua sắm nào được lưu trữ.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

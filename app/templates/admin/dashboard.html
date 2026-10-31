@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Quản trị M17 - NEU{% endblock %}
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-chart-line text-primary me-2"></i> M17 - TỔNG QUAN HỆ THỐNG CƠ SỞ VẬT CHẤT</h2>
+      <small class="text-muted">Trung tâm điều hành và phân tích số liệu thời gian thực</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('admin.bao_cao') }}" class="btn btn-outline-success">
+        <i class="fa-solid fa-file-excel me-1"></i> Báo cáo tổng hợp & Xuất CSV
+      </a>
+      <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-neu-primary">
+        <i class="fa-solid fa-plus me-1"></i> Lập đề nghị mua sắm
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_de_nghi_cho_duyet }}</h3>
+          <p>Đề nghị chờ phê duyệt</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_tai_san_dang_su_dung }}</h3>
+          <p>Tài sản đang sử dụng</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">
+          <i class="fa-solid fa-money-check-dollar"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.chi_tieu_thang_nay | tien_vnd }}</h3>
+          <p>Chi tiêu giải ngân tháng</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #EF4444, #B91C1C);">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_bao_cao_chua_xu_ly }}</h3>
+          <p>Báo cáo hư hại chờ xử lý</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 Biểu đồ Chart.js -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-8">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary-neu">
+          <span><i class="fa-solid fa-chart-column me-2"></i> Tình hình mua sắm cơ sở vật chất theo tháng</span>
+        </div>
+        <div class="neu-card-body">
+          <canvas id="bieuDoMuaSam" style="max-height: 300px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary-neu" style="background: linear-gradient(135deg, #0B4F9C, #0072CE);">
+          <span><i class="fa-solid fa-chart-pie me-2"></i> Phân bổ tình trạng tài sản</span>
+        </div>
+        <div class="neu-card-body d-flex align-items-center justify-content-center">
+          <canvas id="bieuDoTaiSan" style="max-height: 280px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 Bảng: Đề nghị gần đây & Tài sản mới -->
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="neu-card">
+        <div class="neu-card-header d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-list-check me-2"></i> Đề nghị mua sắm gần đây</span>
+          <a href="{{ url_for('admin.mua_sam') }}" class="small text-primary text-decoration-none fw-bold">Xem tất cả &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Mã đề nghị</th>
+                <th>Tiêu đề</th>
+                <th>Kinh phí</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dn in thong_ke.de_nghi_gan_day %}
+              <tr>
+                <td><a href="{{ url_for('mua_sam.chi_tiet', id=dn.id) }}" class="fw-bold text-primary">{{ dn.ma_de_nghi }}</a></td>
+                <td class="text-truncate" style="max-width: 200px;">{{ dn.tieu_de }}</td>
+                <td class="text-danger fw-bold">{{ dn.tong_du_toan | tien_vnd }}</td>
+                <td><span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="neu-card">
+        <div class="neu-card-header d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-boxes-stacked me-2"></i> Tài sản mới tiếp nhận vào kho</span>
+          <a href="{{ url_for('admin.tai_san') }}" class="small text-primary text-decoration-none fw-bold">Xem tất cả &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Mã tài sản</th>
+                <th>Tên tài sản</th>
+                <th>Vị trí</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ts in thong_ke.tai_san_gan_day %}
+              <tr>
+                <td><a href="{{ url_for('tai_san.chi_tiet', id=ts.id) }}" class="fw-bold text-primary">{{ ts.ma_tai_san }}</a></td>
+                <td>{{ ts.ten_tai_san }}</td>
+                <td><span class="small text-muted">{{ ts.vi_tri or 'Kho' }}</span></td>
+                <td><span class="{{ ts.trang_thai | badge_trang_thai }}">{{ ts.trang_thai | ten_trang_thai }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Script vẽ biểu đồ Chart.js -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Biểu đồ mua sắm theo tháng
+  const bieuDoData = {{ thong_ke.bieu_do_mua_sam | tojson }};
+  const labelsThang = bieuDoData.map(item => item.thang);
+  const dataTien = bieuDoData.map(item => item.tong_tien || 0);
+
+  const ctxCot = document.getElementById('bieuDoMuaSam').getContext('2d');
+  new Chart(ctxCot, {
+    type: 'bar',
+    data: {
+      labels: labelsThang.length ? labelsThang : ['Tháng trước', 'Tháng này'],
+      datasets: [{
+        label: 'Kinh phí mua sắm (VNĐ)',
+        data: dataTien.length ? dataTien : [0, 0],
+        backgroundColor: '#0B4F9C',
+        borderColor: '#002D62',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return (value / 1000000).toLocaleString('vi-VN') + ' tr';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Biểu đồ tròn phân bổ tài sản
+  const phanBo = {{ thong_ke.phan_bo_tai_san | tojson }};
+  const ctxTron = document.getElementById('bieuDoTaiSan').getContext('2d');
+  
+  const labelsTron = Object.keys(phanBo);
+  const valuesTron = Object.values(phanBo);
+
+  new Chart(ctxTron, {
+    type: 'doughnut',
+    data: {
+      labels: labelsTron.length ? labelsTron : ['Đang sử dụng', 'Chờ bàn giao', 'Đang sửa'],
+      datasets: [{
+        data: valuesTron.length ? valuesTron : [1, 1, 0],
+        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#64748B', '#0EA5E9'],
+        borderWidth: 2,
+        borderColor: '#FFFFFF'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
+

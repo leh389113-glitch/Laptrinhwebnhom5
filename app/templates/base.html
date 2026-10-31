@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Hệ thống Quản lý Cơ sở Vật chất - Đại học Kinh tế Quốc dân (NEU){% endblock %}</title>
+  <!-- Google Fonts: Source Sans Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Custom NEU Style -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" type="image/webp" href="{{ url_for('static', filename='img/neu_logo.webp') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- NEU Topbar -->
+  <div class="neu-topbar">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <span class="me-3"><i class="fa-solid fa-phone me-1"></i> Hotline CSVC: (024) 36 280 280</span>
+        <span><i class="fa-solid fa-envelope me-1"></i> csvc@neu.edu.vn</span>
+      </div>
+      <div>
+        {% if session.get('nguoi_dung_id') %}
+          <span class="me-3"><i class="fa-solid fa-user-circle me-1"></i> Xin chào: <strong>{{ session.get('ho_ten') }}</strong> ({{ session.get('vai_tro') | ten_trang_thai }})</span>
+          <a href="{{ url_for('auth.dang_xuat') }}" class="text-warning"><i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất</a>
+        {% else %}
+          <a href="{{ url_for('auth.dang_nhap') }}" class="me-3"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng nhập</a>
+          <a href="{{ url_for('auth.dang_ky') }}"><i class="fa-solid fa-user-plus me-1"></i> Đăng ký tài khoản</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- NEU Main Navbar -->
+  <nav class="navbar navbar-expand-lg neu-navbar sticky-top">
+    <div class="container">
+      <a class="neu-brand" href="{{ url_for('main.trang_chu') }}">
+        <img src="{{ url_for('static', filename='img/neu_logo.webp') }}" alt="NEU Logo" class="neu-logo-img" style="height: 48px; width: auto; object-fit: contain;">
+        <div class="neu-brand-text">
+          <h1>QUẢN LÝ CƠ SỞ VẬT CHẤT</h1>
+          <small>TRƯỜNG ĐẠI HỌC KINH TẾ QUỐC DÂN</small>
+        </div>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#neuNavbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="neuNavbarContent">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.trang_chu') }}"><i class="fa-solid fa-house me-1"></i> Trang chủ</a></li>
+          
+          {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('mua_sam.danh_sach') }}"><i class="fa-solid fa-cart-shopping me-1"></i> M08 - Mua sắm</a></li>
+          {% endif %}
+
+          {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Kho & Tài sản</a></li>
+          {% endif %}
+
+          {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('ke_toan.danh_sach') }}"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Kế toán</a></li>
+          {% endif %}
+
+          {% if session.get('vai_tro') == 'quan_tri' %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-danger fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-shield-halved me-1"></i> Quản trị (Admin)
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line me-2 text-primary"></i> Dashboard M17</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin.bao_cao') }}"><i class="fa-solid fa-file-excel me-2 text-success"></i> Báo cáo & Xuất CSV</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin.bao_cao_hu_hai') }}"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Xử lý Báo cáo hư hại</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin.tai_khoan') }}"><i class="fa-solid fa-users-gear me-2 text-secondary"></i> Quản lý Tài khoản</a></li>
+              </ul>
+            </li>
+          {% endif %}
+
+          <li class="nav-item ms-lg-2">
+            <a class="nav-link btn-neu-danger rounded" href="{{ url_for('main.bao_cao_hu_hai') }}">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fa-solid {% if category == 'success' %}fa-circle-check text-success{% elif category == 'danger' %}fa-circle-xmark text-danger{% else %}fa-circle-info text-primary{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content -->
+  <main class="neu-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- NEU Footer -->
+  <footer class="neu-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-5 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <img src="{{ url_for('static', filename='img/neu_logo.webp') }}" alt="NEU Logo" style="height: 40px; background: #fff; border-radius: 4px; padding: 2px;">
+            <h5 class="mb-0 text-white">TRƯỜNG ĐẠI HỌC KINH TẾ QUỐC DÂN</h5>
+          </div>
+          <p class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> 207 Đường Giải Phóng, Đồng Tâm, Hai Bà Trưng, Hà Nội</p>
+          <p class="mb-2"><i class="fa-solid fa-phone me-2"></i> Điện thoại phòng Quản trị Thiết bị: (024) 36 280 280</p>
+          <p><i class="fa-solid fa-envelope me-2"></i> Email hỗ trợ: banquantri@neu.edu.vn</p>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <h5>QUY TRÌNH QUẢN LÝ CSVC</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="{{ url_for('main.bao_cao_hu_hai') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo sự cố hư hại</a></li>
+            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Đề nghị mua sắm (M08)</a></li>
+            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý kho & tài sản (M09)</a></li>
+            <li><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo thống kê (M17)</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-12">
+          <h5>HỖ TRỢ TRỰC TUYẾN</h5>
+          <p>Hệ thống hỗ trợ tiếp nhận mọi phản ánh về tình trạng hư hại tài sản, bàn ghế, thiết bị máy chiếu, điều hòa trong toàn bộ khuôn viên giảng đường NEU 24/7.</p>
+          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu sửa chữa ngay</a>
+        </div>
+      </div>
+      <div class="neu-footer-bottom">
+        &copy; 2026 Bản quyền thuộc về Trường Đại học Kinh tế Quốc dân (NEU). Hệ thống Quản lý Cơ sở Vật chất.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

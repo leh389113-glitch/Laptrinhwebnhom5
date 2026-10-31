@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Tài khoản & Phân quyền - Admin - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-users-gear text-primary me-2"></i> QUẢN LÝ TÀI KHOẢN & PHÂN QUYỀN HỆ THỐNG</h2>
+      <small class="text-muted">Phân quyền chức năng cho cán bộ Mua sắm, Quản lý kho, Kế toán và Quản trị viên</small>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-user-shield me-2"></i> Danh sách tài khoản cán bộ trong trường ({{ nguoi_dung_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Họ và tên cán bộ</th>
+            <th>Email</th>
+            <th>Tên đăng nhập</th>
+            <th>Bộ phận / Vai trò</th>
+            <th>Ngày tạo</th>
+            <th class="text-end">Điều chỉnh vai trò</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in nguoi_dung_list %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td><strong>{{ u.ho_ten }}</strong></td>
+            <td>{{ u.email }}</td>
+            <td><code>{{ u.ten_dang_nhap }}</code></td>
+            <td>
+              <span class="badge 
+                {% if u.vai_tro == 'quan_tri' %}bg-danger
+                {% elif u.vai_tro == 'mua_sam' %}bg-primary
+                {% elif u.vai_tro == 'quan_ly_kho' %}bg-info text-dark
+                {% elif u.vai_tro == 'ke_toan' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ u.vai_tro | ten_trang_thai }}
+              </span>
+            </td>
+            <td class="small text-muted">{{ u.ngay_tao | dinh_dang_ngay }}</td>
+            <td class="text-end">
+              <form method="POST" action="{{ url_for('admin.doi_vai_tro', id=u.id) }}" class="d-inline-flex gap-1">
+                <select name="vai_tro" class="form-select form-select-sm neu-form-control" style="width: auto;">
+                  <option value="mua_sam" {% if u.vai_tro == 'mua_sam' %}selected{% endif %}>Bộ phận Mua sắm (M08)</option>
+                  <option value="quan_ly_kho" {% if u.vai_tro == 'quan_ly_kho' %}selected{% endif %}>Bộ phận Quản lý kho (M09)</option>
+                  <option value="ke_toan" {% if u.vai_tro == 'ke_toan' %}selected{% endif %}>Kế toán (M08)</option>
+                  <option value="quan_tri" {% if u.vai_tro == 'quan_tri' %}selected{% endif %}>Quản trị viên (Admin)</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-primary" {% if u.id == session.get('nguoi_dung_id') and u.vai_tro == 'quan_tri' %}title="Tài khoản hiện tại của bạn"{% endif %}>
+                  Đổi
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

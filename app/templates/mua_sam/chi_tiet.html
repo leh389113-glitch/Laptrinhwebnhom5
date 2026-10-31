@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết đề nghị {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title">
+        <i class="fa-solid fa-file-invoice text-primary me-2"></i> CHI TIẾT ĐỀ NGHỊ: {{ de_nghi.ma_de_nghi }}
+      </h2>
+      <small class="text-muted">Đơn vị đề xuất: {{ de_nghi.don_vi_de_nghi }} | Ngày lập: {{ de_nghi.ngay_tao | dinh_dang_ngay }}</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+      </a>
+      {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+        <a href="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}" class="btn btn-success fw-bold">
+          <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận hàng nhập kho
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Thông tin chung & Hàng hóa -->
+    <div class="col-lg-8">
+      
+      <div class="neu-card">
+        <div class="neu-card-header bg-primary-neu">
+          <span><i class="fa-solid fa-circle-info me-2"></i> Nội dung đề nghị mua sắm</span>
+        </div>
+        <div class="neu-card-body">
+          <h4 class="fw-bold text-dark mb-3">{{ de_nghi.tieu_de }}</h4>
+          <p class="text-secondary mb-3">{{ de_nghi.mo_ta or 'Không có mô tả chi tiết kèm theo.' }}</p>
+          <div class="row g-2 border-top pt-3 text-secondary small">
+            <div class="col-sm-6"><strong>Người đề nghị:</strong> {{ de_nghi.nguoi_de_nghi_ten }}</div>
+            <div class="col-sm-6"><strong>Đơn vị:</strong> {{ de_nghi.don_vi_de_nghi }}</div>
+            <div class="col-sm-6"><strong>Cập nhật lần cuối:</strong> {{ de_nghi.ngay_cap_nhat | dinh_dang_ngay }}</div>
+            <div class="col-sm-6"><strong>Trạng thái:</strong> <span class="{{ de_nghi.trang_thai | badge_trang_thai }}">{{ de_nghi.trang_thai | ten_trang_thai }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danh mục hàng hóa -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-list-ol me-2"></i> Danh mục vật tư, thiết bị</span>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên hàng hóa / Thiết bị</th>
+                <th>ĐVT</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá dự kiến</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in de_nghi['items'] %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <strong>{{ it.ten_hang_hoa }}</strong>
+                  {% if it.ghi_chu %}<div class="small text-muted">{{ it.ghi_chu }}</div>{% endif %}
+                </td>
+                <td>{{ it.don_vi_tinh }}</td>
+                <td class="text-center fw-bold">{{ it.so_luong }}</td>
+                <td class="text-end text-muted">{{ it.don_gia_du_kien | tien_vnd }}</td>
+                <td class="text-end fw-bold text-danger">{{ it.thanh_tien | tien_vnd }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-light">
+                <td colspan="5" class="text-end fw-bold">TỔNG CỘNG KINH PHÍ:</td>
+                <td class="text-end fw-bold fs-6 text-danger">{{ de_nghi.tong_du_toan | tien_vnd }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Hồ sơ tiếp nhận hàng nếu có -->
+      {% if de_nghi.tiep_nhan %}
+      <div class="neu-card">
+        <div class="neu-card-header bg-success text-white">
+          <span><i class="fa-solid fa-truck-ramp-box me-2"></i> Lịch sử tiếp nhận hàng hóa</span>
+        </div>
+        <div class="neu-card-body">
+          {% for tn in de_nghi.tiep_nhan %}
+          <div class="border-bottom pb-2 mb-2">
+            <div class="fw-bold text-success"><i class="fa-solid fa-check-circle me-1"></i> Đã tiếp nhận ngày {{ tn.ngay_tiep_nhan | dinh_dang_ngay }}</div>
+            <div class="small text-muted">Người tiếp nhận: {{ tn.nguoi_tiep_nhan_ten }} | Ghi chú: {{ tn.ghi_chu or 'Không có ghi chú' }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Cột phải: Luồng phê duyệt & Hành động -->
+    <div class="col-lg-4">
+      
+      <!-- Box Trạng thái & Phê duyệt -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-signature me-2"></i> Luồng xét duyệt</span>
+        </div>
+        <div class="neu-card-body">
+          <div class="mb-3 text-center">
+            <div class="text-muted small mb-1">Trạng thái hiện tại:</div>
+            <div class="fs-5"><span class="{{ de_nghi.trang_thai | badge_trang_thai }} px-3 py-2">{{ de_nghi.trang_thai | ten_trang_thai }}</span></div>
+          </div>
+
+          {% if de_nghi.ngay_phe_duyet %}
+          <div class="alert alert-light border small mb-3">
+            <div><strong>Người xét duyệt:</strong> {{ de_nghi.nguoi_phe_duyet_ten or 'Lãnh đạo/Admin' }}</div>
+            <div><strong>Thời gian:</strong> {{ de_nghi.ngay_phe_duyet | dinh_dang_ngay }}</div>
+            {% if de_nghi.ghi_chu_phe_duyet %}
+            <div class="mt-2 text-danger"><strong>Ý kiến chỉ đạo:</strong> {{ de_nghi.ghi_chu_phe_duyet }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Hành động của Admin / Lãnh đạo nếu đang chờ duyệt -->
+          {% if session.get('vai_tro') == 'quan_tri' and de_nghi.trang_thai == 'cho_phe_duyet' %}
+          <div class="border-top pt-3 mt-3">
+            <h6 class="fw-bold text-dark mb-2">Phê duyệt / Từ chối (Lãnh đạo):</h6>
+            
+            <form method="POST" action="{{ url_for('mua_sam.phe_duyet', id=de_nghi.id) }}" class="mb-2">
+              <div class="mb-2">
+                <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Ý kiến phê duyệt (tùy chọn)">
+              </div>
+              <button type="submit" class="btn btn-success w-100 fw-bold">
+                <i class="fa-solid fa-check me-1"></i> Phê duyệt đề nghị
+              </button>
+            </form>
+
+            <form method="POST" action="{{ url_for('mua_sam.tu_choi', id=de_nghi.id) }}">
+              <div class="mb-2">
+                <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Lý do từ chối" required>
+              </div>
+              <button type="submit" class="btn btn-outline-danger w-100">
+                <i class="fa-solid fa-xmark me-1"></i> Từ chối đề nghị
+              </button>
+            </form>
+          </div>
+          {% endif %}
+
+          <!-- Nếu là kế toán và đề nghị đã nhận hàng -->
+          {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] and de_nghi.trang_thai == 'da_nhan' %}
+          <div class="border-top pt-3 mt-3 text-center">
+            <a href="{{ url_for('ke_toan.chi_tiet', id=de_nghi.id) }}" class="btn btn-warning w-100 fw-bold text-dark">
+              <i class="fa-solid fa-file-invoice-dollar me-1"></i> Chuyển sang thanh toán
+            </a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Box Tiến trình vòng đời đề nghị -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-timeline me-2"></i> Quy trình thực hiện</span>
+        </div>
+        <div class="neu-card-body small">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2 text-success">
+              <i class="fa-solid fa-circle-check me-2"></i> 1. Lập đề nghị mua sắm
+            </li>
+            <li class="mb-2 {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}text-success{% elif de_nghi.trang_thai == 'tu_choi' %}text-danger{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}fa-circle-check{% elif de_nghi.trang_thai == 'tu_choi' %}fa-circle-xmark{% else %}fa-circle{% endif %} me-2"></i> 
+              2. Phê duyệt đề nghị
+            </li>
+            <li class="mb-2 {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}text-success{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i> 
+              3. Tiếp nhận hàng & Nhập kho (M09)
+            </li>
+            <li class="{% if de_nghi.trang_thai == 'hoan_tat' %}text-success{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.trang_thai == 'hoan_tat' %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i> 
+              4. Kế toán thanh toán & Hoàn tất
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Kế toán - Chờ thanh toán - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> KẾ TOÁN - THEO DÕI & THANH TOÁN</h2>
+      <small class="text-muted">Danh sách các gói mua sắm đã tiếp nhận hàng hóa tại kho, chờ làm thủ tục giải ngân thanh toán</small>
+    </div>
+    <div>
+      <a href="{{ url_for('ke_toan.lich_su') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử thanh toán
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-hand-holding-dollar me-2"></i> Đề nghị chờ thanh toán ({{ de_nghi_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Nội dung gói mua sắm</th>
+            <th>Đơn vị đề xuất</th>
+            <th>Người đề nghị</th>
+            <th>Kinh phí cần thanh toán</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if de_nghi_list %}
+            {% for dn in de_nghi_list %}
+            <tr>
+              <td><strong class="text-primary">{{ dn.ma_de_nghi }}</strong></td>
+              <td><strong>{{ dn.tieu_de }}</strong></td>
+              <td>{{ dn.don_vi_de_nghi }}</td>
+              <td>{{ dn.nguoi_de_nghi_ten }}</td>
+              <td class="text-danger fw-bold fs-6">{{ dn.tong_du_toan | tien_vnd }}</td>
+              <td><span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-end">
+                <a href="{{ url_for('ke_toan.chi_tiet', id=dn.id) }}" class="btn btn-sm btn-warning text-dark fw-bold">
+                  <i class="fa-solid fa-credit-card me-1"></i> Thực hiện thanh toán
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-circle-check fa-3x text-success mb-2 d-block"></i>
+                Hiện tại không có đề nghị nào chờ thanh toán. Tất cả các gói hàng đã được tất toán!
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

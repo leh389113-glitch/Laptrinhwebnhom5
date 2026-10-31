@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Tài sản (M09) - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-warehouse text-primary me-2"></i> M09 - QUẢN LÝ KHO & TÀI SẢN</h2>
+      <small class="text-muted">Theo dõi toàn bộ vòng đời tài sản cơ sở vật chất từ tiếp nhận đến thanh lý</small>
+    </div>
+    <div>
+      <a href="{{ url_for('tai_san.kiem_ke') }}" class="btn btn-outline-primary me-2">
+        <i class="fa-solid fa-clipboard-check me-1"></i> Đợt kiểm kê định kỳ
+      </a>
+    </div>
+  </div>
+
+  <!-- Bộ lọc & Tìm kiếm -->
+  <div class="neu-card mb-3 p-3">
+    <form method="GET" action="{{ url_for('tai_san.danh_sach') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+          <input type="text" name="tu_khoa" class="form-control neu-form-control" placeholder="Tìm theo mã tài sản, tên, vị trí, phòng ban..." value="{{ tu_khoa or '' }}">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="trang_thai" class="form-select neu-form-control" onchange="this.form.submit()">
+          <option value="">-- Tất cả trạng thái --</option>
+          <option value="cho_ban_giao" {% if trang_thai_chon == 'cho_ban_giao' %}selected{% endif %}>Trong kho (Chờ bàn giao)</option>
+          <option value="dang_su_dung" {% if trang_thai_chon == 'dang_su_dung' %}selected{% endif %}>Đang sử dụng</option>
+          <option value="dang_sua_chua" {% if trang_thai_chon == 'dang_sua_chua' %}selected{% endif %}>Đang sửa chữa/bảo trì</option>
+          <option value="cho_thanh_ly" {% if trang_thai_chon == 'cho_thanh_ly' %}selected{% endif %}>Chờ thanh lý</option>
+          <option value="da_thanh_ly" {% if trang_thai_chon == 'da_thanh_ly' %}selected{% endif %}>Đã thanh lý</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-neu-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
+        <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-outline-secondary">Đặt lại</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bảng tài sản -->
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-boxes-stacked me-2"></i> Danh mục tài sản ({{ tai_san_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã tài sản</th>
+            <th>Tên tài sản</th>
+            <th>Loại tài sản</th>
+            <th>Vị trí</th>
+            <th>Phòng ban</th>
+            <th>Người sử dụng</th>
+            <th>Giá trị</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if tai_san_list %}
+            {% for ts in tai_san_list %}
+            <tr>
+              <td><strong class="text-primary">{{ ts.ma_tai_san }}</strong></td>
+              <td><a href="{{ url_for('tai_san.chi_tiet', id=ts.id) }}" class="fw-bold text-dark text-decoration-none">{{ ts.ten_tai_san }}</a></td>
+              <td><span class="badge bg-light text-dark border">{{ ts.loai_tai_san or 'Chung' }}</span></td>
+              <td><i class="fa-solid fa-location-dot text-muted me-1 small"></i>{{ ts.vi_tri or '-' }}</td>
+              <td>{{ ts.phong_ban or '-' }}</td>
+              <td>
+                {% if ts.nguoi_su_dung_ten %}
+                  <span class="text-success"><i class="fa-solid fa-user me-1"></i>{{ ts.nguoi_su_dung_ten }}</span>
+                {% else %}
+                  <span class="text-muted small">Chưa bàn giao</span>
+                {% endif %}
+              </td>
+              <td class="fw-bold text-secondary">{{ ts.gia_tri | tien_vnd }}</td>
+              <td>
+                <span class="{{ ts.trang_thai | badge_trang_thai }}">{{ ts.trang_thai | ten_trang_thai }}</span>
+              </td>
+              <td class="text-end">
+                <a href="{{ url_for('tai_san.chi_tiet', id=ts.id) }}" class="btn btn-sm btn-neu-outline">
+                  <i class="fa-solid fa-eye me-1"></i> Xem
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-box-open fa-3x mb-2 d-block"></i> Không tìm thấy tài sản nào phù hợp.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

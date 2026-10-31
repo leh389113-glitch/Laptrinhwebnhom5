@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Lịch sử thanh toán - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> LỊCH SỬ THANH TOÁN MUA SẮM</h2>
+      <small class="text-muted">Tổng hợp tất cả các khoản chi tiêu cơ sở vật chất đã giải ngân thành công</small>
+    </div>
+    <div>
+      <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Đề nghị chờ thanh toán
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-receipt me-2"></i> Danh sách các khoản thanh toán</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Nội dung gói mua sắm</th>
+            <th>Đơn vị đề xuất</th>
+            <th>Số hóa đơn</th>
+            <th>Số tiền thanh toán</th>
+            <th>Phương thức</th>
+            <th>Người thực hiện</th>
+            <th>Thời gian</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if lich_su_list %}
+            {% for tt in lich_su_list %}
+            <tr>
+              <td><strong class="text-primary">{{ tt.ma_de_nghi }}</strong></td>
+              <td><strong>{{ tt.tieu_de }}</strong></td>
+              <td>{{ tt.don_vi_de_nghi }}</td>
+              <td><span class="badge bg-light text-dark border">{{ tt.so_hoa_don or 'Không có' }}</span></td>
+              <td class="text-success fw-bold">{{ tt.so_tien | tien_vnd }}</td>
+              <td>
+                {% if tt.phuong_thuc == 'chuyen_khoan' %}
+                  <span class="badge bg-info text-dark">Chuyển khoản</span>
+                {% else %}
+                  <span class="badge bg-secondary">Tiền mặt</span>
+                {% endif %}
+              </td>
+              <td>{{ tt.nguoi_thanh_toan_ten or '-' }}</td>
+              <td class="text-muted small">{{ tt.ngay_thanh_toan | dinh_dang_ngay }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i> Chưa có khoản thanh toán nào được ghi nhận.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

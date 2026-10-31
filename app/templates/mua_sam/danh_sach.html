@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Danh sách Đề nghị Mua sắm (M08) - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-cart-shopping text-primary me-2"></i> M08 - QUẢN LÝ ĐỀ NGHỊ MUA SẮM</h2>
+      <small class="text-muted">Theo dõi và quản lý quy trình mua sắm cơ sở vật chất toàn trường</small>
+    </div>
+    <div>
+      <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-neu-primary">
+        <i class="fa-solid fa-plus me-1"></i> Lập đề nghị mua sắm mới
+      </a>
+    </div>
+  </div>
+
+  <!-- Bộ lọc trạng thái -->
+  <div class="neu-card mb-3 p-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="fw-bold text-dark me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
+      <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-dark{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='cho_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_phe_duyet' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}">Chờ phê duyệt</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='da_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'da_phe_duyet' %}btn-info text-white{% else %}btn-outline-info{% endif %}">Đã phê duyệt</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='dang_mua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_mua' %}btn-primary{% else %}btn-outline-primary{% endif %}">Đang mua sắm</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='da_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'da_nhan' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Đã tiếp nhận</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='hoan_tat') }}" class="btn btn-sm {% if trang_thai_chon == 'hoan_tat' %}btn-success{% else %}btn-outline-success{% endif %}">Hoàn tất</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='tu_choi') }}" class="btn btn-sm {% if trang_thai_chon == 'tu_choi' %}btn-danger{% else %}btn-outline-danger{% endif %}">Từ chối</a>
+    </div>
+  </div>
+
+  <!-- Danh sách bảng -->
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-list-check me-2"></i> Danh sách đề nghị (Tổng: {{ de_nghi_list|length }})</span>
+      <a href="{{ url_for('mua_sam.ho_so') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-folder-open me-1"></i> Hồ sơ mua sắm</a>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Tiêu đề</th>
+            <th>Đơn vị đề nghị</th>
+            <th>Người đề nghị</th>
+            <th>Tổng dự toán</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th class="text-end">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if de_nghi_list %}
+            {% for dn in de_nghi_list %}
+            <tr>
+              <td><strong class="text-primary">{{ dn.ma_de_nghi }}</strong></td>
+              <td><a href="{{ url_for('mua_sam.chi_tiet', id=dn.id) }}" class="fw-bold text-dark text-decoration-none">{{ dn.tieu_de }}</a></td>
+              <td><span class="badge bg-light text-dark border">{{ dn.don_vi_de_nghi }}</span></td>
+              <td>{{ dn.nguoi_de_nghi_ten or '-' }}</td>
+              <td class="fw-bold text-danger">{{ dn.tong_du_toan | tien_vnd }}</td>
+              <td>
+                <span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span>
+              </td>
+              <td class="text-muted small">{{ dn.ngay_tao | dinh_dang_ngay }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('mua_sam.chi_tiet', id=dn.id) }}" class="btn btn-sm btn-neu-outline">
+                  <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i> Chưa có đề nghị mua sắm nào.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

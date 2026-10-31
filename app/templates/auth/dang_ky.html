@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Đăng ký tài khoản cán bộ - NEU{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-primary-neu text-center py-3">
+          <div class="w-100">
+            <h4 class="mb-1 text-white fw-bold">ĐĂNG KÝ TÀI KHOẢN CÁN BỘ</h4>
+            <small class="text-light opacity-75">HỆ THỐNG QUẢN LÝ CƠ SỞ VẬT CHẤT NEU</small>
+          </div>
+        </div>
+        <div class="neu-card-body p-4">
+
+          <form method="POST" action="{{ url_for('auth.dang_ky') }}">
+            <div class="mb-3">
+              <label class="neu-form-label">Họ và tên cán bộ <span class="text-danger">*</span></label>
+              <input type="text" name="ho_ten" class="form-control neu-form-control" placeholder="Ví dụ: Nguyễn Văn An" value="{{ du_lieu.ho_ten if du_lieu else '' }}" required autofocus>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Địa chỉ Email NEU <span class="text-danger">*</span></label>
+              <input type="email" name="email" class="form-control neu-form-control" placeholder="Ví dụ: an.nv@neu.edu.vn" value="{{ du_lieu.email if du_lieu else '' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Bộ phận chuyên môn / Vai trò công tác <span class="text-danger">*</span></label>
+              <select name="vai_tro" class="form-select neu-form-control" required>
+                <option value="mua_sam" {% if du_lieu and du_lieu.vai_tro == 'mua_sam' %}selected{% endif %}>Bộ phận Mua sắm (Truy cập Module M08)</option>
+                <option value="quan_ly_kho" {% if du_lieu and du_lieu.vai_tro == 'quan_ly_kho' %}selected{% endif %}>Bộ phận Quản lý kho (Truy cập Module M09)</option>
+                <option value="ke_toan" {% if du_lieu and du_lieu.vai_tro == 'ke_toan' %}selected{% endif %}>Kế toán thanh toán (Truy cập Module M08 Kế toán)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+              <input type="text" name="ten_dang_nhap" class="form-control neu-form-control" placeholder="Tối thiểu 3 ký tự" value="{{ du_lieu.ten_dang_nhap if du_lieu else '' }}" required>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="neu-form-label">Mật khẩu <span class="text-danger">*</span></label>
+                <input type="password" name="mat_khau" class="form-control neu-form-control" placeholder="Tối thiểu 6 ký tự" required>
+              </div>
+              <div class="col-md-6">
+                <label class="neu-form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                <input type="password" name="xac_nhan_mat_khau" class="form-control neu-form-control" placeholder="Nhập lại mật khẩu" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-neu-primary w-100 py-2 fw-bold mb-3">
+              <i class="fa-solid fa-user-plus me-1"></i> Tạo tài khoản cán bộ
+            </button>
+
+            <div class="text-center small text-muted">
+              Đã có tài khoản? <a href="{{ url_for('auth.dang_nhap') }}" class="text-primary fw-bold">Đăng nhập tại đây</a>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

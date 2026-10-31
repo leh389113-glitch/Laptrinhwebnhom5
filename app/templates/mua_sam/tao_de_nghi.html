@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Lập đề nghị mua sắm - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-file-circle-plus text-primary me-2"></i> LẬP ĐỀ NGHỊ MUA SẮM CƠ SỞ VẬT CHẤT</h2>
+      <small class="text-muted">Module M08 - Lập danh mục vật tư, thiết bị cần trang bị mới hoặc bổ sung</small>
+    </div>
+    <div>
+      <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('mua_sam.tao_de_nghi') }}" id="formDeNghi">
+    <div class="neu-card">
+      <div class="neu-card-header bg-primary-neu">
+        <span><i class="fa-solid fa-info-circle me-2"></i> Thông tin chung về đề nghị mua sắm</span>
+      </div>
+      <div class="neu-card-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="neu-form-label">Tiêu đề đề nghị mua sắm <span class="text-danger">*</span></label>
+            <input type="text" name="tieu_de" class="form-control neu-form-control" placeholder="Ví dụ: Đề nghị mua sắm máy chiếu và âm thanh cho phòng hội thảo A1-301" value="{{ du_lieu.tieu_de if du_lieu else '' }}" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="neu-form-label">Đơn vị / Khoa / Phòng ban đề nghị <span class="text-danger">*</span></label>
+            <input type="text" name="don_vi_de_nghi" class="form-control neu-form-control" placeholder="Ví dụ: Khoa Tin học Kinh tế" value="{{ du_lieu.don_vi_de_nghi if du_lieu else '' }}" required>
+          </div>
+
+          <div class="col-12">
+            <label class="neu-form-label">Mục đích và căn cứ đề xuất</label>
+            <textarea name="mo_ta" rows="2" class="form-control neu-form-control" placeholder="Nêu rõ lý do cần trang bị, phục vụ công tác giảng dạy, nghiên cứu hay quản lý...">{{ du_lieu.mo_ta if du_lieu else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách hạng mục hàng hóa động -->
+    <div class="neu-card">
+      <div class="neu-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-boxes-packing me-2"></i> Danh mục hàng hóa, thiết bị chi tiết <span class="text-danger">*</span></span>
+        <button type="button" class="btn btn-sm btn-neu-primary" id="btnThemHang">
+          <i class="fa-solid fa-plus me-1"></i> Thêm hạng mục
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="neu-table" id="bangHangHoa">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Tên hàng hóa, quy cách kỹ thuật <span class="text-danger">*</span></th>
+              <th style="width: 15%;">Đơn vị tính</th>
+              <th style="width: 12%;">Số lượng <span class="text-danger">*</span></th>
+              <th style="width: 18%;">Đơn giá dự kiến (VNĐ)</th>
+              <th style="width: 15%;">Thành tiền (VNĐ)</th>
+              <th style="width: 5%;" class="text-center">Xóa</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyHangHoa">
+            <tr>
+              <td>
+                <input type="text" name="ten_hang_hoa[]" class="form-control neu-form-control" placeholder="Tên thiết bị..." required>
+              </td>
+              <td>
+                <input type="text" name="don_vi_tinh[]" class="form-control neu-form-control" placeholder="Cái / Bộ / Chiếc" value="Bộ">
+              </td>
+              <td>
+                <input type="number" name="so_luong[]" class="form-control neu-form-control input-soluong" value="1" min="1" required>
+              </td>
+              <td>
+                <input type="number" name="don_gia_du_kien[]" class="form-control neu-form-control input-dongia" value="0" min="0" step="1000">
+              </td>
+              <td class="align-middle fw-bold text-danger cot-thanhtien">
+                0 đ
+              </td>
+              <td class="text-center align-middle">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" disabled><i class="fa-solid fa-trash"></i></button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="table-light">
+              <td colspan="4" class="text-end fw-bold fs-6">TỔNG CỘNG KINH PHÍ DỰ TOÁN:</td>
+              <td colspan="2" class="fw-bold fs-5 text-danger" id="tongKinhPhi">0 đ</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="neu-card-body text-end border-top">
+        <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+        <button type="submit" class="btn btn-neu-primary px-4">
+          <i class="fa-solid fa-paper-plane me-1"></i> Gửi đề nghị mua sắm
+        </button>
+      </div>
+    </div>
+  </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tbody = document.getElementById('tbodyHangHoa');
+  const btnThem = document.getElementById('btnThemHang');
+  const tongEl = document.getElementById('tongKinhPhi');
+
+  function tinhTong() {
+    let tong = 0;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(r => {
+      const sl = parseFloat(r.querySelector('.input-soluong').value) || 0;
+      const dg = parseFloat(r.querySelector('.input-dongia').value) || 0;
+      const tt = sl * dg;
+      r.querySelector('.cot-thanhtien').textContent = tt.toLocaleString('vi-VN') + ' đ';
+      tong += tt;
+    });
+    tongEl.textContent = tong.toLocaleString('vi-VN') + ' đ';
+  }
+
+  tbody.addEventListener('input', tinhTong);
+
+  btnThem.addEventListener('click', function() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" name="ten_hang_hoa[]" class="form-control neu-form-control" placeholder="Tên thiết bị..." required></td>
+      <td><input type="text" name="don_vi_tinh[]" class="form-control neu-form-control" placeholder="Cái / Bộ / Chiếc" value="Cái"></td>
+      <td><input type="number" name="so_luong[]" class="form-control neu-form-control input-soluong" value="1" min="1" required></td>
+      <td><input type="number" name="don_gia_du_kien[]" class="form-control neu-form-control input-dongia" value="0" min="0" step="1000"></td>
+      <td class="align-middle fw-bold text-danger cot-thanhtien">0 đ</td>
+      <td class="text-center align-middle">
+        <button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    capNhatNutXoa();
+  });
+
+  tbody.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-xoa-dong')) {
+      const tr = e.target.closest('tr');
+      if (tbody.querySelectorAll('tr').length > 1) {
+        tr.remove();
+        tinhTong();
+        capNhatNutXoa();
+      }
+    }
+  });
+
+  function capNhatNutXoa() {
+    const buttons = tbody.querySelectorAll('.btn-xoa-dong');
+    if (buttons.length <= 1) {
+      buttons[0].disabled = true;
+    } else {
+      buttons.forEach(b => b.disabled = false);
+    }
+  }
+
+  tinhTong();
+});
+</script>
+{% endblock %}
+

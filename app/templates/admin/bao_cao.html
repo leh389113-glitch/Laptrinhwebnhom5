@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo & Xuất dữ liệu M17 - Admin - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-file-excel text-success me-2"></i> M17 - BÁO CÁO TỔNG HỢP & XUẤT DỮ LIỆU</h2>
+      <small class="text-muted">Tổng hợp số liệu mua sắm, tài sản và hỗ trợ xuất file CSV tương thích Excel</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('admin.xuat_csv_mua_sam') }}" class="btn btn-outline-primary">
+        <i class="fa-solid fa-download me-1"></i> Xuất CSV Mua sắm
+      </a>
+      <a href="{{ url_for('admin.xuat_csv_tai_san') }}" class="btn btn-outline-success">
+        <i class="fa-solid fa-download me-1"></i> Xuất CSV Tài sản
+      </a>
+    </div>
+  </div>
+
+  <!-- Tabs báo cáo Mua sắm & Tài sản -->
+  <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active fw-bold text-primary" id="muasam-tab" data-bs-toggle="tab" data-bs-target="#muasam" type="button">
+        <i class="fa-solid fa-cart-shopping me-1"></i> Báo cáo Đề xuất Mua sắm ({{ ds_mua_sam|length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-bold text-success" id="taisan-tab" data-bs-toggle="tab" data-bs-target="#taisan" type="button">
+        <i class="fa-solid fa-boxes-stacked me-1"></i> Báo cáo Danh mục Tài sản ({{ ds_tai_san|length }})
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="reportTabsContent">
+    <!-- Tab 1: Mua sắm -->
+    <div class="tab-pane fade show active" id="muasam" role="tabpanel">
+      <div class="neu-card">
+        <div class="neu-card-header d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-table me-2"></i> Dữ liệu đề nghị mua sắm</span>
+          <a href="{{ url_for('admin.xuat_csv_mua_sam') }}" class="btn btn-sm btn-success">
+            <i class="fa-solid fa-file-csv me-1"></i> Tải tệp CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Mã đề nghị</th>
+                <th>Tiêu đề</th>
+                <th>Đơn vị</th>
+                <th>Người đề nghị</th>
+                <th>Tổng kinh phí</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dn in ds_mua_sam %}
+              <tr>
+                <td><strong class="text-primary">{{ dn.ma_de_nghi }}</strong></td>
+                <td>{{ dn.tieu_de }}</td>
+                <td>{{ dn.don_vi_de_nghi }}</td>
+                <td>{{ dn.nguoi_de_nghi_ten }}</td>
+                <td class="text-danger fw-bold">{{ dn.tong_du_toan | tien_vnd }}</td>
+                <td><span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span></td>
+                <td class="text-muted small">{{ dn.ngay_tao | dinh_dang_ngay }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Tài sản -->
+    <div class="tab-pane fade" id="taisan" role="tabpanel">
+      <div class="neu-card">
+        <div class="neu-card-header d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-table me-2"></i> Dữ liệu tài sản cơ sở vật chất</span>
+          <a href="{{ url_for('admin.xuat_csv_tai_san') }}" class="btn btn-sm btn-success">
+            <i class="fa-solid fa-file-csv me-1"></i> Tải tệp CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Mã tài sản</th>
+                <th>Tên tài sản</th>
+                <th>Vị trí</th>
+                <th>Phòng ban</th>
+                <th>Người sử dụng</th>
+                <th>Nguyên giá</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ts in ds_tai_san %}
+              <tr>
+                <td><strong class="text-primary">{{ ts.ma_tai_san }}</strong></td>
+                <td><strong>{{ ts.ten_tai_san }}</strong></td>
+                <td><i class="fa-solid fa-location-dot text-muted me-1"></i>{{ ts.vi_tri or '-' }}</td>
+                <td>{{ ts.phong_ban or '-' }}</td>
+                <td>{{ ts.nguoi_su_dung_ten or 'Trong kho' }}</td>
+                <td class="text-danger fw-bold">{{ ts.gia_tri | tien_vnd }}</td>
+                <td><span class="{{ ts.trang_thai | badge_trang_thai }}">{{ ts.trang_thai | ten_trang_thai }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

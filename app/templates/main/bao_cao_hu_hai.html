@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo hư hại cơ sở vật chất - NEU{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div class="neu-page-header">
+        <div>
+          <h2 class="neu-page-title"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> BÁO CÁO SỰ CỐ HƯ HẠI CƠ SỞ VẬT CHẤT</h2>
+          <small class="text-muted">Dành cho sinh viên, giảng viên, cán bộ và khách tới thăm trường</small>
+        </div>
+      </div>
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-danger text-white">
+          <span><i class="fa-solid fa-pen-to-square me-2"></i> Thông tin tiếp nhận phản ánh sự cố</span>
+        </div>
+        <div class="neu-card-body">
+          <p class="text-muted mb-4">
+            Nếu bạn phát hiện bàn ghế hư hỏng, bóng đèn cháy, điều hòa không mát, máy chiếu lỗi hoặc bất kỳ sự cố cơ sở vật chất nào tại các giảng đường (A1, B, C, D, Nhà văn hóa, Thư viện...), vui lòng điền thông tin bên dưới để Ban Quản trị Thiết bị kịp thời xử lý.
+          </p>
+
+          <form method="POST" action="{{ url_for('main.bao_cao_hu_hai') }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="neu-form-label">Họ và tên của bạn <span class="text-danger">*</span></label>
+                <input type="text" name="ho_ten" class="form-control neu-form-control" placeholder="Ví dụ: Nguyễn Văn An" value="{{ du_lieu.ho_ten if du_lieu else '' }}" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Số điện thoại hoặc Email liên hệ <span class="text-danger">*</span></label>
+                <input type="text" name="lien_he" class="form-control neu-form-control" placeholder="Ví dụ: 0912345678 hoặc an.nv@neu.edu.vn" value="{{ du_lieu.lien_he if du_lieu else '' }}" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Vị trí xảy ra hư hại (Phòng, Nhà...) <span class="text-danger">*</span></label>
+                <input type="text" name="vi_tri" class="form-control neu-form-control" placeholder="Ví dụ: Phòng A1-502, Tòa nhà A1" value="{{ du_lieu.vi_tri if du_lieu else '' }}" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ hư hại <span class="text-danger">*</span></label>
+                <select name="muc_do" class="form-select neu-form-control" required>
+                  <option value="nhe" {% if du_lieu and du_lieu.muc_do == 'nhe' %}selected{% endif %}>Nhẹ (Vẫn sử dụng tạm được)</option>
+                  <option value="trung_binh" {% if not du_lieu or du_lieu.muc_do == 'trung_binh' %}selected{% endif %}>Trung bình (Ảnh hưởng việc giảng dạy/học tập)</option>
+                  <option value="nghiem_trong" {% if du_lieu and du_lieu.muc_do == 'nghiem_trong' %}selected{% endif %}>Nghiêm trọng (Không thể sử dụng / Nguy hiểm)</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="neu-form-label">Tên thiết bị / Cơ sở vật chất bị hư hại <span class="text-danger">*</span></label>
+                <input type="text" name="ten_vat_chat" class="form-control neu-form-control" placeholder="Ví dụ: Máy chiếu Panasonic không lên nguồn, Quạt trần kêu to..." value="{{ du_lieu.ten_vat_chat if du_lieu else '' }}" required>
+              </div>
+
+              <div class="col-12">
+                <label class="neu-form-label">Thời gian phát hiện sự cố</label>
+                <input type="datetime-local" name="thoi_gian_phat_hien" class="form-control neu-form-control" value="{{ du_lieu.thoi_gian_phat_hien if du_lieu else '' }}">
+                <small class="text-muted">Để trống nếu sự cố vừa mới phát hiện.</small>
+              </div>
+
+              <div class="col-12">
+                <label class="neu-form-label">Mô tả chi tiết tình trạng</label>
+                <textarea name="mo_ta_chi_tiet" rows="4" class="form-control neu-form-control" placeholder="Vui lòng mô tả chi tiết hơn về sự cố, hiện tượng nhận biết...">{{ du_lieu.mo_ta_chi_tiet if du_lieu else '' }}</textarea>
+              </div>
+
+              <div class="col-12 mt-4 text-end">
+                <a href="{{ url_for('main.trang_chu') }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-neu-danger px-4">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Gửi thông tin báo cáo
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+

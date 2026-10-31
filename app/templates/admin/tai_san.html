@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Quản trị Tài sản - Admin - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i> QUẢN TRỊ TÀI SẢN & KHO (ADMIN)</h2>
+      <small class="text-muted">Tổng quan tình trạng trang thiết bị, phòng ban và điều chuyển tài sản</small>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-list me-2"></i> Danh mục toàn bộ cơ sở vật chất ({{ tai_san_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã tài sản</th>
+            <th>Tên tài sản</th>
+            <th>Vị trí</th>
+            <th>Phòng ban</th>
+            <th>Người quản lý</th>
+            <th>Nguyên giá</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if tai_san_list %}
+            {% for ts in tai_san_list %}
+            <tr>
+              <td><strong class="text-primary">{{ ts.ma_tai_san }}</strong></td>
+              <td><strong>{{ ts.ten_tai_san }}</strong></td>
+              <td><i class="fa-solid fa-location-dot text-muted me-1"></i>{{ ts.vi_tri or '-' }}</td>
+              <td>{{ ts.phong_ban or '-' }}</td>
+              <td>
+                {% if ts.nguoi_su_dung_ten %}
+                  <span class="text-success"><i class="fa-solid fa-user me-1"></i>{{ ts.nguoi_su_dung_ten }}</span>
+                {% else %}
+                  <span class="text-muted small">Trong kho</span>
+                {% endif %}
+              </td>
+              <td class="text-danger fw-bold">{{ ts.gia_tri | tien_vnd }}</td>
+              <td><span class="{{ ts.trang_thai | badge_trang_thai }}">{{ ts.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-end">
+                <a href="{{ url_for('tai_san.chi_tiet', id=ts.id) }}" class="btn btn-sm btn-neu-outline">
+                  <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">Chưa có tài sản nào trong hệ thống.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

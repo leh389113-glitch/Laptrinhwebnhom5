@@ -1,0 +1,415 @@
+/* ==========================================================================
+   HE THONG QUAN LY CO SO VAT CHAT - PHONG CACH GIAO DIEN DAI HOC KINH TE QUOC DAN (NEU)
+   ========================================================================== */
+
+:root {
+  --neu-navy: #002D62;
+  --neu-blue: #0B4F9C;
+  --neu-light-blue: #0072CE;
+  --neu-red: #C41230;
+  --neu-red-hover: #9E0D25;
+  --neu-gold: #F5A623;
+  --neu-bg: #F4F6F9;
+  --neu-card-bg: #FFFFFF;
+  --neu-text: #212529;
+  --neu-text-muted: #6C757D;
+  --neu-border: #E2E8F0;
+  --neu-shadow: 0 4px 12px rgba(0, 45, 98, 0.08);
+}
+
+body {
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--neu-bg);
+  color: var(--neu-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Topbar NEU */
+.neu-topbar {
+  background: var(--neu-navy);
+  color: #FFFFFF;
+  font-size: 0.875rem;
+  padding: 6px 0;
+  border-bottom: 2px solid var(--neu-red);
+}
+
+.neu-topbar a {
+  color: #E2E8F0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.neu-topbar a:hover {
+  color: #FFFFFF;
+}
+
+/* Navbar NEU */
+.neu-navbar {
+  background: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 10px 0;
+}
+
+.neu-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--neu-navy);
+}
+
+.neu-logo-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.neu-brand-text h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--neu-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.neu-brand-text small {
+  font-size: 0.8rem;
+  color: var(--neu-red);
+  font-weight: 600;
+  display: block;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 600;
+  color: var(--neu-navy) !important;
+  padding: 8px 14px !important;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  background: rgba(11, 79, 156, 0.08);
+  color: var(--neu-blue) !important;
+}
+
+.nav-link.btn-neu-danger {
+  background: var(--neu-red) !important;
+  color: #FFFFFF !important;
+  padding: 8px 16px !important;
+}
+
+.nav-link.btn-neu-danger:hover {
+  background: var(--neu-red-hover) !important;
+}
+
+/* Main Container */
+main.neu-main {
+  flex: 1 0 auto;
+  padding: 24px 0 48px;
+}
+
+/* Page Header & Breadcrumb */
+.neu-page-header {
+  background: #FFFFFF;
+  border-left: 5px solid var(--neu-blue);
+  padding: 16px 20px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  box-shadow: var(--neu-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.neu-page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--neu-navy);
+}
+
+/* Cards */
+.neu-card {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid var(--neu-border);
+  box-shadow: var(--neu-shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.neu-card-header {
+  background: #FFFFFF;
+  border-bottom: 2px solid #EDF2F7;
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--neu-navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.neu-card-header.bg-primary-neu {
+  background: linear-gradient(135deg, var(--neu-navy), var(--neu-blue));
+  color: #FFFFFF;
+  border: none;
+}
+
+.neu-card-body {
+  padding: 20px;
+}
+
+/* KPI Summary Cards */
+.neu-kpi-card {
+  border-radius: 8px;
+  padding: 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--neu-border);
+  box-shadow: var(--neu-shadow);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+
+.neu-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 45, 98, 0.12);
+}
+
+.neu-kpi-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.neu-kpi-info h3 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: var(--neu-navy);
+}
+
+.neu-kpi-info p {
+  margin: 0;
+  color: var(--neu-text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Buttons NEU */
+.btn-neu-primary {
+  background-color: var(--neu-blue);
+  border-color: var(--neu-blue);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 5px;
+  transition: all 0.2s;
+}
+
+.btn-neu-primary:hover {
+  background-color: var(--neu-navy);
+  border-color: var(--neu-navy);
+  color: #FFFFFF;
+}
+
+.btn-neu-danger {
+  background-color: var(--neu-red);
+  border-color: var(--neu-red);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 5px;
+}
+
+.btn-neu-danger:hover {
+  background-color: var(--neu-red-hover);
+  border-color: var(--neu-red-hover);
+  color: #FFFFFF;
+}
+
+.btn-neu-outline {
+  border: 2px solid var(--neu-blue);
+  color: var(--neu-blue);
+  background: transparent;
+  font-weight: 600;
+}
+
+.btn-neu-outline:hover {
+  background: var(--neu-blue);
+  color: #FFFFFF;
+}
+
+/* Forms NEU */
+.neu-form-label {
+  font-weight: 600;
+  color: var(--neu-navy);
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.neu-form-control {
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.neu-form-control:focus {
+  border-color: var(--neu-blue);
+  box-shadow: 0 0 0 3px rgba(11, 79, 156, 0.15);
+  outline: none;
+}
+
+/* Tables NEU */
+.neu-table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.neu-table thead th {
+  background-color: #F8FAFC;
+  color: var(--neu-navy);
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #E2E8F0;
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+.neu-table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #EDF2F7;
+  font-size: 0.95rem;
+}
+
+.neu-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+/* Badges */
+.badge-warning {
+  background-color: #FEF3C7;
+  color: #92400E;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-info {
+  background-color: #E0F2FE;
+  color: #0369A1;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-success {
+  background-color: #DCFCE7;
+  color: #166534;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-danger {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-secondary {
+  background-color: #F1F5F9;
+  color: #475569;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-primary {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.badge-dark {
+  background-color: #334155;
+  color: #FFFFFF;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+/* Footer NEU */
+.neu-footer {
+  background: var(--neu-navy);
+  color: #E2E8F0;
+  padding: 40px 0 20px;
+  margin-top: auto;
+  border-top: 4px solid var(--neu-red);
+}
+
+.neu-footer h5 {
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.neu-footer p, .neu-footer li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.neu-footer a {
+  color: #CBD5E1;
+  text-decoration: none;
+}
+
+.neu-footer a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.neu-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+  margin-top: 30px;
+  font-size: 0.85rem;
+  color: #94A3B8;
+  text-align: center;
+}

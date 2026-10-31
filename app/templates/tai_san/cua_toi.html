@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Tài sản được bàn giao của tôi - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-laptop-file text-primary me-2"></i> TÀI SẢN ĐƯỢC BÀN GIAO CHO TÔI</h2>
+      <small class="text-muted">Cán bộ / Giảng viên: <strong>{{ session.get('ho_ten') }}</strong></small>
+    </div>
+    <div>
+      <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-neu-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại thiết bị
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-list-check me-2"></i> Danh mục thiết bị đang trực tiếp quản lý, sử dụng ({{ tai_san_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã tài sản</th>
+            <th>Tên tài sản</th>
+            <th>Vị trí bố trí</th>
+            <th>Phòng ban</th>
+            <th>Giá trị sổ sách</th>
+            <th>Trạng thái</th>
+            <th>Ngày tiếp nhận</th>
+            <th class="text-end">Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if tai_san_list %}
+            {% for ts in tai_san_list %}
+            <tr>
+              <td><strong class="text-primary">{{ ts.ma_tai_san }}</strong></td>
+              <td><strong class="text-dark">{{ ts.ten_tai_san }}</strong></td>
+              <td><i class="fa-solid fa-location-dot text-muted me-1"></i>{{ ts.vi_tri or '-' }}</td>
+              <td>{{ ts.phong_ban or '-' }}</td>
+              <td>{{ ts.gia_tri | tien_vnd }}</td>
+              <td><span class="{{ ts.trang_thai | badge_trang_thai }}">{{ ts.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-muted small">{{ ts.ngay_tiep_nhan | dinh_dang_ngay }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('tai_san.chi_tiet', id=ts.id) }}" class="btn btn-sm btn-neu-outline">
+                  <i class="fa-solid fa-eye me-1"></i> Xem thông tin
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fa-3x mb-2 d-block"></i> Hiện tại chưa có tài sản nào được bàn giao cho bạn quản lý.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

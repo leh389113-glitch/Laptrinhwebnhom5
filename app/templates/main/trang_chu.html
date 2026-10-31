@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ - Cổng thông tin Quản lý Cơ sở Vật chất NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <!-- Hero Banner NEU -->
+  <div class="p-5 mb-4 rounded-3 text-white shadow-sm" style="background: linear-gradient(135deg, #002D62 0%, #0B4F9C 70%, #0072CE 100%); position: relative; overflow: hidden; border-bottom: 4px solid #C41230;">
+    <div style="position: absolute; right: -20px; bottom: -30px; opacity: 0.1; font-size: 16rem; font-weight: 900;">
+      NEU
+    </div>
+    <div class="position-relative" style="z-index: 1;">
+      <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase fw-bold" style="letter-spacing: 1px;">
+        Đại học Kinh tế Quốc dân - National Economics University
+      </span>
+      <h1 class="display-5 fw-bold mb-3">HỆ THỐNG QUẢN LÝ CƠ SỞ VẬT CHẤT</h1>
+      <p class="col-md-9 fs-5 text-light opacity-90 mb-4">
+        Số hóa toàn diện quy trình quản lý cơ sở vật chất từ khâu <strong>đề xuất mua sắm &rarr; phê duyệt &rarr; tiếp nhận nhập kho &rarr; bàn giao tài sản &rarr; kiểm kê, bảo trì &rarr; báo cáo thống kê</strong>.
+      </p>
+      <div class="d-flex flex-wrap gap-3">
+        <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
+        </a>
+        {% if not session.get('nguoi_dung_id') %}
+          <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+            <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập hệ thống
+          </a>
+          <a href="{{ url_for('auth.dang_ky') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">
+            <i class="fa-solid fa-user-plus me-2"></i> Đăng ký tài khoản
+          </a>
+        {% else %}
+          {% if session.get('vai_tro') == 'mua_sam' %}
+            <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+              <i class="fa-solid fa-cart-shopping me-2"></i> Phân hệ Mua sắm (M08)
+            </a>
+          {% elif session.get('vai_tro') == 'quan_ly_kho' %}
+            <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+              <i class="fa-solid fa-warehouse me-2"></i> Phân hệ Quản lý Kho & Tài sản (M09)
+            </a>
+          {% elif session.get('vai_tro') == 'ke_toan' %}
+            <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+              <i class="fa-solid fa-file-invoice-dollar me-2"></i> Phân hệ Kế toán
+            </a>
+          {% elif session.get('vai_tro') == 'quan_tri' %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+              <i class="fa-solid fa-shield-halved me-2"></i> Quản trị hệ thống (Admin)
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Thống kê nhanh nếu có -->
+  {% if thong_ke %}
+  <div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_de_nghi_cho_duyet }}</h3>
+          <p>Đề nghị chờ duyệt</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_tai_san_dang_su_dung }}</h3>
+          <p>Tài sản đang sử dụng</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8);">
+          <i class="fa-solid fa-money-bill-wave"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.chi_tieu_thang_nay | tien_vnd }}</h3>
+          <p>Chi tiêu tháng này</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #EF4444, #B91C1C);">
+          <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.so_bao_cao_chua_xu_ly }}</h3>
+          <p>Báo cáo hư hại chờ xử lý</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Các phân hệ chính -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary-neu">
+          <span><i class="fa-solid fa-cart-shopping me-2"></i> M08 - Mua sắm & Thanh toán</span>
+        </div>
+        <div class="neu-card-body d-flex flex-column">
+          <p class="text-muted">
+            Quản lý toàn bộ vòng đời của đề xuất mua sắm cơ sở vật chất từ khâu lập đề nghị, phê duyệt kinh phí, lập hồ sơ hợp đồng đến nghiệm thu tiếp nhận hàng hóa.
+          </p>
+          <ul class="list-unstyled text-secondary small mb-4">
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Lập đề nghị mua sắm điện tử</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Luồng phê duyệt phân cấp</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Tiếp nhận hàng tự động tạo tài sản</li>
+            <li><i class="fa-solid fa-check text-success me-1"></i> Kế toán thanh toán hóa đơn</li>
+          </ul>
+          <div class="mt-auto">
+            <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M08</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary-neu" style="background: linear-gradient(135deg, #0B4F9C, #0072CE);">
+          <span><i class="fa-solid fa-warehouse me-2"></i> M09 - Quản lý Kho & Tài sản</span>
+        </div>
+        <div class="neu-card-body d-flex flex-column">
+          <p class="text-muted">
+            Theo dõi danh mục tài sản, cấp mã tài sản tự động, quản lý biên bản bàn giao cho cán bộ/giảng viên, lịch sử sửa chữa, bảo trì và kiểm kê tài sản định kỳ.
+          </p>
+          <ul class="list-unstyled text-secondary small mb-4">
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Cấp mã tài sản chuẩn hóa</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Biên bản bàn giao tài sản</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Ghi nhận lịch sử bảo trì, sửa chữa</li>
+            <li><i class="fa-solid fa-check text-success me-1"></i> Phiếu kiểm kê định kỳ</li>
+          </ul>
+          <div class="mt-auto">
+            <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M09</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary-neu" style="background: linear-gradient(135deg, #1E293B, #0F172A);">
+          <span><i class="fa-solid fa-chart-pie me-2"></i> M17 - Báo cáo & Dashboard</span>
+        </div>
+        <div class="neu-card-body d-flex flex-column">
+          <p class="text-muted">
+            Trực quan hóa dữ liệu mua sắm và hiện trạng tài sản thông qua biểu đồ thông minh, hỗ trợ lãnh đạo trường ra quyết định đầu tư và phân bổ cơ sở vật chất hiệu quả.
+          </p>
+          <ul class="list-unstyled text-secondary small mb-4">
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Chỉ số KPI thời gian thực</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Biểu đồ cơ cấu tài sản & chi tiêu</li>
+            <li class="mb-1"><i class="fa-solid fa-check text-success me-1"></i> Xuất báo cáo Excel / CSV tiện lợi</li>
+            <li><i class="fa-solid fa-check text-success me-1"></i> Giám sát xử lý sự cố hư hại</li>
+          </ul>
+          <div class="mt-auto">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-neu-primary w-100">Truy cập Dashboard M17</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

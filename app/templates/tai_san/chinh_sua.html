@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Chỉnh sửa tài sản {{ tai_san.ma_tai_san }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> CHỈNH SỬA THÔNG TIN TÀI SẢN</h2>
+      <small class="text-muted">Mã tài sản: {{ tai_san.ma_tai_san }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('tai_san.chi_tiet', id=tai_san.id) }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại chi tiết
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div class="neu-card">
+        <div class="neu-card-header bg-primary-neu">
+          <span><i class="fa-solid fa-sliders me-2"></i> Cập nhật thông số và vị trí tài sản</span>
+        </div>
+        <div class="neu-card-body">
+
+          <form method="POST" action="{{ url_for('tai_san.chinh_sua', id=tai_san.id) }}">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="neu-form-label">Tên tài sản / Thiết bị <span class="text-danger">*</span></label>
+                <input type="text" name="ten_tai_san" class="form-control neu-form-control" value="{{ tai_san.ten_tai_san }}" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="neu-form-label">Loại tài sản</label>
+                <input type="text" name="loai_tai_san" class="form-control neu-form-control" value="{{ tai_san.loai_tai_san or '' }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Vị trí bố trí (Phòng, Tòa nhà)</label>
+                <input type="text" name="vi_tri" class="form-control neu-form-control" value="{{ tai_san.vi_tri or '' }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Phòng ban / Khoa quản lý</label>
+                <input type="text" name="phong_ban" class="form-control neu-form-control" value="{{ tai_san.phong_ban or '' }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="neu-form-label">Giá trị tài sản (VNĐ)</label>
+                <input type="number" name="gia_tri" class="form-control neu-form-control" value="{{ tai_san.gia_tri or 0 }}">
+              </div>
+
+              <div class="col-12">
+                <label class="neu-form-label">Mô tả chi tiết / Thông số kỹ thuật</label>
+                <textarea name="mo_ta" rows="4" class="form-control neu-form-control">{{ tai_san.mo_ta or '' }}</textarea>
+              </div>
+
+              <div class="col-12 mt-4 text-end">
+                <a href="{{ url_for('tai_san.chi_tiet', id=tai_san.id) }}" class="btn btn-outline-secondary me-2">Hủy</a>
+                <button type="submit" class="btn btn-neu-primary px-4 fw-bold">
+                  <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

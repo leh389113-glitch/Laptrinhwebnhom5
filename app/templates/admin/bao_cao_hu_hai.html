@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Xử lý Báo cáo hư hại - Admin - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> QUẢN LÝ BÁO CÁO HƯ HẠI CƠ SỞ VẬT CHẤT</h2>
+      <small class="text-muted">Tiếp nhận và điều phối kỹ thuật xử lý các phản ánh sự cố từ sinh viên và giảng viên</small>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-danger text-white">
+      <span><i class="fa-solid fa-bell me-2"></i> Danh sách sự cố phản ánh (Tổng: {{ bao_cao_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Thời gian</th>
+            <th>Người báo cáo</th>
+            <th>Liên hệ</th>
+            <th>Vị trí sự cố</th>
+            <th>Vật chất / Thiết bị hư hại</th>
+            <th>Mức độ</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Cập nhật xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if bao_cao_list %}
+            {% for bc in bao_cao_list %}
+            <tr>
+              <td class="small text-muted">{{ bc.ngay_tao | dinh_dang_ngay }}</td>
+              <td><strong>{{ bc.ho_ten }}</strong></td>
+              <td><span class="small text-primary">{{ bc.lien_he }}</span></td>
+              <td><span class="badge bg-light text-dark border"><i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ bc.vi_tri }}</span></td>
+              <td>
+                <strong class="text-dark">{{ bc.ten_vat_chat }}</strong>
+                {% if bc.mo_ta_chi_tiet %}<div class="small text-muted">{{ bc.mo_ta_chi_tiet }}</div>{% endif %}
+              </td>
+              <td><span class="{{ bc.muc_do | badge_trang_thai }}">{{ bc.muc_do | ten_trang_thai }}</span></td>
+              <td><span class="{{ bc.trang_thai | badge_trang_thai }}">{{ bc.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-end">
+                <form method="POST" action="{{ url_for('admin.xu_ly_bao_cao_hu_hai', id=bc.id) }}" class="d-inline-flex gap-1">
+                  <select name="trang_thai" class="form-select form-select-sm neu-form-control" style="width: auto;">
+                    <option value="chua_xu_ly" {% if bc.trang_thai == 'chua_xu_ly' %}selected{% endif %}>Chưa xử lý</option>
+                    <option value="dang_xu_ly" {% if bc.trang_thai == 'dang_xu_ly' %}selected{% endif %}>Đang xử lý</option>
+                    <option value="da_xu_ly" {% if bc.trang_thai == 'da_xu_ly' %}selected{% endif %}>Đã xử lý xong</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-circle-check fa-2x text-success mb-2 d-block"></i> Không có sự cố hư hại nào chưa xử lý!
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

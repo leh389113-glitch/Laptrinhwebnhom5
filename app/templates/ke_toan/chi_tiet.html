@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Xác nhận thanh toán - {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-receipt text-warning me-2"></i> XÁC NHẬN THANH TOÁN GÓI MUA SẮM</h2>
+      <small class="text-muted">Đề nghị: {{ de_nghi.ma_de_nghi }} - {{ de_nghi.tieu_de }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Tóm tắt đề nghị & Hàng hóa -->
+    <div class="col-lg-7">
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-list-check me-2"></i> Danh sách thiết bị đã tiếp nhận tại kho</span>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Thiết bị</th>
+                <th>ĐVT</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in de_nghi['items'] %}
+              <tr>
+                <td><strong>{{ it.ten_hang_hoa }}</strong></td>
+                <td>{{ it.don_vi_tinh }}</td>
+                <td class="text-center">{{ it.so_luong }}</td>
+                <td class="text-end">{{ it.don_gia_du_kien | tien_vnd }}</td>
+                <td class="text-end text-danger fw-bold">{{ it.thanh_tien | tien_vnd }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-light">
+                <td colspan="4" class="text-end fw-bold">TỔNG KINH PHÍ QUYẾT TOÁN:</td>
+                <td class="text-end text-danger fw-bold fs-6">{{ de_nghi.tong_du_toan | tien_vnd }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Form thực hiện thanh toán -->
+    <div class="col-lg-5">
+      <div class="neu-card">
+        <div class="neu-card-header bg-warning text-dark">
+          <span><i class="fa-solid fa-money-check-dollar me-2"></i> Thủ tục kế toán thanh toán</span>
+        </div>
+        <div class="neu-card-body">
+          
+          <form method="POST" action="{{ url_for('ke_toan.thanh_toan', id=de_nghi.id) }}">
+            <div class="mb-3">
+              <label class="neu-form-label">Số tiền thực thanh toán (VNĐ) <span class="text-danger">*</span></label>
+              <input type="number" name="so_tien" class="form-control neu-form-control fw-bold text-danger fs-5" value="{{ de_nghi.tong_du_toan }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Số hóa đơn tài chính / Chứng từ</label>
+              <input type="text" name="so_hoa_don" class="form-control neu-form-control" placeholder="Ví dụ: HD-0012984" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Phương thức thanh toán <span class="text-danger">*</span></label>
+              <select name="phuong_thuc" class="form-select neu-form-control">
+                <option value="chuyen_khoan" selected>Chuyển khoản qua Kho bạc / Ngân hàng</option>
+                <option value="tien_mat">Tiền mặt</option>
+                <option value="khac">Khác</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="neu-form-label">Ghi chú thanh toán</label>
+              <textarea name="ghi_chu" rows="3" class="form-control neu-form-control" placeholder="Ghi chú số tài khoản chuyển tiền, đợt thanh toán..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2">
+              <i class="fa-solid fa-check-circle me-1"></i> Xác nhận đã thanh toán xong
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

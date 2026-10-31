@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Tiếp nhận hàng hóa - {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-boxes-packing text-success me-2"></i> TIẾP NHẬN HÀNG HÓA NHẬP KHO</h2>
+      <small class="text-muted">Theo đề nghị mua sắm: {{ de_nghi.ma_de_nghi }} - {{ de_nghi.tieu_de }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('mua_sam.chi_tiet', id=de_nghi.id) }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <div class="alert alert-info border-info mb-4">
+        <h6 class="alert-heading fw-bold"><i class="fa-solid fa-circle-info me-2"></i> Quy tắc tích hợp liên module tự động (M08 &rarr; M09):</h6>
+        <p class="mb-0 small">
+          Khi xác nhận tiếp nhận hàng hóa, hệ thống sẽ <strong>tự động sinh mã tài sản (TS-YYYYMMDD-XXX)</strong> cho từng danh mục thiết bị và ghi nhận ngay vào phân hệ <strong>M09 - Quản lý Tài sản & Kho</strong> với trạng thái <em>Trong kho (Chờ bàn giao)</em>. Đề nghị mua sắm sẽ chuyển sang trạng thái <em>Đã tiếp nhận hàng</em> để chuyển tiếp cho phòng Kế toán thanh toán.
+        </p>
+      </div>
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-success text-white">
+          <span><i class="fa-solid fa-clipboard-check me-2"></i> Danh mục hàng hóa bàn giao từ nhà cung cấp</span>
+        </div>
+        <div class="neu-card-body">
+          
+          <table class="neu-table mb-4">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên hàng hóa, thiết bị</th>
+                <th>ĐVT</th>
+                <th class="text-center">Số lượng đề xuất</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in de_nghi['items'] %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ it.ten_hang_hoa }}</strong></td>
+                <td>{{ it.don_vi_tinh }}</td>
+                <td class="text-center fw-bold">{{ it.so_luong }}</td>
+                <td class="text-end">{{ it.don_gia_du_kien | tien_vnd }}</td>
+                <td class="text-end text-danger fw-bold">{{ it.thanh_tien | tien_vnd }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <form method="POST" action="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="neu-form-label">Tên nhà cung cấp / Đơn vị giao hàng</label>
+                <input type="text" name="nha_cung_cap" class="form-control neu-form-control" placeholder="Ví dụ: Công ty Thiết bị Giáo dục Hà Nội">
+              </div>
+              <div class="col-md-6">
+                <label class="neu-form-label">Số biên bản giao nhận / Hóa đơn đính kèm</label>
+                <input type="text" name="so_hop_dong" class="form-control neu-form-control" placeholder="Ví dụ: BBGN-2026/01">
+              </div>
+              <div class="col-12">
+                <label class="neu-form-label">Ghi chú tình trạng khi nhận hàng</label>
+                <textarea name="ghi_chu" rows="3" class="form-control neu-form-control" placeholder="Ghi nhận tình trạng ngoại quan, tem bảo hành, số lượng nguyên đai nguyên kiện..."></textarea>
+              </div>
+              <div class="col-12 text-end mt-4">
+                <a href="{{ url_for('mua_sam.chi_tiet', id=de_nghi.id) }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-success px-4 fw-bold">
+                  <i class="fa-solid fa-check-double me-1"></i> Xác nhận tiếp nhận & Cấp mã tài sản vào kho
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
