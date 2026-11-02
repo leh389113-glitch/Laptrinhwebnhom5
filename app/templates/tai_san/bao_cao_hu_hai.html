@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Xử lý Báo cáo Sự cố & Hư hại - Bộ phận Quản lý tài sản - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title">
+        <i class="fa-solid fa-screwdriver-wrench text-primary me-2"></i> TIẾP NHẬN & XỬ LÝ SỰ CỐ HƯ HẠI VẬT CHẤT
+      </h2>
+      <small class="text-muted">Nghiệp vụ M09: Tiếp nhận phản ánh &rarr; Xác minh hiện trường &rarr; Đánh giá sửa chữa hoặc đề xuất mua sắm thay thế</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Danh mục tài sản
+      </a>
+      <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-neu-primary">
+        <i class="fa-solid fa-cart-plus me-1"></i> Tạo yêu cầu mua sắm mới
+      </a>
+    </div>
+  </div>
+
+  <!-- Hướng dẫn quy trình xử lý theo Yêu cầu 1.docx -->
+  <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
+    <i class="fa-solid fa-circle-info fs-3 me-3 text-primary"></i>
+    <div>
+      <strong>Quy trình xử lý hư hại & mua sắm thay thế (Chuẩn nghiệp vụ):</strong>
+      <div class="small mt-1 text-secondary">
+        1. <strong>Sửa chữa được:</strong> Xác minh hiện trạng &rarr; Chuyển sang bảo dưỡng/sửa chữa &rarr; Kiểm tra hoàn tất.<br>
+        2. <strong>Cần thay thế:</strong> Lập biên bản đánh giá hư hỏng không thể phục hồi &rarr; Bấm nút <em>"Tạo yêu cầu thay thế (M08)"</em> để chuyển sang Bộ phận Mua sắm.
+      </div>
+    </div>
+  </div>
+
+  <!-- Bộ lọc trạng thái -->
+  <div class="neu-card mb-3 p-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="fw-bold text-dark me-2"><i class="fa-solid fa-filter me-1"></i> Lọc trạng thái:</span>
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-dark{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai', trang_thai='chua_xu_ly') }}" class="btn btn-sm {% if trang_thai_chon == 'chua_xu_ly' %}btn-danger{% else %}btn-outline-danger{% endif %}">Chưa xử lý</a>
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai', trang_thai='dang_sua_chua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_sua_chua' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}">Đang sửa chữa</a>
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai', trang_thai='can_thay_the') }}" class="btn btn-sm {% if trang_thai_chon == 'can_thay_the' %}btn-danger{% else %}btn-outline-danger{% endif %}">Cần thay thế (M08)</a>
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai', trang_thai='da_xu_ly') }}" class="btn btn-sm {% if trang_thai_chon == 'da_xu_ly' %}btn-success{% else %}btn-outline-success{% endif %}">Đã hoàn thành</a>
+    </div>
+  </div>
+
+  <!-- Bảng danh sách báo cáo hư hại -->
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-list-check me-2"></i> Danh sách sự cố hư hại tiếp nhận từ người dùng ({{ bao_cao_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vị trí sự cố</th>
+            <th>Thiết bị hư hại</th>
+            <th>Người gửi & Liên hệ</th>
+            <th>Mức độ</th>
+            <th>Mô tả chi tiết</th>
+            <th>Trạng thái</th>
+            <th class="text-end" style="min-width: 250px;">Đánh giá & Xử lý (Quản lý tài sản)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if bao_cao_list %}
+            {% for bc in bao_cao_list %}
+            <tr>
+              <td><strong>#{{ bc.id }}</strong></td>
+              <td><i class="fa-solid fa-location-dot text-danger me-1"></i><strong>{{ bc.vi_tri }}</strong></td>
+              <td><strong class="text-dark">{{ bc.ten_vat_chat }}</strong></td>
+              <td>
+                <div>{{ bc.ho_ten }}</div>
+                <small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ bc.lien_he }}</small>
+              </td>
+              <td><span class="{{ bc.muc_do | badge_trang_thai }}">{{ bc.muc_do | ten_trang_thai }}</span></td>
+              <td class="small text-secondary">{{ bc.mo_ta_chi_tiet or '-' }}</td>
+              <td><span class="{{ bc.trang_thai | badge_trang_thai }}">{{ bc.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-end">
+                {% if session.get('vai_tro') == 'quan_ly_kho' %}
+                  <div class="btn-group btn-group-sm">
+                    <!-- Phương án 1: Sửa chữa được -->
+                    {% if bc.trang_thai != 'da_xu_ly' and bc.trang_thai != 'dang_sua_chua' %}
+                    <form method="POST" action="{{ url_for('tai_san.xu_ly_hu_hai', id=bc.id) }}" class="d-inline">
+                      <input type="hidden" name="phuong_an" value="sua_chua">
+                      <button type="submit" class="btn btn-warning text-dark fw-bold btn-sm" title="Xác minh có thể sửa chữa">
+                        <i class="fa-solid fa-wrench me-1"></i> Sửa chữa
+                      </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- Phương án 2: Cần thay thế -> chuyển M08 -->
+                    {% if bc.trang_thai != 'da_xu_ly' and bc.trang_thai != 'can_thay_the' %}
+                    <form method="POST" action="{{ url_for('tai_san.tao_mua_sam_thay_the', id=bc.id) }}" class="d-inline ms-1" onsubmit="return confirm('Xác nhận lập đề xuất mua sắm thay thế chuyển sang Bộ phận Mua sắm (M08)?');">
+                      <button type="submit" class="btn btn-outline-danger btn-sm" title="Lập biên bản hư hỏng và tạo yêu cầu mua sắm thay thế">
+                        <i class="fa-solid fa-cart-plus me-1"></i> Thay thế (M08)
+                      </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- Hoàn tất xử lý -->
+                    {% if bc.trang_thai != 'da_xu_ly' %}
+                    <form method="POST" action="{{ url_for('tai_san.xu_ly_hu_hai', id=bc.id) }}" class="d-inline ms-1">
+                      <input type="hidden" name="phuong_an" value="da_xu_ly">
+                      <button type="submit" class="btn btn-success btn-sm" title="Xác nhận đã khắc phục xong">
+                        <i class="fa-solid fa-check me-1"></i> Xong
+                      </button>
+                    </form>
+                    {% else %}
+                    <span class="text-success small fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Đã khắc phục xong</span>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <span class="text-muted small">Chế độ xem giám sát</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-circle-check fs-2 text-success d-block mb-2"></i>
+                Hiện tại không có sự cố hư hại nào cần xử lý.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

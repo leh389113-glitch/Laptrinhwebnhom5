@@ -26,10 +26,10 @@ Hệ thống được thiết kế với **4 nhóm tài khoản phân quyền đ
 | Nhóm tài khoản | Mã vai trò | Phân hệ được phép truy cập | Chức năng chính |
 |---|---|---|---|
 | **Khách / Sinh viên / Giảng viên** | *(Công khai)* | Trang chủ, Báo cáo hư hại | Gửi phản ánh hỏng hóc thiết bị, bàn ghế, quạt, máy chiếu mà **không cần đăng nhập** |
-| **Bộ phận Mua sắm** | `mua_sam` | M08 — Mua sắm (`/mua-sam/`) | Lập đề nghị mua sắm động, theo dõi tiến độ phê duyệt, quản lý hồ sơ mua sắm |
-| **Bộ phận Quản lý kho** | `quan_ly_kho` | M09 — Kho & Tài sản (`/tai-san/`) | Tiếp nhận hàng hóa vào kho (tự động cấp mã `TS-YYYYMMDD-XXX`), biên bản bàn giao, ghi nhận bảo trì, lập phiếu kiểm kê |
+| **Bộ phận Mua sắm** | `mua_sam` | M08 — Mua sắm (`/mua-sam/`) | Lập đề nghị mua sắm, quản lý hồ sơ chào hàng; Trưởng BP Mua sắm phê duyệt các gói < 100 triệu |
+| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | M09 — Quản lý tài sản (`/tai-san/`) | Tiếp nhận hàng hóa vào kho (tự động cấp mã `TS-YYYYMMDD-XXX`), biên bản bàn giao, ghi nhận bảo trì, lập phiếu kiểm kê; Tiếp nhận phản ánh hư hại công khai, kiểm tra thực tế, lập phương án sửa chữa hoặc đề xuất mua sắm thay thế chuyển M08 |
 | **Kế toán** | `ke_toan` | M08 — Kế toán (`/ke-toan/`) | Xem các gói mua sắm đã nhận hàng tại kho, thực hiện thanh toán hóa đơn, xem lịch sử giải ngân |
-| **Quản trị viên (Admin)** | `quan_tri` | Toàn quyền (Admin, M08, M09, M17) | Phê duyệt/từ chối đề nghị, điều phối xử lý báo cáo hư hại, xem Dashboard KPI và biểu đồ M17, quản lý tài khoản & phân quyền |
+| **Quản trị viên (Admin)** | `quan_tri` | Giám sát toàn hệ thống & Phê duyệt | **Admin chỉ có quyền duyệt và giám sát**: Phê duyệt đề nghị mua sắm (bắt buộc duyệt các gói ≥ 100 triệu), quản trị tài khoản; đối với các tác nghiệp khác (tiếp nhận hàng, bàn giao, thanh toán, xử lý hư hại) Admin chỉ có quyền xem (giám sát) |
 
 ---
 
@@ -56,7 +56,7 @@ Web quản lý cơ sở vật chất/
 │   │   ├── auth.py              # Đăng nhập, đăng ký, đăng xuất
 │   │   ├── mua_sam.py           # Blueprint M08 Bộ phận Mua sắm
 │   │   ├── ke_toan.py           # Blueprint M08 Kế toán
-│   │   ├── tai_san.py           # Blueprint M09 Quản lý Kho & Tài sản
+│   │   ├── tai_san.py           # Blueprint M09 Quản lý tài sản
 │   │   └── admin.py             # Blueprint Admin Dashboard & Báo cáo M17
 │   ├── templates/               # Giao diện HTML Jinja2 (Phong cách NEU)
 │   │   ├── base.html            # Layout master (Header, Navbar, Footer NEU)
@@ -120,7 +120,7 @@ Website sẽ chạy tại địa chỉ: **[http://127.0.0.1:5000](http://127.0.0
 |:---:|---|:---:|:---:|---|
 | **1** | **Quản trị viên (Admin)** | `admin` | `admin123` | Phê duyệt/từ chối đề xuất, xem Dashboard KPI M17, xuất báo cáo CSV, điều chuyển phân quyền |
 | **2** | **Bộ phận Mua sắm** | `cb_muasam` | `password123` | Lập đề nghị mua sắm M08 (thêm động các dòng vật tư, tự động tính tổng tiền), theo dõi tiến độ |
-| **3** | **Bộ phận Quản lý kho** | `cb_kho` | `password123` | Tiếp nhận hàng nhập kho (tự động tạo mã `TS-...`), bàn giao tài sản, ghi nhận bảo trì, tạo phiếu kiểm kê M09 |
+| **3** | **Bộ phận Quản lý tài sản** | `cb_kho` | `password123` | Tiếp nhận hàng nhập kho (tự động tạo mã `TS-...`), bàn giao tài sản, ghi nhận bảo trì, tạo phiếu kiểm kê M09 |
 | **4** | **Kế toán** | `cb_ketoan` | `password123` | Xem các gói đề xuất đã nhận hàng, ghi nhận thanh toán hóa đơn M08 |
 | **5** | **Khách / Sinh viên** | *(Không cần đăng nhập)* | *(Trống)* | Truy cập trang chủ, nhấn nút đỏ **"Báo cáo hư hại"** để gửi sự cố hỏng hóc |
 
@@ -128,7 +128,7 @@ Website sẽ chạy tại địa chỉ: **[http://127.0.0.1:5000](http://127.0.0
 
 ## 🧪 6. Chạy kiểm thử tự động (Unit Tests)
 
-Dự án đi kèm bộ test suite toàn diện với **19 kịch bản kiểm thử độc lập**:
+Dự án đi kèm bộ test suite toàn diện với **20 kịch bản kiểm thử độc lập**:
 ```bash
 # Chạy toàn bộ test suite
 pytest

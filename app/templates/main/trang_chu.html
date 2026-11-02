@@ -17,10 +17,10 @@
         Số hóa toàn diện quy trình quản lý cơ sở vật chất từ khâu <strong>đề xuất mua sắm &rarr; phê duyệt &rarr; tiếp nhận nhập kho &rarr; bàn giao tài sản &rarr; kiểm kê, bảo trì &rarr; báo cáo thống kê</strong>.
       </p>
       <div class="d-flex flex-wrap gap-3">
-        <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
-          <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
-        </a>
         {% if not session.get('nguoi_dung_id') %}
+          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
+          </a>
           <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
             <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập hệ thống
           </a>
@@ -34,7 +34,7 @@
             </a>
           {% elif session.get('vai_tro') == 'quan_ly_kho' %}
             <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
-              <i class="fa-solid fa-warehouse me-2"></i> Phân hệ Quản lý Kho & Tài sản (M09)
+              <i class="fa-solid fa-warehouse me-2"></i> Phân hệ Quản lý tài sản (M09)
             </a>
           {% elif session.get('vai_tro') == 'ke_toan' %}
             <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
@@ -127,7 +127,7 @@
     <div class="col-md-4">
       <div class="neu-card h-100">
         <div class="neu-card-header bg-primary-neu" style="background: linear-gradient(135deg, #0B4F9C, #0072CE);">
-          <span><i class="fa-solid fa-warehouse me-2"></i> M09 - Quản lý Kho & Tài sản</span>
+          <span><i class="fa-solid fa-warehouse me-2"></i> M09 - Quản lý tài sản</span>
         </div>
         <div class="neu-card-body d-flex flex-column">
           <p class="text-muted">

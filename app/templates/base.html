@@ -61,8 +61,19 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('mua_sam.danh_sach') }}"><i class="fa-solid fa-cart-shopping me-1"></i> M08 - Mua sắm</a></li>
           {% endif %}
 
-          {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Kho & Tài sản</a></li>
+          {% if session.get('vai_tro') == 'quan_ly_kho' %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-warehouse me-1"></i> M09 - Quản lý tài sản
+              </a>
+              <ul class="dropdown-menu shadow border-0">
+                <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Danh mục tài sản</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach_hu_hai') }}"><i class="fa-solid fa-screwdriver-wrench me-2 text-danger"></i> Xử lý Báo cáo hư hại</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('tai_san.kiem_ke') }}"><i class="fa-solid fa-clipboard-check me-2 text-success"></i> Kiểm kê tài sản</a></li>
+              </ul>
+            </li>
+          {% elif session.get('vai_tro') == 'quan_tri' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Quản lý tài sản</a></li>
           {% endif %}
 
           {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] %}
@@ -77,18 +88,13 @@
               <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                 <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fa-solid fa-chart-line me-2 text-primary"></i> Dashboard M17</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('admin.bao_cao') }}"><i class="fa-solid fa-file-excel me-2 text-success"></i> Báo cáo & Xuất CSV</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('admin.bao_cao_hu_hai') }}"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Xử lý Báo cáo hư hại</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin.mua_sam') }}"><i class="fa-solid fa-stamp me-2 text-primary"></i> Duyệt Đề nghị Mua sắm (M08)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin.bao_cao_hu_hai') }}"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Giám sát Báo cáo hư hại</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="{{ url_for('admin.tai_khoan') }}"><i class="fa-solid fa-users-gear me-2 text-secondary"></i> Quản lý Tài khoản</a></li>
               </ul>
             </li>
           {% endif %}
-
-          <li class="nav-item ms-lg-2">
-            <a class="nav-link btn-neu-danger rounded" href="{{ url_for('main.bao_cao_hu_hai') }}">
-              <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại
-            </a>
-          </li>
         </ul>
       </div>
     </div>
@@ -130,16 +136,14 @@
         <div class="col-lg-3 col-md-6">
           <h5>QUY TRÌNH QUẢN LÝ CSVC</h5>
           <ul class="list-unstyled">
-            <li class="mb-2"><a href="{{ url_for('main.bao_cao_hu_hai') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo sự cố hư hại</a></li>
             <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Đề nghị mua sắm (M08)</a></li>
-            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý kho & tài sản (M09)</a></li>
+            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý tài sản (M09)</a></li>
             <li><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo thống kê (M17)</a></li>
           </ul>
         </div>
         <div class="col-lg-4 col-md-12">
           <h5>HỖ TRỢ TRỰC TUYẾN</h5>
           <p>Hệ thống hỗ trợ tiếp nhận mọi phản ánh về tình trạng hư hại tài sản, bàn ghế, thiết bị máy chiếu, điều hòa trong toàn bộ khuôn viên giảng đường NEU 24/7.</p>
-          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu sửa chữa ngay</a>
         </div>
       </div>
       <div class="neu-footer-bottom">

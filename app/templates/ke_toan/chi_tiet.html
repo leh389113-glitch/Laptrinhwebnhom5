@@ -63,6 +63,7 @@
         </div>
         <div class="neu-card-body">
           
+          {% if session.get('vai_tro') == 'ke_toan' %}
           <form method="POST" action="{{ url_for('ke_toan.thanh_toan', id=de_nghi.id) }}">
             <div class="mb-3">
               <label class="neu-form-label">Số tiền thực thanh toán (VNĐ) <span class="text-danger">*</span></label>
@@ -92,6 +93,13 @@
               <i class="fa-solid fa-check-circle me-1"></i> Xác nhận đã thanh toán xong
             </button>
           </form>
+          {% else %}
+          <div class="alert alert-info border-0 p-3 mb-0">
+            <i class="fa-solid fa-circle-info fs-4 text-primary d-block mb-2"></i>
+            <strong>Chế độ giám sát của Lãnh đạo / Admin:</strong>
+            <p class="small text-secondary mt-1 mb-0">Admin có quyền kiểm tra, xem chứng từ và tiến độ thanh toán của hồ sơ. Thao tác ghi nhận giải ngân thực tế do Cán bộ Kế toán thực hiện.</p>
+          </div>
+          {% endif %}
 
         </div>
       </div>

@@ -14,7 +14,8 @@ def test_ke_toan_thanh_toan_thanh_cong(client, auth):
     auth.login(vai_tro="quan_tri")
     client.post("/mua-sam/de-nghi/1/phe-duyet", data={})
 
-    auth.login(vai_tro="mua_sam")
+    # Tiếp nhận hàng hóa vào kho là trách nhiệm của Quản lý tài sản
+    auth.login(vai_tro="quan_ly_kho")
     client.post("/mua-sam/de-nghi/1/tiep-nhan", data={})
 
     # 2. Kế toán truy cập danh sách chờ thanh toán
@@ -23,7 +24,17 @@ def test_ke_toan_thanh_toan_thanh_cong(client, auth):
     assert res_list.status_code == 200
     assert "Trang bị tủ tài liệu" in res_list.text
 
-    # 3. Kế toán ghi nhận thanh toán
+    # Admin chỉ có quyền xem, không được trực tiếp xác nhận thanh toán
+    auth.login(vai_tro="quan_tri")
+    res_admin_tt = client.post("/ke-toan/de-nghi/1/thanh-toan", data={
+        "so_tien": "2500000",
+        "so_hoa_don": "HD-TEST-ADMIN",
+        "phuong_thuc": "chuyen_khoan"
+    })
+    assert res_admin_tt.status_code == 403
+
+    # 3. Kế toán ghi nhận thanh toán thành công
+    auth.login(vai_tro="ke_toan")
     res_tt = client.post("/ke-toan/de-nghi/1/thanh-toan", data={
         "so_tien": "2500000",
         "so_hoa_don": "HD-TEST-001",

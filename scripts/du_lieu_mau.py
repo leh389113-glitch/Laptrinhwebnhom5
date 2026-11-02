@@ -44,12 +44,12 @@ def nap_du_lieu():
         # 4 nhóm tài khoản chuẩn xác:
         # 1. Admin: quan_tri
         # 2. Bộ phận Mua sắm: mua_sam
-        # 3. Bộ phận Quản lý kho: quan_ly_kho
+        # 3. Bộ phận Quản lý tài sản: quan_ly_kho
         # 4. Kế toán: ke_toan
         users = [
             ("Quản trị viên Hệ thống", "admin@neu.edu.vn", "admin", "admin123", "quan_tri"),
             ("Cán bộ Bộ phận Mua sắm", "muasam@neu.edu.vn", "cb_muasam", "password123", "mua_sam"),
-            ("Cán bộ Quản lý kho", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho"),
+            ("Cán bộ Quản lý tài sản", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho"),
             ("Cán bộ Kế toán Thanh toán", "ketoan@neu.edu.vn", "cb_ketoan", "password123", "ke_toan"),
         ]
 
@@ -116,7 +116,17 @@ def nap_du_lieu():
                 {"ten_hang_hoa": "Ghế xoay da cao cấp", "don_vi_tinh": "Chiếc", "so_luong": 12, "don_gia_du_kien": 1500000, "ghi_chu": "Màu đen"}
             ]
         }, user_ids["cb_muasam"])
-        phe_duyet_de_nghi(dn3["id"], user_ids["admin"], "Đã duyệt kinh phí hội đồng.")
+        phe_duyet_de_nghi(dn3["id"], user_ids["admin"], "Đã duyệt kinh phí hội đồng.", vai_tro="quan_tri")
+
+        # 4. Đề nghị 4: Kinh phí dưới 100 triệu, chờ Trưởng BP Mua sắm duyệt (theo Yêu cầu 1.docx)
+        tao_de_nghi({
+            "tieu_de": "Trang bị máy in tài liệu cho Văn phòng Khoa Marketing",
+            "don_vi_de_nghi": "Khoa Marketing",
+            "mo_ta": "Phục vụ in ấn tài liệu hội thảo và biểu mẫu khoa học.",
+            "items": [
+                {"ten_hang_hoa": "Máy in Canon LBP 2900", "don_vi_tinh": "Chiếc", "so_luong": 2, "don_gia_du_kien": 4200000, "ghi_chu": "Bảo hành 12 tháng"}
+            ]
+        }, user_ids["cb_muasam"])
 
         # 4. Báo cáo hư hại mẫu từ cộng đồng sinh viên / giảng viên
         gui_bao_cao({
@@ -145,7 +155,7 @@ def nap_du_lieu():
         print("DANH SÁCH TÀI KHOẢN ĐĂNG NHẬP THEO PHÂN QUYỀN MỚI:")
         print("1. Quản trị viên (Admin):    admin       / admin123    (Toàn quyền)")
         print("2. Bộ phận Mua sắm:          cb_muasam   / password123 (Truy cập M08)")
-        print("3. Bộ phận Quản lý kho:      cb_kho      / password123 (Truy cập M09)")
+        print("3. Bộ phận Quản lý tài sản:  cb_kho      / password123 (Truy cập M09)")
         print("4. Kế toán:                  cb_ketoan   / password123 (Thanh toán M08)")
         print("="*65)
 

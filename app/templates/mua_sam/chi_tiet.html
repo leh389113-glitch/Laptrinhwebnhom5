@@ -127,10 +127,18 @@
           </div>
           {% endif %}
 
-          <!-- Hành động của Admin / Lãnh đạo nếu đang chờ duyệt -->
-          {% if session.get('vai_tro') == 'quan_tri' and de_nghi.trang_thai == 'cho_phe_duyet' %}
+          <!-- Phê duyệt theo phân cấp Yêu cầu 1.docx -->
+          <!-- 1. Đơn dưới 100 triệu: Trưởng BP mua sắm hoặc Lãnh đạo duyệt -->
+          {% if de_nghi.trang_thai == 'cho_phe_duyet' and session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
           <div class="border-top pt-3 mt-3">
-            <h6 class="fw-bold text-dark mb-2">Phê duyệt / Từ chối (Lãnh đạo):</h6>
+            <h6 class="fw-bold text-dark mb-1">Xét duyệt đề nghị mua sắm:</h6>
+            <div class="small text-muted mb-2">
+              {% if session.get('vai_tro') == 'mua_sam' %}
+                <span class="badge bg-primary">Thẩm quyền: Trưởng BP Mua sắm (&lt; 100 triệu)</span>
+              {% else %}
+                <span class="badge bg-danger">Thẩm quyền: Lãnh đạo (Admin)</span>
+              {% endif %}
+            </div>
             
             <form method="POST" action="{{ url_for('mua_sam.phe_duyet', id=de_nghi.id) }}" class="mb-2">
               <div class="mb-2">
@@ -152,8 +160,49 @@
           </div>
           {% endif %}
 
+          <!-- 2. Đơn từ 100 triệu trở lên: Bắt buộc Lãnh đạo/Admin duyệt -->
+          {% if de_nghi.trang_thai == 'cho_lanh_dao_duyet' %}
+            {% if session.get('vai_tro') == 'quan_tri' %}
+            <div class="border-top pt-3 mt-3">
+              <h6 class="fw-bold text-danger mb-1"><i class="fa-solid fa-shield-halved me-1"></i> Phê duyệt Lãnh đạo (Admin):</h6>
+              <div class="small text-muted mb-2">Đơn mua sắm có kinh phí ≥ 100 triệu đồng cần Lãnh đạo phê duyệt.</div>
+              
+              <form method="POST" action="{{ url_for('mua_sam.phe_duyet', id=de_nghi.id) }}" class="mb-2">
+                <div class="mb-2">
+                  <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Ý kiến chỉ đạo phê duyệt">
+                </div>
+                <button type="submit" class="btn btn-danger w-100 fw-bold">
+                  <i class="fa-solid fa-check-double me-1"></i> Lãnh đạo Phê duyệt
+                </button>
+              </form>
+
+              <form method="POST" action="{{ url_for('mua_sam.tu_choi', id=de_nghi.id) }}">
+                <div class="mb-2">
+                  <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Lý do từ chối" required>
+                </div>
+                <button type="submit" class="btn btn-outline-danger w-100">
+                  <i class="fa-solid fa-xmark me-1"></i> Từ chối đề nghị
+                </button>
+              </form>
+            </div>
+            {% elif session.get('vai_tro') == 'mua_sam' %}
+            <div class="alert alert-warning small border mt-3 mb-0">
+              <i class="fa-solid fa-clock me-1"></i> <strong>Đơn có kinh phí ≥ 100 triệu:</strong> Đang chờ Lãnh đạo (Admin) xem xét và phê duyệt theo quy định.
+            </div>
+            {% endif %}
+          {% endif %}
+
+          <!-- Nếu là Bộ phận Quản lý tài sản: Tiếp nhận hàng khi đơn đã duyệt hoặc đang mua -->
+          {% if session.get('vai_tro') == 'quan_ly_kho' and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+          <div class="border-top pt-3 mt-3 text-center">
+            <a href="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}" class="btn btn-neu-primary w-100 fw-bold">
+              <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận hàng hóa & Nhập kho (M09)
+            </a>
+          </div>
+          {% endif %}
+
           <!-- Nếu là kế toán và đề nghị đã nhận hàng -->
-          {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] and de_nghi.trang_thai == 'da_nhan' %}
+          {% if session.get('vai_tro') == 'ke_toan' and de_nghi.trang_thai == 'da_nhan' %}
           <div class="border-top pt-3 mt-3 text-center">
             <a href="{{ url_for('ke_toan.chi_tiet', id=de_nghi.id) }}" class="btn btn-warning w-100 fw-bold text-dark">
               <i class="fa-solid fa-file-invoice-dollar me-1"></i> Chuyển sang thanh toán

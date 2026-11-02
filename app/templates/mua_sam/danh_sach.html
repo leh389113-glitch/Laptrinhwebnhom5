@@ -9,9 +9,13 @@
       <small class="text-muted">Theo dõi và quản lý quy trình mua sắm cơ sở vật chất toàn trường</small>
     </div>
     <div>
+      {% if session.get('vai_tro') in ['mua_sam', 'quan_ly_kho'] %}
       <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-neu-primary">
         <i class="fa-solid fa-plus me-1"></i> Lập đề nghị mua sắm mới
       </a>
+      {% else %}
+      <span class="badge bg-danger p-2"><i class="fa-solid fa-shield-halved me-1"></i> Quyền Lãnh đạo: Xem & Phê duyệt</span>
+      {% endif %}
     </div>
   </div>
 
@@ -20,7 +24,8 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <span class="fw-bold text-dark me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
       <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-dark{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
-      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='cho_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_phe_duyet' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}">Chờ phê duyệt</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='cho_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_phe_duyet' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}">Chờ Trưởng BP duyệt</a>
+      <a href="{{ url_for('mua_sam.danh_sach', trang_thai='cho_lanh_dao_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_lanh_dao_duyet' %}btn-danger{% else %}btn-outline-danger{% endif %}">Chờ Lãnh đạo duyệt (≥ 100tr)</a>
       <a href="{{ url_for('mua_sam.danh_sach', trang_thai='da_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'da_phe_duyet' %}btn-info text-white{% else %}btn-outline-info{% endif %}">Đã phê duyệt</a>
       <a href="{{ url_for('mua_sam.danh_sach', trang_thai='dang_mua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_mua' %}btn-primary{% else %}btn-outline-primary{% endif %}">Đang mua sắm</a>
       <a href="{{ url_for('mua_sam.danh_sach', trang_thai='da_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'da_nhan' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Đã tiếp nhận</a>

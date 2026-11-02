@@ -15,9 +15,9 @@ def danh_sach():
     return render_template("mua_sam/danh_sach.html", de_nghi_list=de_nghi_list, trang_thai_chon=trang_thai)
 
 @mua_sam_bp.route("/de-nghi/tao", methods=["GET", "POST"])
-@yeu_cau_vai_tro("mua_sam", "quan_tri")
+@yeu_cau_vai_tro("mua_sam", "quan_ly_kho")
 def tao_de_nghi():
-    """Lập đề nghị mua sắm cơ sở vật chất mới."""
+    """Lập đề nghị / Yêu cầu mua sắm cơ sở vật chất mới (Bộ phận Mua sắm hoặc Quản lý tài sản đề xuất nhu cầu)."""
     if request.method == "POST":
         # Thu thập các dòng hàng hóa từ form
         ten_hang_list = request.form.getlist("ten_hang_hoa[]")
@@ -67,43 +67,43 @@ def chi_tiet(id):
         return redirect(url_for("mua_sam.danh_sach"))
 
 @mua_sam_bp.route("/de-nghi/<int:id>/phe-duyet", methods=["POST"])
-@yeu_cau_vai_tro("quan_tri")
+@yeu_cau_vai_tro("mua_sam", "quan_tri")
 def phe_duyet(id):
-    """Admin phê duyệt đề nghị mua sắm."""
+    """Phê duyệt đề nghị mua sắm: Trưởng BP Mua sắm duyệt đơn < 100tr, Lãnh đạo/Admin duyệt đơn >= 100tr."""
     ghi_chu = request.form.get("ghi_chu", "")
     try:
-        de_nghi = ms_svc.phe_duyet_de_nghi(id, session["nguoi_dung_id"], ghi_chu)
+        de_nghi = ms_svc.phe_duyet_de_nghi(id, session["nguoi_dung_id"], ghi_chu, vai_tro=session.get("vai_tro"))
         flash(f"Đã phê duyệt đề nghị {de_nghi['ma_de_nghi']} thành công!", "success")
-        if request.is_json:
+        if request.is_json or request.headers.get("Accept") == "application/json":
             return jsonify({"thanh_cong": True, "ma_de_nghi": de_nghi["ma_de_nghi"]})
     except LoiNghiepVu as e:
-        if request.is_json:
+        if request.is_json or request.headers.get("Accept") == "application/json":
             return jsonify(e.to_dict()), e.status_code
         flash(e.thong_bao, "danger")
 
     return redirect(url_for("mua_sam.chi_tiet", id=id))
 
 @mua_sam_bp.route("/de-nghi/<int:id>/tu-choi", methods=["POST"])
-@yeu_cau_vai_tro("quan_tri")
+@yeu_cau_vai_tro("mua_sam", "quan_tri")
 def tu_choi(id):
-    """Admin từ chối đề nghị mua sắm."""
+    """Từ chối đề nghị mua sắm."""
     ghi_chu = request.form.get("ghi_chu", "")
     try:
-        de_nghi = ms_svc.tu_choi_de_nghi(id, session["nguoi_dung_id"], ghi_chu)
+        de_nghi = ms_svc.tu_choi_de_nghi(id, session["nguoi_dung_id"], ghi_chu, vai_tro=session.get("vai_tro"))
         flash(f"Đã từ chối đề nghị {de_nghi['ma_de_nghi']}.", "warning")
-        if request.is_json:
+        if request.is_json or request.headers.get("Accept") == "application/json":
             return jsonify({"thanh_cong": True, "ma_de_nghi": de_nghi["ma_de_nghi"]})
     except LoiNghiepVu as e:
-        if request.is_json:
+        if request.is_json or request.headers.get("Accept") == "application/json":
             return jsonify(e.to_dict()), e.status_code
         flash(e.thong_bao, "danger")
 
     return redirect(url_for("mua_sam.chi_tiet", id=id))
 
 @mua_sam_bp.route("/de-nghi/<int:id>/tiep-nhan", methods=["GET", "POST"])
-@yeu_cau_vai_tro("quan_ly_kho", "mua_sam", "quan_tri")
+@yeu_cau_vai_tro("quan_ly_kho")
 def tiep_nhan(id):
-    """Ghi nhận tiếp nhận hàng hóa nhập kho."""
+    """Ghi nhận tiếp nhận hàng hóa nhập kho (chuyên trách do Bộ phận Quản lý tài sản thực hiện)."""
     de_nghi = ms_svc.lay_chi_tiet_de_nghi(id)
     if request.method == "POST":
         du_lieu = {

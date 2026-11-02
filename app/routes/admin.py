@@ -78,7 +78,7 @@ def xuat_csv_tai_san():
 @admin_bp.route("/bao-cao-hu-hai")
 @yeu_cau_vai_tro("quan_tri")
 def bao_cao_hu_hai():
-    """Danh sách các báo cáo sự cố hư hại từ người dùng/sinh viên."""
+    """Admin xem giám sát danh sách báo cáo sự cố hư hại (Bộ phận Quản lý tài sản phụ trách xử lý)."""
     trang_thai = request.args.get("trang_thai")
     danh_sach = hh_svc.lay_danh_sach_bao_cao(trang_thai=trang_thai)
     return render_template("admin/bao_cao_hu_hai.html", bao_cao_list=danh_sach, trang_thai_chon=trang_thai)
@@ -86,14 +86,8 @@ def bao_cao_hu_hai():
 @admin_bp.route("/bao-cao-hu-hai/<int:id>/xu-ly", methods=["POST"])
 @yeu_cau_vai_tro("quan_tri")
 def xu_ly_bao_cao_hu_hai(id):
-    """Cập nhật trạng thái xử lý báo cáo hư hại."""
-    trang_thai_moi = request.form.get("trang_thai")
-    try:
-        hh_svc.cap_nhat_trang_thai(id, trang_thai_moi)
-        flash("Đã cập nhật trạng thái xử lý báo cáo hư hại!", "success")
-    except LoiNghiepVu as e:
-        flash(e.thong_bao, "danger")
-
+    """Admin chỉ có quyền xem giám sát, không trực tiếp xử lý hiện trường hư hại."""
+    flash("Thao tác xác minh và xử lý sự cố cơ sở vật chất thuộc thẩm quyền của Bộ phận Quản lý tài sản (M09). Admin chỉ giám sát.", "warning")
     return redirect(url_for("admin.bao_cao_hu_hai"))
 
 @admin_bp.route("/tai-khoan")

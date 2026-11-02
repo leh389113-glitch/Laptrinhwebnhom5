@@ -2,6 +2,11 @@ from app.db import get_db
 from app import clock
 from app.errors import LoiNghiepVu
 
+# Ngưỡng kinh phí phân cấp phê duyệt theo Yêu cầu 1.docx:
+# - Đơn dưới 100 triệu: Trưởng bộ phận mua sắm phê duyệt (hoặc Lãnh đạo)
+# - Đơn từ 100 triệu trở lên: Bắt buộc Lãnh đạo (Admin) phê duyệt
+NGUONG_PHE_DUYET_LANH_DAO = 100_000_000.0
+
 def sinh_ma_de_nghi() -> str:
     """Sinh mã đề nghị mua sắm tự động theo dạng DN-YYYYMMDD-XXX."""
     db = get_db()
@@ -36,6 +41,9 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
     if tong_du_toan is None:
         tong_du_toan = sum(float(it.get("thanh_tien", it.get("so_luong", 0) * it.get("don_gia_du_kien", 0))) for it in items)
 
+    # Phân cấp thẩm quyền phê duyệt ban đầu theo ngưỡng 100 triệu
+    trang_thai_khoi_tao = "cho_lanh_dao_duyet" if float(tong_du_toan) >= NGUONG_PHE_DUYET_LANH_DAO else "cho_phe_duyet"
+
     cursor = db.execute(
         """
         INSERT INTO de_nghi_mua_sam (
@@ -43,7 +51,7 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
             nguoi_de_nghi_id, tong_du_toan, trang_thai,
             ngay_tao, ngay_cap_nhat
         )
-        VALUES (?, ?, ?, ?, ?, ?, 'cho_phe_duyet', ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             ma_de_nghi,
@@ -52,6 +60,7 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
             du_lieu["don_vi_de_nghi"],
             nguoi_de_nghi_id,
             tong_du_toan,
+            trang_thai_khoi_tao,
             ngay_hien_tai,
             ngay_hien_tai
         )
@@ -158,15 +167,28 @@ def lay_chi_tiet_de_nghi(de_nghi_id: int) -> dict:
 
     return de_nghi
 
-def phe_duyet_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "") -> dict:
-    """Phê duyệt đề nghị mua sắm (Admin/Lãnh đạo)."""
+def phe_duyet_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "", vai_tro: str = "quan_tri") -> dict:
+    """
+    Phê duyệt đề nghị mua sắm theo phân cấp Yêu cầu 1.docx:
+    - Đơn < 100 triệu: Trưởng bộ phận mua sắm ('mua_sam') hoặc Lãnh đạo/Admin ('quan_tri') phê duyệt.
+    - Đơn >= 100 triệu: Bắt buộc Lãnh đạo/Admin ('quan_tri') phê duyệt.
+    """
     db = get_db()
-    row = db.execute("SELECT id, trang_thai FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
+    row = db.execute("SELECT id, trang_thai, tong_du_toan, ma_de_nghi FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
     if not row:
         raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
 
-    if row["trang_thai"] != "cho_phe_duyet":
+    if row["trang_thai"] not in ["cho_phe_duyet", "cho_lanh_dao_duyet"]:
         raise LoiNghiepVu("TRANG_THAI_KHONG_HOP_LE", "Chỉ có thể phê duyệt đề nghị đang chờ phê duyệt.")
+
+    tong_tien = float(row["tong_du_toan"] or 0)
+    # Kiểm tra thẩm quyền duyệt theo kinh phí
+    if tong_tien >= NGUONG_PHE_DUYET_LANH_DAO and vai_tro != "quan_tri":
+        raise LoiNghiepVu(
+            "KHONG_DU_QUYEN",
+            f"Đề nghị mua sắm có kinh phí {tong_tien:,.0f} đ (≥ 100 triệu) thuộc thẩm quyền phê duyệt của Lãnh đạo (Admin).",
+            status_code=403
+        )
 
     thoi_gian = clock.now().isoformat()
     db.execute(
@@ -184,15 +206,27 @@ def phe_duyet_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "
     db.commit()
     return lay_chi_tiet_de_nghi(de_nghi_id)
 
-def tu_choi_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "") -> dict:
-    """Từ chối đề nghị mua sắm (Admin/Lãnh đạo)."""
+def tu_choi_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "", vai_tro: str = "quan_tri") -> dict:
+    """
+    Từ chối đề nghị mua sắm theo phân cấp:
+    - Đơn < 100 triệu: Trưởng bộ phận mua sắm hoặc Lãnh đạo từ chối.
+    - Đơn >= 100 triệu: Chỉ Lãnh đạo/Admin từ chối.
+    """
     db = get_db()
-    row = db.execute("SELECT id, trang_thai FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
+    row = db.execute("SELECT id, trang_thai, tong_du_toan FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
     if not row:
         raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
 
-    if row["trang_thai"] != "cho_phe_duyet":
+    if row["trang_thai"] not in ["cho_phe_duyet", "cho_lanh_dao_duyet"]:
         raise LoiNghiepVu("TRANG_THAI_KHONG_HOP_LE", "Chỉ có thể từ chối đề nghị đang chờ phê duyệt.")
+
+    tong_tien = float(row["tong_du_toan"] or 0)
+    if tong_tien >= NGUONG_PHE_DUYET_LANH_DAO and vai_tro != "quan_tri":
+        raise LoiNghiepVu(
+            "KHONG_DU_QUYEN",
+            f"Đề nghị mua sắm có kinh phí {tong_tien:,.0f} đ (≥ 100 triệu) thuộc thẩm quyền của Lãnh đạo (Admin).",
+            status_code=403
+        )
 
     thoi_gian = clock.now().isoformat()
     db.execute(

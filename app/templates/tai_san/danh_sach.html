@@ -5,13 +5,21 @@
 
   <div class="neu-page-header">
     <div>
-      <h2 class="neu-page-title"><i class="fa-solid fa-warehouse text-primary me-2"></i> M09 - QUẢN LÝ KHO & TÀI SẢN</h2>
+      <h2 class="neu-page-title"><i class="fa-solid fa-warehouse text-primary me-2"></i> M09 - QUẢN LÝ TÀI SẢN</h2>
       <small class="text-muted">Theo dõi toàn bộ vòng đời tài sản cơ sở vật chất từ tiếp nhận đến thanh lý</small>
     </div>
-    <div>
-      <a href="{{ url_for('tai_san.kiem_ke') }}" class="btn btn-outline-primary me-2">
-        <i class="fa-solid fa-clipboard-check me-1"></i> Đợt kiểm kê định kỳ
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('tai_san.danh_sach_hu_hai') }}" class="btn btn-outline-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> Xử lý Báo cáo hư hại
       </a>
+      <a href="{{ url_for('tai_san.kiem_ke') }}" class="btn btn-outline-primary">
+        <i class="fa-solid fa-clipboard-check me-1"></i> Đợt kiểm kê
+      </a>
+      {% if session.get('vai_tro') == 'quan_ly_kho' %}
+      <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-neu-primary">
+        <i class="fa-solid fa-cart-plus me-1"></i> Đề xuất mua sắm
+      </a>
+      {% endif %}
     </div>
   </div>
 

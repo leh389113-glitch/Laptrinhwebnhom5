@@ -8,6 +8,7 @@ def tao_app(cau_hinh=None):
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('FLASK_SECRET_KEY', 'khoa_bi_mat_neu_csvc_2026'),
+        TEMPLATES_AUTO_RELOAD=True,
     )
 
     if cau_hinh:
@@ -43,7 +44,8 @@ def tao_app(cau_hinh=None):
     @app.template_filter('ten_trang_thai')
     def ten_trang_thai(ma):
         tu_dien = {
-            'cho_phe_duyet': 'Chờ phê duyệt',
+            'cho_phe_duyet': 'Chờ Trưởng BP duyệt',
+            'cho_lanh_dao_duyet': 'Chờ Lãnh đạo duyệt (≥ 100tr)',
             'da_phe_duyet': 'Đã phê duyệt',
             'tu_choi': 'Từ chối',
             'dang_mua': 'Đang mua sắm',
@@ -56,12 +58,13 @@ def tao_app(cau_hinh=None):
             'da_thanh_ly': 'Đã thanh lý',
             'chua_xu_ly': 'Chưa xử lý',
             'dang_xu_ly': 'Đang xử lý',
+            'can_thay_the': 'Cần thay thế (Chuyển M08)',
             'da_xu_ly': 'Đã xử lý',
             'nhe': 'Nhẹ',
             'trung_binh': 'Trung bình',
             'nghiem_trong': 'Nghiêm trọng',
             'mua_sam': 'Bộ phận Mua sắm',
-            'quan_ly_kho': 'Bộ phận Quản lý kho',
+            'quan_ly_kho': 'Bộ phận Quản lý tài sản',
             'ke_toan': 'Kế toán',
             'quan_tri': 'Quản trị viên (Admin)'
         }
@@ -71,6 +74,7 @@ def tao_app(cau_hinh=None):
     def badge_trang_thai(ma):
         tu_dien = {
             'cho_phe_duyet': 'badge-warning',
+            'cho_lanh_dao_duyet': 'badge-danger',
             'da_phe_duyet': 'badge-info',
             'tu_choi': 'badge-danger',
             'dang_mua': 'badge-primary',
@@ -83,6 +87,7 @@ def tao_app(cau_hinh=None):
             'da_thanh_ly': 'badge-dark',
             'chua_xu_ly': 'badge-danger',
             'dang_xu_ly': 'badge-warning',
+            'can_thay_the': 'badge-danger',
             'da_xu_ly': 'badge-success',
             'nhe': 'badge-info',
             'trung_binh': 'badge-warning',

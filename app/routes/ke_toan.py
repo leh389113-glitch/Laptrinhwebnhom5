@@ -25,9 +25,9 @@ def chi_tiet(id):
         return redirect(url_for("ke_toan.danh_sach"))
 
 @ke_toan_bp.route("/de-nghi/<int:id>/thanh-toan", methods=["POST"])
-@yeu_cau_vai_tro("ke_toan", "quan_tri")
+@yeu_cau_vai_tro("ke_toan")
 def thanh_toan(id):
-    """Ghi nhận thanh toán tiền cho đề nghị mua sắm."""
+    """Ghi nhận thanh toán tiền cho đề nghị mua sắm (chuyên trách do Kế toán thực hiện)."""
     du_lieu_form = {
         "so_tien": request.form.get("so_tien"),
         "so_hoa_don": request.form.get("so_hoa_don"),
