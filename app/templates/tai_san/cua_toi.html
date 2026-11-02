@@ -9,8 +9,8 @@
       <small class="text-muted">Cán bộ / Giảng viên: <strong>{{ session.get('ho_ten') }}</strong></small>
     </div>
     <div>
-      <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-neu-danger">
-        <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại thiết bị
+      <a href="#yeu-cau-cua-toi" class="btn btn-neu-primary">
+        <i class="fa-solid fa-screwdriver-wrench me-1"></i> Yêu cầu xử lý của tôi
       </a>
     </div>
   </div>
@@ -63,6 +63,29 @@
     </div>
   </div>
 
+  <div class="neu-card mt-4" id="yeu-cau-cua-toi">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-list-check me-2"></i> Yêu cầu xử lý đã gửi ({{ yeu_cau_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead><tr><th>Tài sản</th><th>Mô tả tình trạng</th><th>Ngày gửi</th><th>Trạng thái</th><th></th></tr></thead>
+        <tbody>
+          {% for yc in yeu_cau_list %}
+          <tr>
+            <td>{{ yc.ma_tai_san }} - {{ yc.ten_tai_san }}</td>
+            <td>{{ yc.mo_ta_tinh_trang }}</td>
+            <td>{{ yc.ngay_tao|dinh_dang_ngay }}</td>
+            <td><span class="{{ yc.trang_thai|badge_trang_thai }}">{{ yc.trang_thai|ten_trang_thai }}</span></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('tai_san.chi_tiet_yeu_cau', id=yc.id) }}">Chi tiết</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted py-4">Chưa có yêu cầu xử lý nào.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
-

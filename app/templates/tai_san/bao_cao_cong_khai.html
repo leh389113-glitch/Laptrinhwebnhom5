@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Đối chiếu phản ánh công khai - NEU{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> PHẢN ÁNH CÔNG KHAI</h2>
+      <small class="text-muted">Đối chiếu với danh mục tài sản trường trước khi mở yêu cầu xử lý nội bộ</small>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead><tr><th>Ngày gửi</th><th>Người báo</th><th>Liên hệ</th><th>Vật chất / vị trí</th><th>Mức độ</th><th>Trạng thái</th><th>Đối chiếu</th></tr></thead>
+        <tbody>
+          {% for bc in bao_cao_list %}
+          <tr>
+            <td>{{ bc.ngay_tao|dinh_dang_ngay }}</td>
+            <td>{{ bc.ho_ten }}</td>
+            <td>{{ bc.lien_he }}</td>
+            <td>{{ bc.ten_vat_chat }}<div class="small text-muted">{{ bc.vi_tri }}</div></td>
+            <td><span class="{{ bc.muc_do|badge_trang_thai }}">{{ bc.muc_do|ten_trang_thai }}</span></td>
+            <td><span class="{{ bc.trang_thai|badge_trang_thai }}">{{ bc.trang_thai|ten_trang_thai }}</span></td>
+            <td>
+              {% if bc.yeu_cau_id %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('tai_san.chi_tiet_yeu_cau', id=bc.yeu_cau_id) }}">Xem yêu cầu #{{ bc.yeu_cau_id }}</a>
+              {% elif bc.trang_thai != 'da_xu_ly' %}
+              <form method="POST" action="{{ url_for('tai_san.tao_yeu_cau_tu_bao_cao', id=bc.id) }}" class="d-flex gap-1">
+                <select name="tai_san_id" class="form-select form-select-sm neu-form-control" required>
+                  <option value="">Chọn tài sản trường...</option>
+                  {% for ts in tai_san_list %}
+                  <option value="{{ ts.id }}" {% if bc.tai_san_id == ts.id %}selected{% endif %}>{{ ts.ma_tai_san }} - {{ ts.ten_tai_san }} ({{ ts.vi_tri or 'Chưa rõ vị trí' }})</option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-primary text-nowrap" type="submit">Tạo yêu cầu</button>
+              </form>
+              {% else %}
+              <span class="text-success">Đã xử lý</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Chưa có phản ánh công khai.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

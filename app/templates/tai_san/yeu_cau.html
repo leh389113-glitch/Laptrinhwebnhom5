@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu xử lý tài sản - NEU{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-screwdriver-wrench me-2 text-primary"></i> YÊU CẦU XỬ LÝ TÀI SẢN</h2>
+      <small class="text-muted">Tiếp nhận, xác minh, phân công sửa chữa hoặc đề nghị mua tài sản thay thế</small>
+    </div>
+  </div>
+
+  <div class="neu-card mb-3 p-3">
+    <form method="GET" class="d-flex gap-2">
+      <select name="trang_thai" class="form-select neu-form-control" style="max-width: 320px">
+        <option value="">Tất cả trạng thái</option>
+        {% for ma, ten in [('cho_xac_minh','Chờ xác minh'),('cho_phan_cong','Chờ phân công'),('da_phan_cong','Đã phân công'),('dang_thuc_hien','Đang thực hiện'),('cho_kiem_tra','Chờ kiểm tra'),('sua_chua_hoan_tat','Hoàn tất sửa chữa'),('cho_mua_thay_the','Chờ mua thay thế'),('da_nhan_tai_san_thay_the','Đã nhận tài sản thay thế')] %}
+        <option value="{{ ma }}" {% if trang_thai_chon == ma %}selected{% endif %}>{{ ten }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-neu-primary">Lọc</button>
+    </form>
+  </div>
+
+  <div class="neu-card">
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead><tr><th>Mã / Tài sản</th><th>Người gửi</th><th>Mức độ</th><th>Mô tả</th><th>Được phân công</th><th>Trạng thái</th><th></th></tr></thead>
+        <tbody>
+          {% for yc in yeu_cau_list %}
+          <tr>
+            <td>{{ yc.ma_tai_san }}<div class="small text-muted">{{ yc.ten_tai_san }}</div></td>
+            <td>{{ yc.nguoi_tao_ten }}</td>
+            <td><span class="{{ yc.muc_do|badge_trang_thai }}">{{ yc.muc_do|ten_trang_thai }}</span></td>
+            <td>{{ yc.mo_ta_tinh_trang }}</td>
+            <td>{{ yc.nguoi_phan_cong_ten or '-' }}</td>
+            <td><span class="{{ yc.trang_thai|badge_trang_thai }}">{{ yc.trang_thai|ten_trang_thai }}</span></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('tai_san.chi_tiet_yeu_cau', id=yc.id) }}">Xử lý</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Không có yêu cầu phù hợp.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

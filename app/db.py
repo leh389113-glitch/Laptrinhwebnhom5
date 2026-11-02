@@ -25,13 +25,15 @@ CREATE TABLE IF NOT EXISTS de_nghi_mua_sam (
     nguoi_de_nghi_id INTEGER NOT NULL,
     tong_du_toan REAL NOT NULL DEFAULT 0,
     trang_thai TEXT NOT NULL DEFAULT 'cho_phe_duyet',
+    su_co_tai_san_id INTEGER,
     ghi_chu_phe_duyet TEXT,
     nguoi_phe_duyet_id INTEGER,
     ngay_tao TEXT NOT NULL,
     ngay_phe_duyet TEXT,
     ngay_cap_nhat TEXT NOT NULL,
     FOREIGN KEY (nguoi_de_nghi_id) REFERENCES nguoi_dung(id),
-    FOREIGN KEY (nguoi_phe_duyet_id) REFERENCES nguoi_dung(id)
+    FOREIGN KEY (nguoi_phe_duyet_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (su_co_tai_san_id) REFERENCES yeu_cau_xu_ly_tai_san(id)
 );
 
 -- Bảng chi tiết đề nghị mua sắm
@@ -143,6 +145,51 @@ CREATE TABLE IF NOT EXISTS bao_tri (
     FOREIGN KEY (nguoi_ghi_nhan_id) REFERENCES nguoi_dung(id)
 );
 
+-- Yêu cầu xử lý sự cố của tài sản, liên kết với đề nghị thay thế M08 nếu có
+CREATE TABLE IF NOT EXISTS yeu_cau_xu_ly_tai_san (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tai_san_id INTEGER NOT NULL,
+    nguoi_tao_id INTEGER NOT NULL,
+    bao_cao_hu_hai_id INTEGER UNIQUE,
+    mo_ta_tinh_trang TEXT NOT NULL,
+    muc_do TEXT NOT NULL,
+    thoi_gian_phat_hien TEXT,
+    trang_thai TEXT NOT NULL DEFAULT 'cho_xac_minh',
+    phuong_an TEXT,
+    ket_qua_xac_minh TEXT,
+    nguoi_xac_minh_id INTEGER,
+    ngay_xac_minh TEXT,
+    nguoi_duoc_phan_cong_id INTEGER,
+    noi_dung_thuc_hien TEXT,
+    ghi_chu_thuc_hien TEXT,
+    chi_phi REAL NOT NULL DEFAULT 0,
+    don_vi_thuc_hien TEXT,
+    ket_qua_kiem_tra TEXT,
+    nguoi_kiem_tra_id INTEGER,
+    ngay_kiem_tra TEXT,
+    de_nghi_mua_sam_id INTEGER,
+    ngay_tao TEXT NOT NULL,
+    ngay_cap_nhat TEXT NOT NULL,
+    FOREIGN KEY (tai_san_id) REFERENCES tai_san(id),
+    FOREIGN KEY (nguoi_tao_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (bao_cao_hu_hai_id) REFERENCES bao_cao_hu_hai(id),
+    FOREIGN KEY (nguoi_xac_minh_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (nguoi_duoc_phan_cong_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (nguoi_kiem_tra_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (de_nghi_mua_sam_id) REFERENCES de_nghi_mua_sam(id)
+);
+
+CREATE TABLE IF NOT EXISTS lich_su_yeu_cau_su_co (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    yeu_cau_id INTEGER NOT NULL,
+    nguoi_thuc_hien_id INTEGER NOT NULL,
+    hanh_dong TEXT NOT NULL,
+    noi_dung TEXT,
+    ngay_tao TEXT NOT NULL,
+    FOREIGN KEY (yeu_cau_id) REFERENCES yeu_cau_xu_ly_tai_san(id),
+    FOREIGN KEY (nguoi_thuc_hien_id) REFERENCES nguoi_dung(id)
+);
+
 -- Bảng phiếu kiểm kê
 CREATE TABLE IF NOT EXISTS phieu_kiem_ke (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -175,9 +222,11 @@ CREATE TABLE IF NOT EXISTS bao_cao_hu_hai (
     vi_tri TEXT NOT NULL,
     muc_do TEXT NOT NULL,
     mo_ta_chi_tiet TEXT,
+    tai_san_id INTEGER,
     thoi_gian_phat_hien TEXT,
     trang_thai TEXT DEFAULT 'chua_xu_ly',
-    ngay_tao TEXT NOT NULL
+    ngay_tao TEXT NOT NULL,
+    FOREIGN KEY (tai_san_id) REFERENCES tai_san(id)
 );
 """
 
@@ -206,4 +255,29 @@ def init_db(db_conn=None):
     """Khởi tạo toàn bộ bảng nếu chưa tồn tại."""
     conn = db_conn or get_db()
     conn.executescript(SCHEMA_SQL)
+    _migrate_schema(conn)
     conn.commit()
+
+def _migrate_schema(conn):
+    """Bổ sung các cột mới cho CSDL đã tồn tại mà không làm mất dữ liệu."""
+    cac_cot_can_them = {
+        "de_nghi_mua_sam": [
+            ("su_co_tai_san_id", "INTEGER REFERENCES yeu_cau_xu_ly_tai_san(id)")
+        ],
+        "bao_cao_hu_hai": [
+            ("tai_san_id", "INTEGER REFERENCES tai_san(id)")
+        ],
+        "yeu_cau_xu_ly_tai_san": [
+            ("ghi_chu_thuc_hien", "TEXT"),
+            ("nguoi_kiem_tra_id", "INTEGER REFERENCES nguoi_dung(id)"),
+            ("ngay_kiem_tra", "TEXT")
+        ]
+    }
+
+    for ten_bang, cac_cot in cac_cot_can_them.items():
+        cot_hien_co = {
+            row[1] for row in conn.execute(f"PRAGMA table_info({ten_bang})")
+        }
+        for ten_cot, khai_bao in cac_cot:
+            if ten_cot not in cot_hien_co:
+                conn.execute(f"ALTER TABLE {ten_bang} ADD COLUMN {ten_cot} {khai_bao}")

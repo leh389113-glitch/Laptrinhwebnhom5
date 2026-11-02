@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu xử lý tài sản #{{ yeu_cau.id }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-screwdriver-wrench me-2 text-primary"></i> YÊU CẦU #{{ yeu_cau.id }}</h2>
+      <small class="text-muted">
+        <a href="{{ url_for('tai_san.chi_tiet', id=yeu_cau.tai_san_id) }}">{{ yeu_cau.ma_tai_san }} - {{ yeu_cau.ten_tai_san }}</a>
+        | {{ yeu_cau.vi_tri or 'Chưa rõ vị trí' }}
+      </small>
+    </div>
+    <div>
+      {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
+      <a href="{{ url_for('tai_san.danh_sach_yeu_cau') }}" class="btn btn-outline-secondary">Danh sách yêu cầu</a>
+      {% else %}
+      <a href="{{ url_for('tai_san.cua_toi') }}" class="btn btn-outline-secondary">Tài sản của tôi</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="neu-card mb-4">
+    <div class="neu-card-header d-flex justify-content-between">
+      <span>Thông tin tiếp nhận</span>
+      <span class="{{ yeu_cau.trang_thai|badge_trang_thai }}">{{ yeu_cau.trang_thai|ten_trang_thai }}</span>
+    </div>
+    <div class="neu-card-body">
+      <p><strong>Người gửi:</strong> {{ yeu_cau.nguoi_tao_ten }} |
+        <strong>Mức độ:</strong> {{ yeu_cau.muc_do|ten_trang_thai }} |
+        <strong>Ngày gửi:</strong> {{ yeu_cau.ngay_tao|dinh_dang_ngay }}</p>
+      <p><strong>Tình trạng:</strong> {{ yeu_cau.mo_ta_tinh_trang }}</p>
+      {% if yeu_cau.nguoi_bao_cao %}
+      <p><strong>Phản ánh công khai từ:</strong> {{ yeu_cau.nguoi_bao_cao }} ({{ yeu_cau.lien_he_nguoi_bao_cao }})</p>
+      {% endif %}
+      {% if yeu_cau.ket_qua_xac_minh %}
+      <p><strong>Đánh giá thực tế:</strong> {{ yeu_cau.ket_qua_xac_minh }} <span class="text-muted">({{ yeu_cau.nguoi_xac_minh_ten }}, {{ yeu_cau.ngay_xac_minh|dinh_dang_ngay }})</span></p>
+      {% endif %}
+      {% if yeu_cau.nguoi_phan_cong_ten %}<p><strong>Người được phân công:</strong> {{ yeu_cau.nguoi_phan_cong_ten }}</p>{% endif %}
+      {% if yeu_cau.noi_dung_thuc_hien %}
+      <p><strong>Kết quả thực hiện:</strong> {{ yeu_cau.noi_dung_thuc_hien }} | Chi phí: {{ yeu_cau.chi_phi|tien_vnd }} | Đơn vị: {{ yeu_cau.don_vi_thuc_hien or 'Nội bộ' }}</p>
+      {% endif %}
+      {% if yeu_cau.ghi_chu_thuc_hien %}<p><strong>Ghi chú thực hiện:</strong> {{ yeu_cau.ghi_chu_thuc_hien }}</p>{% endif %}
+      {% if yeu_cau.ma_de_nghi %}
+      <p><strong>Đề nghị mua thay thế:</strong> <a href="{{ url_for('mua_sam.chi_tiet', id=yeu_cau.de_nghi_mua_sam_id) }}">{{ yeu_cau.ma_de_nghi }}</a></p>
+      {% endif %}
+      {% if yeu_cau.ket_qua_kiem_tra %}<p><strong>Ghi chú kiểm tra:</strong> {{ yeu_cau.ket_qua_kiem_tra }}</p>{% endif %}
+      {% if yeu_cau.nguoi_kiem_tra_ten %}<p><strong>Người kiểm tra:</strong> {{ yeu_cau.nguoi_kiem_tra_ten }} <span class="text-muted">({{ yeu_cau.ngay_kiem_tra|dinh_dang_ngay }})</span></p>{% endif %}
+    </div>
+  </div>
+
+  <div class="neu-card mb-4">
+    <div class="neu-card-header">Lịch sử xử lý</div>
+    <div class="neu-card-body">
+      {% if yeu_cau.lich_su %}
+      <ul class="list-group list-group-flush">
+        {% for su_kien in yeu_cau.lich_su %}
+        <li class="list-group-item px-0">
+          <strong>
+            {% if su_kien.hanh_dong == 'tao_yeu_cau' %}Gửi yêu cầu
+            {% elif su_kien.hanh_dong == 'doi_chieu_bao_cao_cong_khai' %}Đối chiếu phản ánh công khai
+            {% elif su_kien.hanh_dong == 'xac_minh' %}Xác minh
+            {% elif su_kien.hanh_dong == 'phan_cong' %}Phân công
+            {% elif su_kien.hanh_dong == 'bat_dau' %}Bắt đầu sửa chữa
+            {% elif su_kien.hanh_dong == 'hoan_tat_thuc_hien' %}Ghi nhận kết quả thực hiện
+            {% elif su_kien.hanh_dong == 'kiem_tra' %}Kiểm tra
+            {% elif su_kien.hanh_dong == 'tao_de_nghi_thay_the' %}Tạo đề nghị mua thay thế
+            {% elif su_kien.hanh_dong == 'tiep_nhan_tai_san_thay_the' %}Tiếp nhận tài sản thay thế
+            {% else %}{{ su_kien.hanh_dong }}
+            {% endif %}
+          </strong>
+          <span class="text-muted">— {{ su_kien.nguoi_thuc_hien_ten }}, {{ su_kien.ngay_tao|dinh_dang_ngay }}</span>
+          {% if su_kien.noi_dung %}<div>{{ su_kien.noi_dung }}</div>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted mb-0">Chưa có hoạt động xử lý.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] and yeu_cau.trang_thai == 'cho_xac_minh' %}
+  <div class="neu-card mb-4">
+    <div class="neu-card-header bg-warning"><strong>Xác minh thực tế và chọn phương án</strong></div>
+    <div class="neu-card-body">
+      <form method="POST" action="{{ url_for('tai_san.xac_minh_yeu_cau', id=yeu_cau.id) }}">
+        <div class="mb-3">
+          <label class="neu-form-label">Kết quả đánh giá <span class="text-danger">*</span></label>
+          <textarea name="ket_qua_xac_minh" class="form-control neu-form-control" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="neu-form-label">Phương án xử lý <span class="text-danger">*</span></label>
+          <select name="phuong_an" id="phuongAn" class="form-select neu-form-control" required>
+            <option value="sua_chua">Có thể sửa chữa</option>
+            <option value="thay_the">Cần mua tài sản thay thế</option>
+          </select>
+        </div>
+        <div id="thongTinThayThe" class="row g-3 mb-3 d-none">
+          <div class="col-md-6"><label class="neu-form-label">Tên tài sản thay thế</label><input name="ten_hang_thay_the" class="form-control neu-form-control"></div>
+          <div class="col-md-6"><label class="neu-form-label">Đơn vị đề nghị</label><input name="don_vi_de_nghi" class="form-control neu-form-control" value="{{ yeu_cau.vi_tri or 'Đơn vị quản lý tài sản' }}"></div>
+          <div class="col-md-4"><label class="neu-form-label">Đơn vị tính</label><input name="don_vi_tinh" class="form-control neu-form-control" value="Cái"></div>
+          <div class="col-md-4"><label class="neu-form-label">Số lượng</label><input name="so_luong" type="number" min="1" value="1" class="form-control neu-form-control"></div>
+          <div class="col-md-4"><label class="neu-form-label">Đơn giá dự kiến (VNĐ)</label><input name="don_gia_du_kien" type="number" min="0" value="0" class="form-control neu-form-control"></div>
+          <div class="col-12 small text-muted">Tạo đề nghị M08 ở trạng thái chờ phê duyệt; tài sản hiện tại chưa đổi trạng thái cho tới khi tài sản thay thế được tiếp nhận.</div>
+        </div>
+        <button class="btn btn-neu-primary" type="submit">Lưu xác minh</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] and yeu_cau.trang_thai == 'cho_phan_cong' %}
+  <div class="neu-card mb-4">
+    <div class="neu-card-header">Phân công sửa chữa</div>
+    <div class="neu-card-body">
+      <form method="POST" action="{{ url_for('tai_san.phan_cong_yeu_cau', id=yeu_cau.id) }}" class="d-flex gap-2">
+        <select name="nguoi_duoc_phan_cong_id" class="form-select neu-form-control" required>
+          <option value="">Chọn cán bộ thực hiện</option>
+          {% for u in nguoi_dung_list if u.trang_thai == 'hoat_dong' %}
+          <option value="{{ u.id }}">{{ u.ho_ten }} ({{ u.ten_dang_nhap }})</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-neu-primary text-nowrap" type="submit">Phân công</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if session.get('nguoi_dung_id') == yeu_cau.nguoi_duoc_phan_cong_id and yeu_cau.trang_thai == 'da_phan_cong' %}
+  <form method="POST" action="{{ url_for('tai_san.bat_dau_sua_chua', id=yeu_cau.id) }}" class="mb-4">
+    <button class="btn btn-warning" type="submit">Bắt đầu sửa chữa</button>
+  </form>
+  {% endif %}
+
+  {% if session.get('nguoi_dung_id') == yeu_cau.nguoi_duoc_phan_cong_id and yeu_cau.trang_thai == 'dang_thuc_hien' %}
+  <div class="neu-card mb-4">
+    <div class="neu-card-header">Ghi nhận kết quả thực hiện</div>
+    <div class="neu-card-body">
+      <form method="POST" action="{{ url_for('tai_san.hoan_thanh_sua_chua', id=yeu_cau.id) }}">
+        <div class="mb-3"><label class="neu-form-label">Nội dung đã thực hiện</label><textarea name="noi_dung_thuc_hien" class="form-control neu-form-control" rows="3" required></textarea></div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6"><label class="neu-form-label">Đơn vị thực hiện</label><input name="don_vi_thuc_hien" class="form-control neu-form-control"></div>
+          <div class="col-md-6"><label class="neu-form-label">Chi phí (VNĐ)</label><input name="chi_phi" type="number" min="0" value="0" class="form-control neu-form-control"></div>
+        </div>
+        <div class="mb-3"><label class="neu-form-label">Ghi chú</label><textarea name="ghi_chu" class="form-control neu-form-control" rows="2"></textarea></div>
+        <button class="btn btn-neu-primary" type="submit">Gửi kiểm tra</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] and yeu_cau.trang_thai == 'cho_kiem_tra' %}
+  <div class="neu-card mb-4">
+    <div class="neu-card-header">Kiểm tra sau sửa chữa</div>
+    <div class="neu-card-body">
+      <form method="POST" action="{{ url_for('tai_san.kiem_tra_sua_chua', id=yeu_cau.id) }}">
+        <div class="mb-3">
+          <label class="neu-form-label">Kết quả</label>
+          <select name="ket_qua_kiem_tra" class="form-select neu-form-control">
+            <option value="dat">Đạt - hoàn tất</option>
+            <option value="chua_dat">Chưa đạt - yêu cầu sửa tiếp</option>
+          </select>
+        </div>
+        <div class="mb-3"><label class="neu-form-label">Ghi chú kiểm tra</label><textarea name="ghi_chu" class="form-control neu-form-control" rows="2"></textarea></div>
+        <button class="btn btn-neu-primary" type="submit">Lưu kết quả kiểm tra</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% if yeu_cau.trang_thai == 'cho_xac_minh' and session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const phuongAn = document.getElementById('phuongAn');
+  const fields = document.getElementById('thongTinThayThe');
+  const ten = fields.querySelector('[name="ten_hang_thay_the"]');
+  function capNhat() {
+    const show = phuongAn.value === 'thay_the';
+    fields.classList.toggle('d-none', !show);
+    ten.required = show;
+    fields.querySelector('[name="don_vi_de_nghi"]').required = show;
+  }
+  phuongAn.addEventListener('change', capNhat);
+  capNhat();
+});
+</script>
+{% endif %}
+{% endblock %}

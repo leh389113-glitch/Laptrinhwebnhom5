@@ -14,7 +14,7 @@
       <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-outline-secondary">
         <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
       </a>
-      {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
+      {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
         <a href="{{ url_for('tai_san.chinh_sua', id=tai_san.id) }}" class="btn btn-outline-primary">
           <i class="fa-solid fa-pen-to-square me-1"></i> Chỉnh sửa
         </a>
@@ -88,6 +88,54 @@
           </div>
         </div>
       </div>
+
+      {% if tai_san.nguoi_su_dung_id == session.get('nguoi_dung_id') and tai_san.trang_thai != 'da_thanh_ly' %}
+      <div class="neu-card mt-4">
+        <div class="neu-card-header bg-warning"><strong><i class="fa-solid fa-triangle-exclamation me-2"></i> Yêu cầu xử lý hư hại</strong></div>
+        <div class="neu-card-body">
+          <form method="POST" action="{{ url_for('tai_san.tao_yeu_cau_su_co', id=tai_san.id) }}">
+            <div class="mb-3">
+              <label class="neu-form-label">Mô tả tình trạng hư hại <span class="text-danger">*</span></label>
+              <textarea name="mo_ta_tinh_trang" rows="3" class="form-control neu-form-control" required></textarea>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ</label>
+                <select name="muc_do" class="form-select neu-form-control">
+                  <option value="nhe">Nhẹ</option>
+                  <option value="trung_binh" selected>Trung bình</option>
+                  <option value="nghiem_trong">Nghiêm trọng</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="neu-form-label">Thời gian phát hiện</label>
+                <input type="datetime-local" name="thoi_gian_phat_hien" class="form-control neu-form-control">
+              </div>
+              <div class="col-12 text-end">
+                <button type="submit" class="btn btn-neu-primary"><i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu xử lý</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if tai_san.yeu_cau_su_co %}
+      <div class="neu-card mt-4">
+        <div class="neu-card-header"><span><i class="fa-solid fa-list-check me-2"></i> Lịch sử yêu cầu xử lý</span></div>
+        <div class="list-group list-group-flush">
+          {% for yc in tai_san.yeu_cau_su_co %}
+          <a class="list-group-item list-group-item-action" href="{{ url_for('tai_san.chi_tiet_yeu_cau', id=yc.id) }}">
+            <div class="d-flex justify-content-between">
+              <strong>{{ yc.mo_ta_tinh_trang }}</strong>
+              <span class="{{ yc.trang_thai|badge_trang_thai }}">{{ yc.trang_thai|ten_trang_thai }}</span>
+            </div>
+            <small class="text-muted">{{ yc.ngay_tao|dinh_dang_ngay }} · {{ yc.nguoi_tao_ten }}</small>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
 
       <!-- Lịch sử bàn giao tài sản -->
       <div class="neu-card">
@@ -193,4 +241,3 @@
 
 </div>
 {% endblock %}
-

@@ -179,6 +179,16 @@ vai_tro == "quan_tri"  → /admin/          (Admin — toàn quyền)
 | `GET/POST /tai-san/<id>/chinh-sua` | Chỉnh sửa thông tin tài sản | `mua_sam`, `quan_tri` |
 | `POST /tai-san/<id>/ban-giao` | Bàn giao tài sản cho người dùng | `mua_sam`, `quan_tri` |
 | `GET/POST /tai-san/<id>/bao-tri` | Ghi nhận bảo trì/sửa chữa | `mua_sam`, `quan_tri` |
+| `POST /tai-san/<id>/bao-hong` | Người đang sử dụng gửi yêu cầu xử lý sự cố của tài sản được bàn giao | Người được bàn giao |
+| `GET /tai-san/yeu-cau` | Hàng đợi yêu cầu xử lý sự cố | `mua_sam`, `quan_tri` |
+| `GET /tai-san/yeu-cau/<id>` | Xem chi tiết yêu cầu và lịch sử xử lý | Người tạo, người được phân công, `mua_sam`, `quan_tri` |
+| `POST /tai-san/yeu-cau/<id>/xac-minh` | Xác minh, chọn sửa chữa hoặc đề nghị thay thế | `mua_sam`, `quan_tri` |
+| `POST /tai-san/yeu-cau/<id>/phan-cong` | Phân công người thực hiện sửa chữa | `mua_sam`, `quan_tri` |
+| `POST /tai-san/yeu-cau/<id>/bat-dau` | Bắt đầu công việc được phân công | Người được phân công |
+| `POST /tai-san/yeu-cau/<id>/hoan-thanh` | Ghi nhận kết quả thực hiện | Người được phân công |
+| `POST /tai-san/yeu-cau/<id>/kiem-tra` | Kiểm tra kết quả sửa chữa | `mua_sam`, `quan_tri` |
+| `GET /tai-san/bao-cao-cong-khai` | Danh sách phản ánh công khai cần xem xét | `mua_sam`, `quan_tri` |
+| `POST /tai-san/bao-cao-cong-khai/<id>/tao-yeu-cau` | Đối chiếu phản ánh chưa định danh với tài sản và tạo yêu cầu | `mua_sam`, `quan_tri` |
 | `GET /tai-san/kiem-ke` | Danh sách phiếu kiểm kê | `mua_sam`, `quan_tri` |
 | `POST /tai-san/kiem-ke/tao` | Tạo phiếu kiểm kê mới | `mua_sam`, `quan_tri` |
 
@@ -195,6 +205,14 @@ vai_tro == "quan_tri"  → /admin/          (Admin — toàn quyền)
 - `cho_thanh_ly` — Chờ thanh lý
 - `da_thanh_ly` — Đã thanh lý
 
+**Luồng xử lý sự cố tài sản:**
+
+- Nhân viên chỉ gửi và xem yêu cầu trên tài sản đang được bàn giao cho chính mình; bộ phận Quản lý tài sản/Admin xem xét và xử lý toàn bộ yêu cầu.
+- Quy trình sửa chữa: `cho_xac_minh` → `cho_phan_cong` → `da_phan_cong` → `dang_thuc_hien` → `cho_kiem_tra` → `sua_chua_hoan_tat`. Nếu kiểm tra chưa đạt, yêu cầu quay lại `dang_thuc_hien`.
+- Nếu cần thay thế, yêu cầu tạo đề nghị mua sắm M08 và chuyển sang `cho_mua_thay_the`. Tài sản cũ chỉ chuyển sang `cho_thanh_ly` khi tài sản thay thế đã được tiếp nhận.
+- Khách vãng lai gửi phản ánh qua form công khai; có thể chọn tài sản đã biết hoặc chỉ nhập tên/vị trí. Bộ phận Quản lý tài sản/Admin phải đối chiếu phản ánh chưa định danh với tài sản trước khi tạo yêu cầu nội bộ.
+- Các thay đổi trạng thái và hành động xử lý được ghi vào lịch sử yêu cầu.
+
 **Templates:** `templates/tai_san/`
 
 ---
@@ -203,7 +221,7 @@ vai_tro == "quan_tri"  → /admin/          (Admin — toàn quyền)
 
 **Vai trò được phép:** **Tất cả mọi người — không cần đăng nhập**
 
-**Mô tả:** Form đơn giản để bất kỳ ai (học sinh, giảng viên, nhân viên, khách) có thể báo cáo sự cố hư hại vật chất mà không cần tài khoản.
+**Mô tả:** Kênh công khai dành cho khách vãng lai báo cáo hư hại mà không cần tài khoản. Nhân viên đã đăng nhập xử lý sự cố trực tiếp trên tài sản được bàn giao, không gửi qua form công khai.
 
 **Các trang con và chức năng:**
 
@@ -218,11 +236,12 @@ vai_tro == "quan_tri"  → /admin/          (Admin — toàn quyền)
 - Số điện thoại hoặc email liên hệ *(bắt buộc)*
 - Tên / mô tả vật chất bị hư hại *(bắt buộc)*
 - Vị trí xảy ra hư hại (phòng, tòa nhà) *(bắt buộc)*
+- Tài sản trường bị hư hại *(tùy chọn; chọn nếu khách nhận diện được)*
 - Mức độ hư hại: Nhẹ / Trung bình / Nghiêm trọng *(bắt buộc)*
 - Mô tả chi tiết *(tùy chọn)*
 - Thời gian phát hiện *(tùy chọn, mặc định là hiện tại)*
 
-> **Lưu ý:** Báo cáo này sẽ được bộ phận quản lý tài sản xem xét tại trang M09. Không cần xác thực — chỉ cần validate dữ liệu đầu vào qua `schemas.py`.
+> **Lưu ý:** Báo cáo công khai được bộ phận quản lý tài sản xem xét tại M09. Báo cáo chưa gắn với tài sản phải được đối chiếu trước khi chuyển thành yêu cầu nội bộ. Dữ liệu được validate qua `schemas.py`.
 
 **Templates:** `templates/main/bao_cao_hu_hai.html`, `templates/main/cam_on.html`
 
@@ -688,7 +707,8 @@ M17 (Dashboard & Báo cáo) — hiển thị tại /admin/
 1. Khi hàng hóa từ M08 được tiếp nhận (`da_nhan`), service của M09 phải được gọi để tạo tài sản mới với mã tự động.
 2. Số liệu trên Dashboard (M17) phải truy vấn trực tiếp từ bảng tài sản và đề nghị — không được lưu cache cứng.
 3. Nếu một đề nghị bị từ chối hoặc xóa, không được tạo tài sản liên quan.
-4. Báo cáo hư hại từ form public được hiển thị trong trang Admin để bộ phận quản lý xử lý.
+4. Báo cáo hư hại từ form public được Admin/bộ phận Quản lý tài sản xem xét; chỉ sau khi đối chiếu với tài sản mới tạo yêu cầu xử lý nội bộ.
+5. Yêu cầu sửa chữa phải ghi lại người xác minh, người thực hiện, người kiểm tra và lịch sử các bước xử lý.
 
 ---
 

@@ -52,14 +52,21 @@ def xac_thuc_bao_cao_hu_hai(data: Dict[str, Any]) -> Dict[str, Any]:
     muc_do = (data.get("muc_do") or "trung_binh").strip().lower()
     mo_ta_chi_tiet = (data.get("mo_ta_chi_tiet") or "").strip()
     thoi_gian_phat_hien = (data.get("thoi_gian_phat_hien") or "").strip()
+    tai_san_raw = (data.get("tai_san_id") or "").strip()
 
     if not ho_ten:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Họ tên người báo cáo không được để trống.")
     if not lien_he:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Số điện thoại hoặc email liên hệ không được để trống.")
-    if not ten_vat_chat:
+    try:
+        tai_san_id = int(tai_san_raw) if tai_san_raw else None
+    except (ValueError, TypeError):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tài sản được chọn không hợp lệ.")
+    if tai_san_id is not None and tai_san_id <= 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tài sản được chọn không hợp lệ.")
+    if not ten_vat_chat and tai_san_id is None:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tên / mô tả vật chất bị hư hại không được để trống.")
-    if not vi_tri:
+    if not vi_tri and tai_san_id is None:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vị trí xảy ra hư hại không được để trống.")
     if muc_do not in ["nhe", "trung_binh", "nghiem_trong"]:
         muc_do = "trung_binh"
@@ -71,8 +78,100 @@ def xac_thuc_bao_cao_hu_hai(data: Dict[str, Any]) -> Dict[str, Any]:
         "vi_tri": vi_tri,
         "muc_do": muc_do,
         "mo_ta_chi_tiet": mo_ta_chi_tiet,
-        "thoi_gian_phat_hien": thoi_gian_phat_hien
+        "thoi_gian_phat_hien": thoi_gian_phat_hien,
+        "tai_san_id": tai_san_id
     }
+
+def xac_thuc_yeu_cau_su_co(data: Dict[str, Any]) -> Dict[str, Any]:
+    mo_ta = (data.get("mo_ta_tinh_trang") or "").strip()
+    muc_do = (data.get("muc_do") or "trung_binh").strip().lower()
+    thoi_gian = (data.get("thoi_gian_phat_hien") or "").strip()
+
+    if not mo_ta:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng mô tả tình trạng hư hại.")
+    if muc_do not in ["nhe", "trung_binh", "nghiem_trong"]:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Mức độ hư hại không hợp lệ.")
+
+    return {
+        "mo_ta_tinh_trang": mo_ta,
+        "muc_do": muc_do,
+        "thoi_gian_phat_hien": thoi_gian
+    }
+
+def xac_thuc_xac_minh_su_co(data: Dict[str, Any]) -> Dict[str, Any]:
+    phuong_an = (data.get("phuong_an") or "").strip()
+    ket_qua = (data.get("ket_qua_xac_minh") or "").strip()
+    if phuong_an not in ["sua_chua", "thay_the"]:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng chọn phương án xử lý hợp lệ.")
+    if not ket_qua:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung đánh giá thực tế không được để trống.")
+
+    result = {"phuong_an": phuong_an, "ket_qua_xac_minh": ket_qua}
+    if phuong_an == "thay_the":
+        ten_hang = (data.get("ten_hang_thay_the") or "").strip()
+        don_vi = (data.get("don_vi_tinh") or "Cái").strip() or "Cái"
+        don_vi_de_nghi = (data.get("don_vi_de_nghi") or "").strip()
+        try:
+            so_luong = int(data.get("so_luong", 1))
+            don_gia = float(data.get("don_gia_du_kien", 0))
+        except (ValueError, TypeError):
+            raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Số lượng hoặc đơn giá tài sản thay thế không hợp lệ.")
+        if not ten_hang or not don_vi_de_nghi:
+            raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng nhập tên tài sản thay thế và đơn vị đề nghị.")
+        if so_luong <= 0 or don_gia < 0:
+            raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Số lượng phải lớn hơn 0 và đơn giá không được âm.")
+        result.update({
+            "ten_hang_thay_the": ten_hang,
+            "don_vi_tinh": don_vi,
+            "don_vi_de_nghi": don_vi_de_nghi,
+            "so_luong": so_luong,
+            "don_gia_du_kien": don_gia
+        })
+    return result
+
+def xac_thuc_phan_cong_su_co(data: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        nguoi_duoc_phan_cong_id = int(data.get("nguoi_duoc_phan_cong_id", 0))
+    except (ValueError, TypeError):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Người được phân công không hợp lệ.")
+    if nguoi_duoc_phan_cong_id <= 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng chọn người thực hiện.")
+    return {"nguoi_duoc_phan_cong_id": nguoi_duoc_phan_cong_id}
+
+def xac_thuc_doi_chieu_tai_san(data: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        tai_san_id = int(data.get("tai_san_id", 0))
+    except (ValueError, TypeError):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tài sản được đối chiếu không hợp lệ.")
+    if tai_san_id <= 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng chọn tài sản trường để đối chiếu.")
+    return {"tai_san_id": tai_san_id}
+
+def xac_thuc_ket_qua_sua_chua(data: Dict[str, Any]) -> Dict[str, Any]:
+    noi_dung = (data.get("noi_dung_thuc_hien") or "").strip()
+    don_vi = (data.get("don_vi_thuc_hien") or "").strip()
+    ghi_chu = (data.get("ghi_chu") or "").strip()
+    try:
+        chi_phi = float(data.get("chi_phi", 0))
+    except (ValueError, TypeError):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Chi phí sửa chữa không hợp lệ.")
+    if not noi_dung or chi_phi < 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung thực hiện là bắt buộc và chi phí không được âm.")
+    return {
+        "noi_dung_thuc_hien": noi_dung,
+        "don_vi_thuc_hien": don_vi,
+        "chi_phi": chi_phi,
+        "ghi_chu": ghi_chu
+    }
+
+def xac_thuc_kiem_tra_su_co(data: Dict[str, Any]) -> Dict[str, Any]:
+    ket_qua = (data.get("ket_qua_kiem_tra") or "").strip()
+    ghi_chu = (data.get("ghi_chu") or "").strip()
+    if ket_qua not in ["dat", "chua_dat"]:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Kết quả kiểm tra không hợp lệ.")
+    if ket_qua == "chua_dat" and not ghi_chu:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Vui lòng ghi rõ lý do kiểm tra chưa đạt.")
+    return {"ket_qua_kiem_tra": ket_qua, "ghi_chu": ghi_chu}
 
 def xac_thuc_de_nghi_mua_sam(data: Dict[str, Any]) -> Dict[str, Any]:
     tieu_de = (data.get("tieu_de") or "").strip()

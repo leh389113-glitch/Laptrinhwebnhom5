@@ -25,11 +25,14 @@ Hệ thống được thiết kế với **4 nhóm tài khoản phân quyền đ
 
 | Nhóm tài khoản | Mã vai trò | Phân hệ được phép truy cập | Chức năng chính |
 |---|---|---|---|
-| **Khách / Sinh viên / Giảng viên** | *(Công khai)* | Trang chủ, Báo cáo hư hại | Gửi phản ánh hỏng hóc thiết bị, bàn ghế, quạt, máy chiếu mà **không cần đăng nhập** |
+| **Khách vãng lai** | *(Công khai)* | Trang chủ, Báo cáo hư hại | Gửi phản ánh hư hại mà **không cần đăng nhập**; có thể chọn tài sản đã biết |
 | **Bộ phận Mua sắm** | `mua_sam` | M08 — Mua sắm (`/mua-sam/`) | Lập đề nghị mua sắm động, theo dõi tiến độ phê duyệt, quản lý hồ sơ mua sắm |
-| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | M09 — Quản lý tài sản (`/tai-san/`) | Tiếp nhận tài sản (tự động cấp mã `TS-YYYYMMDD-XXX`), biên bản bàn giao, ghi nhận bảo trì, lập phiếu kiểm kê |
+| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | M09 — Quản lý tài sản (`/tai-san/`) | Tiếp nhận tài sản (tự động cấp mã `TS-YYYYMMDD-XXX`), xử lý yêu cầu sửa chữa/thay thế, bàn giao, bảo trì, kiểm kê |
 | **Kế toán** | `ke_toan` | M08 — Kế toán (`/ke-toan/`) | Xem các gói mua sắm đã nhận hàng tại kho, thực hiện thanh toán hóa đơn, xem lịch sử giải ngân |
+| **Nhân viên được bàn giao tài sản** | `nguoi_dung` | Tài sản của tôi (`/tai-san/cua-toi`) | Xem tài sản được bàn giao và gửi/theo dõi yêu cầu hư hại trực tiếp trên tài sản đó |
 | **Quản trị viên (Admin)** | `quan_tri` | Toàn quyền (Admin, M08, M09, M17) | Phê duyệt/từ chối đề nghị, điều phối xử lý báo cáo hư hại, xem Dashboard KPI và biểu đồ M17, quản lý tài khoản & phân quyền |
+
+**Luồng hư hại:** Nhân viên đã đăng nhập gửi yêu cầu từ tài sản đang được bàn giao cho mình; bộ phận Quản lý tài sản/Admin xác minh, phân công sửa chữa và kiểm tra kết quả. Nếu cần thay thế, yêu cầu được liên kết với đề nghị M08; tài sản cũ chỉ chuyển sang chờ thanh lý khi tài sản mới đã được tiếp nhận. Khách vãng lai dùng form công khai; bộ phận quản lý đối chiếu phản ánh với tài sản trước khi tạo yêu cầu nội bộ.
 
 ---
 
@@ -122,13 +125,13 @@ Website sẽ chạy tại địa chỉ: **[http://127.0.0.1:5000](http://127.0.0
 | **2** | **Bộ phận Mua sắm** | `cb_muasam` | `password123` | Lập đề nghị mua sắm M08 (thêm động các dòng vật tư, tự động tính tổng tiền), theo dõi tiến độ |
 | **3** | **Bộ phận Quản lý tài sản** | `cb_kho` | `password123` | Tiếp nhận tài sản (tự động tạo mã `TS-...`), bàn giao tài sản, ghi nhận bảo trì, tạo phiếu kiểm kê M09 |
 | **4** | **Kế toán** | `cb_ketoan` | `password123` | Xem các gói đề xuất đã nhận hàng, ghi nhận thanh toán hóa đơn M08 |
-| **5** | **Khách / Sinh viên** | *(Không cần đăng nhập)* | *(Trống)* | Truy cập trang chủ, nhấn nút đỏ **"Báo cáo hư hại"** để gửi sự cố hỏng hóc |
+| **5** | **Khách vãng lai** | *(Không cần đăng nhập)* | *(Trống)* | Truy cập trang chủ, nhấn nút **"Báo cáo hư hại"** để gửi phản ánh |
 
 ---
 
 ## 🧪 6. Chạy kiểm thử tự động (Unit Tests)
 
-Dự án đi kèm bộ test suite toàn diện với **19 kịch bản kiểm thử độc lập**:
+Dự án có bộ kiểm thử tự động cho các phân hệ và luồng xử lý sự cố tài sản:
 ```bash
 # Chạy toàn bộ test suite
 pytest
@@ -136,4 +139,4 @@ pytest
 # Chạy với thông tin chi tiết từng test
 pytest -v
 ```
-**Kết quả kiểm tra**: `19 passed in 100%`.
+**Kết quả kiểm tra hiện tại**: `25 passed`.

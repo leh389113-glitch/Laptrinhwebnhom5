@@ -17,10 +17,10 @@
         Số hóa toàn diện quy trình quản lý cơ sở vật chất từ khâu <strong>đề xuất mua sắm &rarr; phê duyệt &rarr; tiếp nhận nhập kho &rarr; bàn giao tài sản &rarr; kiểm kê, bảo trì &rarr; báo cáo thống kê</strong>.
       </p>
       <div class="d-flex flex-wrap gap-3">
-        <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
-          <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
-        </a>
         {% if not session.get('nguoi_dung_id') %}
+          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
+          </a>
           <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
             <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập hệ thống
           </a>
@@ -45,6 +45,9 @@
               <i class="fa-solid fa-shield-halved me-2"></i> Quản trị hệ thống (Admin)
             </a>
           {% endif %}
+          <a href="{{ url_for('tai_san.cua_toi') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">
+            <i class="fa-solid fa-box me-2"></i> Tài sản được bàn giao
+          </a>
         {% endif %}
       </div>
     </div>

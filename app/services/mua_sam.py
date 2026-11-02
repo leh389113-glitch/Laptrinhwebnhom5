@@ -28,32 +28,34 @@ def sinh_ma_de_nghi() -> str:
 def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
     """Tạo mới một đề nghị mua sắm kèm các hạng mục hàng hóa."""
     db = get_db()
+    de_nghi_id = _chen_de_nghi(db, du_lieu, nguoi_de_nghi_id)
+    db.commit()
+    return lay_chi_tiet_de_nghi(de_nghi_id)
+
+def _chen_de_nghi(db, du_lieu: dict, nguoi_de_nghi_id: int, su_co_id=None) -> int:
     ma_de_nghi = sinh_ma_de_nghi()
     ngay_hien_tai = clock.now().isoformat()
-
     items = du_lieu.get("items", [])
     tong_du_toan = du_lieu.get("tong_du_toan")
     if tong_du_toan is None:
-        tong_du_toan = sum(float(it.get("thanh_tien", it.get("so_luong", 0) * it.get("don_gia_du_kien", 0))) for it in items)
+        tong_du_toan = sum(
+            float(it.get("thanh_tien", it.get("so_luong", 0) * it.get("don_gia_du_kien", 0)))
+            for it in items
+        )
 
     cursor = db.execute(
         """
         INSERT INTO de_nghi_mua_sam (
             ma_de_nghi, tieu_de, mo_ta, don_vi_de_nghi,
-            nguoi_de_nghi_id, tong_du_toan, trang_thai,
+            nguoi_de_nghi_id, tong_du_toan, trang_thai, su_co_tai_san_id,
             ngay_tao, ngay_cap_nhat
         )
-        VALUES (?, ?, ?, ?, ?, ?, 'cho_phe_duyet', ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, 'cho_phe_duyet', ?, ?, ?)
         """,
         (
-            ma_de_nghi,
-            du_lieu["tieu_de"],
-            du_lieu.get("mo_ta", ""),
-            du_lieu["don_vi_de_nghi"],
-            nguoi_de_nghi_id,
-            tong_du_toan,
-            ngay_hien_tai,
-            ngay_hien_tai
+            ma_de_nghi, du_lieu["tieu_de"], du_lieu.get("mo_ta", ""),
+            du_lieu["don_vi_de_nghi"], nguoi_de_nghi_id, tong_du_toan,
+            su_co_id, ngay_hien_tai, ngay_hien_tai
         )
     )
     de_nghi_id = cursor.lastrowid
@@ -71,16 +73,71 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                de_nghi_id,
-                item["ten_hang_hoa"],
-                item.get("don_vi_tinh", "Bộ"),
-                so_luong,
-                don_gia,
-                thanh_tien,
-                item.get("ghi_chu", "")
+                de_nghi_id, item["ten_hang_hoa"], item.get("don_vi_tinh", "Bộ"),
+                so_luong, don_gia, thanh_tien, item.get("ghi_chu", "")
             )
         )
+    return de_nghi_id
 
+def tao_de_nghi_thay_the(yeu_cau_id: int, du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
+    """Tạo đề nghị M08 thay thế tài sản trong cùng giao dịch với yêu cầu xử lý."""
+    db = get_db()
+    yeu_cau = db.execute(
+        """
+        SELECT y.*, t.ten_tai_san, t.ma_tai_san
+        FROM yeu_cau_xu_ly_tai_san y
+        JOIN tai_san t ON t.id = y.tai_san_id
+        WHERE y.id = ?
+        """,
+        (yeu_cau_id,)
+    ).fetchone()
+    if not yeu_cau:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Yêu cầu xử lý tài sản không tồn tại.")
+    if yeu_cau["trang_thai"] != "cho_xac_minh":
+        raise LoiNghiepVu("TRANG_THAI_KHONG_HOP_LE", "Yêu cầu này đã được xác minh hoặc xử lý.")
+
+    tieu_de = f"Mua sắm thay thế tài sản {yeu_cau['ma_tai_san']} - {du_lieu['ten_hang_thay_the']}"
+    du_lieu_de_nghi = {
+        "tieu_de": tieu_de,
+        "mo_ta": (
+            f"Thay thế tài sản {yeu_cau['ma_tai_san']} - {yeu_cau['ten_tai_san']}. "
+            f"Đánh giá: {du_lieu['ket_qua_xac_minh']}"
+        ),
+        "don_vi_de_nghi": du_lieu["don_vi_de_nghi"],
+        "items": [{
+            "ten_hang_hoa": du_lieu["ten_hang_thay_the"],
+            "don_vi_tinh": du_lieu["don_vi_tinh"],
+            "so_luong": du_lieu["so_luong"],
+            "don_gia_du_kien": du_lieu["don_gia_du_kien"],
+            "thanh_tien": du_lieu["so_luong"] * du_lieu["don_gia_du_kien"],
+            "ghi_chu": f"Thay thế tài sản mã {yeu_cau['ma_tai_san']}"
+        }]
+    }
+
+    de_nghi_id = _chen_de_nghi(db, du_lieu_de_nghi, nguoi_de_nghi_id, yeu_cau_id)
+    ngay_cap_nhat = clock.now().isoformat()
+    db.execute(
+        """
+        UPDATE yeu_cau_xu_ly_tai_san
+        SET trang_thai = 'cho_mua_thay_the',
+            phuong_an = 'thay_the',
+            ket_qua_xac_minh = ?,
+            nguoi_xac_minh_id = ?,
+            ngay_xac_minh = ?,
+            de_nghi_mua_sam_id = ?,
+            ngay_cap_nhat = ?
+        WHERE id = ?
+        """,
+        (
+            du_lieu["ket_qua_xac_minh"], nguoi_de_nghi_id, ngay_cap_nhat,
+            de_nghi_id, ngay_cap_nhat, yeu_cau_id
+        )
+    )
+    from app.services.tai_san import ghi_nhan_su_kien_yeu_cau
+    ghi_nhan_su_kien_yeu_cau(
+        db, yeu_cau_id, nguoi_de_nghi_id, "tao_de_nghi_thay_the",
+        f"Đã tạo đề nghị {du_lieu_de_nghi['tieu_de']}.", ngay_cap_nhat
+    )
     db.commit()
     return lay_chi_tiet_de_nghi(de_nghi_id)
 
@@ -127,6 +184,11 @@ def lay_chi_tiet_de_nghi(de_nghi_id: int) -> dict:
         (de_nghi_id,)
     ).fetchall()
     de_nghi["items"] = [dict(it) for it in items]
+    if de_nghi.get("su_co_tai_san_id"):
+        from app.services import tai_san as tai_san_svc
+        de_nghi["yeu_cau_thay_the"] = tai_san_svc.lay_chi_tiet_yeu_cau_su_co(
+            de_nghi["su_co_tai_san_id"]
+        )
 
     ho_so = db.execute(
         "SELECT * FROM ho_so_mua_sam WHERE de_nghi_id = ?",
@@ -307,6 +369,40 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
         "UPDATE de_nghi_mua_sam SET trang_thai = 'da_nhan', ngay_cap_nhat = ? WHERE id = ?",
         (ngay_hien_tai, de_nghi_id)
     )
+    su_co_id = row["su_co_tai_san_id"]
+    if su_co_id is not None:
+        su_co = db.execute(
+            "SELECT tai_san_id, trang_thai, bao_cao_hu_hai_id FROM yeu_cau_xu_ly_tai_san WHERE id = ?",
+            (su_co_id,)
+        ).fetchone()
+        if not su_co or su_co["trang_thai"] != "cho_mua_thay_the":
+            raise LoiNghiepVu(
+                "TRANG_THAI_KHONG_HOP_LE",
+                "Yêu cầu thay thế tài sản không còn ở trạng thái chờ tiếp nhận."
+            )
+        db.execute(
+            """
+            UPDATE yeu_cau_xu_ly_tai_san
+            SET trang_thai = 'da_nhan_tai_san_thay_the', ngay_cap_nhat = ?
+            WHERE id = ?
+            """,
+            (ngay_hien_tai, su_co_id)
+        )
+        from app.services.tai_san import ghi_nhan_su_kien_yeu_cau
+        ghi_nhan_su_kien_yeu_cau(
+            db, su_co_id, nguoi_tiep_nhan_id, "tiep_nhan_tai_san_thay_the",
+            "Đã tiếp nhận tài sản thay thế; tài sản cũ chuyển sang chờ thanh lý.",
+            ngay_hien_tai
+        )
+        db.execute(
+            "UPDATE tai_san SET trang_thai = 'cho_thanh_ly', ngay_cap_nhat = ? WHERE id = ?",
+            (ngay_hien_tai, su_co["tai_san_id"])
+        )
+        if su_co["bao_cao_hu_hai_id"]:
+            db.execute(
+                "UPDATE bao_cao_hu_hai SET trang_thai = 'da_xu_ly' WHERE id = ?",
+                (su_co["bao_cao_hu_hai_id"],)
+            )
     db.commit()
 
     return lay_chi_tiet_de_nghi(de_nghi_id)

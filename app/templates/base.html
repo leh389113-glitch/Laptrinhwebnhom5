@@ -62,7 +62,11 @@
           {% endif %}
 
           {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Quản lý tài sản</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-boxes-stacked me-1"></i> M09 - Quản lý tài sản</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach_yeu_cau') }}"><i class="fa-solid fa-screwdriver-wrench me-1"></i> Yêu cầu xử lý</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.bao_cao_cong_khai') }}"><i class="fa-solid fa-triangle-exclamation me-1"></i> Phản ánh công khai</a></li>
+          {% elif session.get('nguoi_dung_id') %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.cua_toi') }}"><i class="fa-solid fa-box me-1"></i> Tài sản của tôi</a></li>
           {% endif %}
 
           {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] %}
@@ -84,11 +88,13 @@
             </li>
           {% endif %}
 
-          <li class="nav-item ms-lg-2">
-            <a class="nav-link btn-neu-danger rounded" href="{{ url_for('main.bao_cao_hu_hai') }}">
-              <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại
-            </a>
-          </li>
+          {% if not session.get('nguoi_dung_id') %}
+            <li class="nav-item ms-lg-2">
+              <a class="nav-link btn-neu-danger rounded" href="{{ url_for('main.bao_cao_hu_hai') }}">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại
+              </a>
+            </li>
+          {% endif %}
         </ul>
       </div>
     </div>
@@ -130,7 +136,11 @@
         <div class="col-lg-3 col-md-6">
           <h5>QUY TRÌNH QUẢN LÝ CSVC</h5>
           <ul class="list-unstyled">
+            {% if not session.get('nguoi_dung_id') %}
             <li class="mb-2"><a href="{{ url_for('main.bao_cao_hu_hai') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo sự cố hư hại</a></li>
+            {% else %}
+            <li class="mb-2"><a href="{{ url_for('tai_san.cua_toi') }}"><i class="fa-solid fa-angle-right me-1"></i> Tài sản được bàn giao</a></li>
+            {% endif %}
             <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Đề nghị mua sắm (M08)</a></li>
             <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý tài sản (M09)</a></li>
             <li><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo thống kê (M17)</a></li>
@@ -139,7 +149,11 @@
         <div class="col-lg-4 col-md-12">
           <h5>HỖ TRỢ TRỰC TUYẾN</h5>
           <p>Hệ thống hỗ trợ tiếp nhận mọi phản ánh về tình trạng hư hại tài sản, bàn ghế, thiết bị máy chiếu, điều hòa trong toàn bộ khuôn viên giảng đường NEU 24/7.</p>
-          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu sửa chữa ngay</a>
+          {% if not session.get('nguoi_dung_id') %}
+          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-paper-plane me-1"></i> Báo cáo hư hại</a>
+          {% else %}
+          <a href="{{ url_for('tai_san.cua_toi') }}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-box me-1"></i> Xem tài sản của tôi</a>
+          {% endif %}
         </div>
       </div>
       <div class="neu-footer-bottom">

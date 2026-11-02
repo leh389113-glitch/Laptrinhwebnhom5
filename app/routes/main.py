@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.services import bao_cao_hu_hai as bc_svc
 from app.services import bao_cao as tk_svc
+from app.services import tai_san as ts_svc
 from app import schemas
 from app.errors import LoiNghiepVu
 
@@ -26,7 +27,8 @@ def bao_cao_hu_hai():
             "vi_tri": request.form.get("vi_tri"),
             "muc_do": request.form.get("muc_do"),
             "mo_ta_chi_tiet": request.form.get("mo_ta_chi_tiet"),
-            "thoi_gian_phat_hien": request.form.get("thoi_gian_phat_hien")
+            "thoi_gian_phat_hien": request.form.get("thoi_gian_phat_hien"),
+            "tai_san_id": request.form.get("tai_san_id")
         }
         try:
             cleaned_data = schemas.xac_thuc_bao_cao_hu_hai(du_lieu_form)
@@ -35,12 +37,15 @@ def bao_cao_hu_hai():
             return redirect(url_for("main.cam_on"))
         except LoiNghiepVu as e:
             flash(e.thong_bao, "danger")
-            return render_template("main/bao_cao_hu_hai.html", du_lieu=du_lieu_form)
+            return render_template(
+                "main/bao_cao_hu_hai.html",
+                du_lieu=du_lieu_form,
+                tai_san_list=ts_svc.lay_tai_san_cong_khai()
+            )
 
-    return render_template("main/bao_cao_hu_hai.html")
+    return render_template("main/bao_cao_hu_hai.html", tai_san_list=ts_svc.lay_tai_san_cong_khai())
 
 @main_bp.route("/bao-cao-hu-hai/cam-on")
 def cam_on():
     """Trang thông báo tiếp nhận báo cáo thành công."""
     return render_template("main/cam_on.html")
-

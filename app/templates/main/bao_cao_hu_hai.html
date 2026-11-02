@@ -33,9 +33,25 @@
                 <input type="text" name="lien_he" class="form-control neu-form-control" placeholder="Ví dụ: 0912345678 hoặc an.nv@neu.edu.vn" value="{{ du_lieu.lien_he if du_lieu else '' }}" required>
               </div>
 
+              <div class="col-12">
+                <label class="neu-form-label">Tài sản của trường (nếu nhận diện được)</label>
+                <select name="tai_san_id" id="selectTaiSan" class="form-select neu-form-control">
+                  <option value="">Không thấy trong danh mục / Chưa xác định</option>
+                  {% for ts in tai_san_list %}
+                    <option value="{{ ts.id }}"
+                            data-ten="{{ ts.ma_tai_san }} - {{ ts.ten_tai_san }}"
+                            data-vi-tri="{{ ts.vi_tri or '' }}"
+                            {% if du_lieu and du_lieu.tai_san_id|string == ts.id|string %}selected{% endif %}>
+                      {{ ts.ma_tai_san }} - {{ ts.ten_tai_san }}{% if ts.vi_tri %} ({{ ts.vi_tri }}){% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+                <small class="text-muted">Nếu không chọn tài sản, vui lòng mô tả tên vật chất và vị trí để bộ phận phụ trách đối chiếu.</small>
+              </div>
+
               <div class="col-md-6">
                 <label class="neu-form-label">Vị trí xảy ra hư hại (Phòng, Nhà...) <span class="text-danger">*</span></label>
-                <input type="text" name="vi_tri" class="form-control neu-form-control" placeholder="Ví dụ: Phòng A1-502, Tòa nhà A1" value="{{ du_lieu.vi_tri if du_lieu else '' }}" required>
+                <input type="text" name="vi_tri" id="viTriHuHai" class="form-control neu-form-control" placeholder="Ví dụ: Phòng A1-502, Tòa nhà A1" value="{{ du_lieu.vi_tri if du_lieu else '' }}" required>
               </div>
 
               <div class="col-md-6">
@@ -49,7 +65,7 @@
 
               <div class="col-12">
                 <label class="neu-form-label">Tên thiết bị / Cơ sở vật chất bị hư hại <span class="text-danger">*</span></label>
-                <input type="text" name="ten_vat_chat" class="form-control neu-form-control" placeholder="Ví dụ: Máy chiếu Panasonic không lên nguồn, Quạt trần kêu to..." value="{{ du_lieu.ten_vat_chat if du_lieu else '' }}" required>
+                <input type="text" name="ten_vat_chat" id="tenVatChatHuHai" class="form-control neu-form-control" placeholder="Ví dụ: Máy chiếu Panasonic không lên nguồn, Quạt trần kêu to..." value="{{ du_lieu.ten_vat_chat if du_lieu else '' }}" required>
               </div>
 
               <div class="col-12">
@@ -78,5 +94,27 @@
     </div>
   </div>
 </div>
-{% endblock %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const select = document.getElementById('selectTaiSan');
+  const tenVatChat = document.getElementById('tenVatChatHuHai');
+  const viTri = document.getElementById('viTriHuHai');
 
+  function capNhatTheoTaiSan() {
+    const option = select.options[select.selectedIndex];
+    if (select.value) {
+      tenVatChat.value = option.dataset.ten || tenVatChat.value;
+      viTri.value = option.dataset.viTri || viTri.value;
+      tenVatChat.required = false;
+      viTri.required = false;
+    } else {
+      tenVatChat.required = true;
+      viTri.required = true;
+    }
+  }
+
+  select.addEventListener('change', capNhatTheoTaiSan);
+  capNhatTheoTaiSan();
+});
+</script>
+{% endblock %}

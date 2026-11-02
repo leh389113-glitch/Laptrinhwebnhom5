@@ -42,6 +42,17 @@
         </div>
       </div>
 
+      {% if de_nghi.yeu_cau_thay_the %}
+      <div class="neu-card">
+        <div class="neu-card-header bg-warning"><strong>Đề nghị thay thế tài sản</strong></div>
+        <div class="neu-card-body">
+          Đề nghị này được lập từ yêu cầu xử lý tài sản
+          <strong>{{ de_nghi.yeu_cau_thay_the.ma_tai_san }} - {{ de_nghi.yeu_cau_thay_the.ten_tai_san }}</strong>.
+          Việc tiếp nhận hàng sẽ liên kết tài sản mới với yêu cầu và chuyển tài sản cũ sang chờ thanh lý.
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Danh mục hàng hóa -->
       <div class="neu-card">
         <div class="neu-card-header">
