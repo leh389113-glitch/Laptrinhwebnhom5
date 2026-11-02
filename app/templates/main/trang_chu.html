@@ -34,7 +34,7 @@
             </a>
           {% elif session.get('vai_tro') == 'quan_ly_kho' %}
             <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
-              <i class="fa-solid fa-warehouse me-2"></i> Phân hệ Quản lý Kho & Tài sản (M09)
+              <i class="fa-solid fa-warehouse me-2"></i> Phân hệ Quản lý tài sản (M09)
             </a>
           {% elif session.get('vai_tro') == 'ke_toan' %}
             <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
@@ -127,7 +127,7 @@
     <div class="col-md-4">
       <div class="neu-card h-100">
         <div class="neu-card-header bg-primary-neu" style="background: linear-gradient(135deg, #0B4F9C, #0072CE);">
-          <span><i class="fa-solid fa-warehouse me-2"></i> M09 - Quản lý Kho & Tài sản</span>
+          <span><i class="fa-solid fa-warehouse me-2"></i> M09 - Quản lý tài sản</span>
         </div>
         <div class="neu-card-body d-flex flex-column">
           <p class="text-muted">
@@ -171,4 +171,3 @@
 
 </div>
 {% endblock %}
-

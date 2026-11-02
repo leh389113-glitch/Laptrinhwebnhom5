@@ -50,13 +50,13 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
     res_duyet = client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt cấp máy in"}, follow_redirects=True)
     assert res_duyet.status_code == 200
 
-    # 3. Bộ phận quản lý kho tiếp nhận hàng vào kho
+    # 3. Bộ phận quản lý tài sản tiếp nhận hàng
     auth.login(vai_tro="quan_ly_kho")
     res_nhan = client.post("/mua-sam/de-nghi/1/tiep-nhan", data={"ghi_chu": "Đã nhận máy in"}, follow_redirects=True)
     assert res_nhan.status_code == 200
     assert "Tiếp nhận hàng hóa thành công" in res_nhan.text
 
-    # 4. Bộ phận quản lý kho kiểm tra danh mục tài sản M09 đã có máy in
+    # 4. Bộ phận quản lý tài sản kiểm tra danh mục tài sản M09 đã có máy in
     res_ts = client.get("/tai-san/")
     assert res_ts.status_code == 200
     assert "Máy in Canon 2900" in res_ts.text

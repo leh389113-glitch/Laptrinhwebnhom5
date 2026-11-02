@@ -1,20 +1,20 @@
 from app.db import get_db
 
 def test_mua_sam_khong_duoc_truy_cap_tai_san(client, auth):
-    """Test bộ phận mua sắm không có quyền truy cập module M09 - Kho & Tài sản."""
+    """Test bộ phận mua sắm không có quyền truy cập module M09 - Quản lý tài sản."""
     auth.login(vai_tro="mua_sam")
     res = client.get("/tai-san/")
     assert res.status_code == 403
 
-def test_quan_ly_kho_truy_cap_tai_san(client, auth):
-    """Test bộ phận quản lý kho truy cập thành công danh sách tài sản."""
+def test_quan_ly_tai_san_truy_cap_tai_san(client, auth):
+    """Test bộ phận quản lý tài sản truy cập thành công danh sách tài sản."""
     auth.login(vai_tro="quan_ly_kho")
     res = client.get("/tai-san/")
     assert res.status_code == 200
-    assert "M09 - QUẢN LÝ KHO & TÀI SẢN" in res.text
+    assert "M09 - QUẢN LÝ TÀI SẢN" in res.text
 
 def test_ban_giao_tai_san(client, auth, app):
-    """Test bộ phận quản lý kho thực hiện bàn giao tài sản."""
+    """Test bộ phận quản lý tài sản thực hiện bàn giao tài sản."""
     with app.app_context():
         db = get_db()
         cur = db.execute(
@@ -37,7 +37,7 @@ def test_ban_giao_tai_san(client, auth, app):
     assert "Bàn giao tài sản thành công" in res_bg.text
 
 def test_ghi_nhan_bao_tri_tai_san(client, auth, app):
-    """Test bộ phận quản lý kho ghi nhận sửa chữa, bảo trì cho tài sản."""
+    """Test bộ phận quản lý tài sản ghi nhận sửa chữa, bảo trì cho tài sản."""
     with app.app_context():
         db = get_db()
         cur = db.execute(

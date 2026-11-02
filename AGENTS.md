@@ -28,9 +28,9 @@
 
 | Vai trò | Mã vai trò | Trang được phép truy cập |
 |---|---|---|
-| Bộ phận mua sắm & kho | `mua_sam` | Trang M08-Mua sắm, Trang M09-Kho/Tài sản |
+| Bộ phận mua sắm & tài sản | `mua_sam` | Trang M08-Mua sắm, Trang M09-Quản lý tài sản |
 | Kế toán | `ke_toan` | Trang M08-Kế toán |
-| Người dùng nội bộ | `nguoi_dung` | Trang M09-Kho/Tài sản (chỉ xem tài sản được bàn giao) |
+| Người dùng nội bộ | `nguoi_dung` | Trang M09-Quản lý tài sản (chỉ xem tài sản được bàn giao) |
 | Admin | `quan_tri` | Trang Admin (toàn bộ M08, M09, M17 + phê duyệt mua sắm + quản lý tài khoản) |
 | Khách / Chưa đăng nhập | _(không có)_ | Trang chủ, Trang báo cáo hư hại, Trang đăng nhập/đăng ký |
 
@@ -50,7 +50,7 @@ Hệ thống gồm **7 trang chính** với chính sách truy cập khác nhau:
 | 2 | Đăng nhập / Đăng ký | `/dang-nhap`, `/dang-ky` | Public (chưa đăng nhập) | `auth` |
 | 3 | M08 — Mua sắm | `/mua-sam/` | `mua_sam`, `quan_tri` | `mua_sam` |
 | 4 | M08 — Kế toán | `/ke-toan/` | `ke_toan`, `quan_tri` | `ke_toan` |
-| 5 | M09 — Kho & Tài sản | `/tai-san/` | `mua_sam`, `nguoi_dung`, `quan_tri` | `tai_san` |
+| 5 | M09 — Quản lý tài sản | `/tai-san/` | `mua_sam`, `nguoi_dung`, `quan_tri` | `tai_san` |
 | 6 | Báo cáo hư hại | `/bao-cao-hu-hai` | Public (không cần đăng nhập) | `main` |
 | 7 | Admin Dashboard | `/admin/` | `quan_tri` | `admin` |
 
@@ -163,7 +163,7 @@ vai_tro == "quan_tri"  → /admin/          (Admin — toàn quyền)
 
 ---
 
-### 3.6 Trang M09 — Kho & Tài sản (`/tai-san/`)
+### 3.6 Trang M09 — Quản lý tài sản (`/tai-san/`)
 
 **Vai trò được phép:** `mua_sam`, `nguoi_dung` (chỉ xem), `quan_tri`
 
@@ -306,7 +306,7 @@ project_root/
 │   │   ├── auth.py              # Blueprint: đăng nhập, đăng ký, đăng xuất
 │   │   ├── mua_sam.py           # Blueprint: M08 bộ phận mua sắm
 │   │   ├── ke_toan.py           # Blueprint: M08 kế toán
-│   │   ├── tai_san.py           # Blueprint: M09 kho & tài sản
+│   │   ├── tai_san.py           # Blueprint: M09 quản lý tài sản
 │   │   └── admin.py             # Blueprint: admin dashboard (M17 + quản lý)
 │   ├── templates/
 │   │   ├── base.html            # Layout chung với navbar (điều chỉnh theo vai trò)

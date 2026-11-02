@@ -10,7 +10,7 @@ tai_san_bp = Blueprint("tai_san", __name__, url_prefix="/tai-san")
 @tai_san_bp.route("/")
 @yeu_cau_vai_tro("quan_ly_kho", "quan_tri")
 def danh_sach():
-    """Xem toàn bộ danh sách tài sản cơ sở vật chất (Bộ phận Quản lý kho / Admin)."""
+    """Xem toàn bộ danh sách tài sản cơ sở vật chất (Bộ phận Quản lý tài sản / Admin)."""
     trang_thai = request.args.get("trang_thai")
     tu_khoa = request.args.get("tu_khoa")
     ds_tai_san = ts_svc.lay_danh_sach_tai_san(trang_thai=trang_thai, tu_khoa=tu_khoa)

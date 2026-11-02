@@ -44,12 +44,12 @@ def nap_du_lieu():
         # 4 nhóm tài khoản chuẩn xác:
         # 1. Admin: quan_tri
         # 2. Bộ phận Mua sắm: mua_sam
-        # 3. Bộ phận Quản lý kho: quan_ly_kho
+        # 3. Bộ phận Quản lý tài sản: quan_ly_kho
         # 4. Kế toán: ke_toan
         users = [
             ("Quản trị viên Hệ thống", "admin@neu.edu.vn", "admin", "admin123", "quan_tri"),
             ("Cán bộ Bộ phận Mua sắm", "muasam@neu.edu.vn", "cb_muasam", "password123", "mua_sam"),
-            ("Cán bộ Quản lý kho", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho"),
+            ("Cán bộ Quản lý tài sản", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho"),
             ("Cán bộ Kế toán Thanh toán", "ketoan@neu.edu.vn", "cb_ketoan", "password123", "ke_toan"),
         ]
 
@@ -145,7 +145,7 @@ def nap_du_lieu():
         print("DANH SÁCH TÀI KHOẢN ĐĂNG NHẬP THEO PHÂN QUYỀN MỚI:")
         print("1. Quản trị viên (Admin):    admin       / admin123    (Toàn quyền)")
         print("2. Bộ phận Mua sắm:          cb_muasam   / password123 (Truy cập M08)")
-        print("3. Bộ phận Quản lý kho:      cb_kho      / password123 (Truy cập M09)")
+        print("3. Bộ phận Quản lý tài sản:  cb_kho      / password123 (Truy cập M09)")
         print("4. Kế toán:                  cb_ketoan   / password123 (Thanh toán M08)")
         print("="*65)
 

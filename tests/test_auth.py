@@ -8,7 +8,7 @@ def test_dang_nhap_mua_sam_redirect(client):
     assert "/mua-sam" in res.location
 
 def test_dang_nhap_quan_ly_kho_redirect(client):
-    """Bộ phận quản lý kho đăng nhập redirect đúng /tai-san/"""
+    """Bộ phận quản lý tài sản đăng nhập redirect đúng /tai-san/"""
     res = client.post("/dang-nhap", data={
         "ten_dang_nhap": "user_kho",
         "mat_khau": "password123"

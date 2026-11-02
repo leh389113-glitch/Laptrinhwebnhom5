@@ -61,7 +61,7 @@ def tao_app(cau_hinh=None):
             'trung_binh': 'Trung bình',
             'nghiem_trong': 'Nghiêm trọng',
             'mua_sam': 'Bộ phận Mua sắm',
-            'quan_ly_kho': 'Bộ phận Quản lý kho',
+            'quan_ly_kho': 'Bộ phận Quản lý tài sản',
             'ke_toan': 'Kế toán',
             'quan_tri': 'Quản trị viên (Admin)'
         }

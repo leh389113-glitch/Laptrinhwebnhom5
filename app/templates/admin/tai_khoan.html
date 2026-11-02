@@ -6,7 +6,7 @@
   <div class="neu-page-header">
     <div>
       <h2 class="neu-page-title"><i class="fa-solid fa-users-gear text-primary me-2"></i> QUẢN LÝ TÀI KHOẢN & PHÂN QUYỀN HỆ THỐNG</h2>
-      <small class="text-muted">Phân quyền chức năng cho cán bộ Mua sắm, Quản lý kho, Kế toán và Quản trị viên</small>
+      <small class="text-muted">Phân quyền chức năng cho cán bộ Mua sắm, Quản lý tài sản, Kế toán và Quản trị viên</small>
     </div>
     <div>
       <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
@@ -54,7 +54,7 @@
               <form method="POST" action="{{ url_for('admin.doi_vai_tro', id=u.id) }}" class="d-inline-flex gap-1">
                 <select name="vai_tro" class="form-select form-select-sm neu-form-control" style="width: auto;">
                   <option value="mua_sam" {% if u.vai_tro == 'mua_sam' %}selected{% endif %}>Bộ phận Mua sắm (M08)</option>
-                  <option value="quan_ly_kho" {% if u.vai_tro == 'quan_ly_kho' %}selected{% endif %}>Bộ phận Quản lý kho (M09)</option>
+                  <option value="quan_ly_kho" {% if u.vai_tro == 'quan_ly_kho' %}selected{% endif %}>Bộ phận Quản lý tài sản (M09)</option>
                   <option value="ke_toan" {% if u.vai_tro == 'ke_toan' %}selected{% endif %}>Kế toán (M08)</option>
                   <option value="quan_tri" {% if u.vai_tro == 'quan_tri' %}selected{% endif %}>Quản trị viên (Admin)</option>
                 </select>

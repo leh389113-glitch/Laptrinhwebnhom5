@@ -62,7 +62,7 @@
           {% endif %}
 
           {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Kho & Tài sản</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-warehouse me-1"></i> M09 - Quản lý tài sản</a></li>
           {% endif %}
 
           {% if session.get('vai_tro') in ['ke_toan', 'quan_tri'] %}
@@ -132,7 +132,7 @@
           <ul class="list-unstyled">
             <li class="mb-2"><a href="{{ url_for('main.bao_cao_hu_hai') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo sự cố hư hại</a></li>
             <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Đề nghị mua sắm (M08)</a></li>
-            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý kho & tài sản (M09)</a></li>
+            <li class="mb-2"><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Quản lý tài sản (M09)</a></li>
             <li><a href="{{ url_for('auth.dang_nhap') }}"><i class="fa-solid fa-angle-right me-1"></i> Báo cáo thống kê (M17)</a></li>
           </ul>
         </div>
