@@ -1,0 +1,19 @@
+# Python bytecode and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration and generated databases
+.env
+!.env.example
+instance/
+*.db
+*.sqlite
+*.sqlite3
