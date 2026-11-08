@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}M09 - Quản lý Sửa chữa & Bảo trì - NEU Facility Hub{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-primary mb-1"><i class="fa-solid fa-screwdriver-wrench me-2 text-danger"></i>M09 — QUẢN LÝ SỬA CHỮA & BẢO TRÌ</h2>
+      <p class="text-muted mb-0">Theo dõi, tiếp nhận, thực hiện và nghiệm thu sửa chữa cơ sở vật chất theo Phần III Quy trình</p>
+    </div>
+    <a href="{{ url_for('tai_san.danh_sach_hu_hai') }}" class="btn btn-outline-danger">
+      <i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo hư hại từ người dùng
+    </a>
+  </div>
+
+  <!-- Bộ lọc trạng thái -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-bold text-muted me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
+        <a href="{{ url_for('tai_san.danh_sach_sua_chua') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-primary{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+        <a href="{{ url_for('tai_san.danh_sach_sua_chua', trang_thai='dang_sua_chua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_sua_chua' %}btn-warning{% else %}btn-outline-secondary{% endif %}">Đang sửa chữa</a>
+        <a href="{{ url_for('tai_san.danh_sach_sua_chua', trang_thai='da_hoan_thanh') }}" class="btn btn-sm {% if trang_thai_chon == 'da_hoan_thanh' %}btn-success{% else %}btn-outline-secondary{% endif %}">Đã hoàn thành</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danh sách yêu cầu sửa chữa -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Mã yêu cầu</th>
+              <th>Nội dung sửa chữa</th>
+              <th>Tài sản / Vị trí</th>
+              <th>Loại sửa chữa</th>
+              <th>Đơn vị thực hiện</th>
+              <th>Chi phí</th>
+              <th>Trạng thái</th>
+              <th class="text-end">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if sua_chua_list %}
+              {% for sc in sua_chua_list %}
+              <tr>
+                <td><span class="badge bg-light text-dark border fw-bold">{{ sc.ma_yeu_cau }}</span></td>
+                <td>
+                  <strong>{{ sc.noi_dung }}</strong>
+                  {% if sc.hien_trang %}
+                    <br><small class="text-muted">{{ sc.hien_trang }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if sc.ma_tai_san %}
+                    <span class="badge bg-info text-dark">{{ sc.ma_tai_san }}</span> {{ sc.ten_tai_san }}
+                  {% else %}
+                    <span class="text-muted">Theo sự cố hiện trường</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if sc.loai_sua_chua == 'sua_chua_nho' %}
+                    <span class="badge bg-secondary">Sửa chữa nhỏ</span>
+                  {% elif sc.loai_sua_chua == 'thiet_bi' %}
+                    <span class="badge bg-primary">Thiết bị</span>
+                  {% else %}
+                    <span class="badge bg-dark">Công trình</span>
+                  {% endif %}
+                </td>
+                <td>{{ sc.don_vi_thuc_hien or 'Tổ kỹ thuật' }}</td>
+                <td>
+                  {% if sc.chi_phi_thuc_te %}
+                    <span class="fw-bold text-success">{{ sc.chi_phi_thuc_te | tien_vnd }}</span>
+                  {% else %}
+                    <span class="text-muted">{{ (sc.chi_phi_du_kien or 0) | tien_vnd }} (Dự kiến)</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if sc.trang_thai == 'dang_sua_chua' %}
+                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-tools me-1"></i> Đang sửa chữa</span>
+                  {% elif sc.trang_thai == 'da_hoan_thanh' %}
+                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Đã hoàn thành</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ sc.trang_thai }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  {% if sc.trang_thai == 'dang_sua_chua' and session.get('vai_tro') == 'quan_ly_kho' %}
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNghiemThu{{ sc.id }}">
+                      <i class="fa-solid fa-clipboard-check me-1"></i> Nghiệm thu
+                    </button>
+
+                    <!-- Modal Nghiệm thu -->
+                    <div class="modal fade text-start" id="modalNghiemThu{{ sc.id }}" tabindex="-1">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <form action="{{ url_for('tai_san.nghiem_thu_sua_chua', id=sc.id) }}" method="POST">
+                            <div class="modal-header">
+                              <h5 class="modal-title fw-bold">Nghiệm thu hoàn tất sửa chữa</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Xác nhận công việc sửa chữa <strong>{{ sc.ma_yeu_cau }}</strong> đã hoàn thành đạt yêu cầu kỹ thuật.</p>
+                              <div class="mb-3">
+                                <label class="form-label fw-bold">Chi phí thực tế (VNĐ)</label>
+                                <input type="number" class="form-control" name="chi_phi_thuc_te" value="{{ sc.chi_phi_du_kien or 0 }}" required min="0">
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label fw-bold">Ý kiến nghiệm thu / Ghi chú</label>
+                                <textarea class="form-control" name="ghi_chu" rows="2" placeholder="Thiết bị đã vận hành thử nghiệm tốt, đạt tiêu chuẩn..."></textarea>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                              <button type="submit" class="btn btn-success fw-bold">Xác nhận hoàn thành</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  {% else %}
+                    <span class="text-muted"><i class="fa-solid fa-check text-success me-1"></i>Đạt</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="8" class="text-center py-4 text-muted">
+                  <i class="fa-solid fa-circle-check fa-2x mb-2 text-success"></i>
+                  <p class="mb-0">Hiện không có yêu cầu sửa chữa nào.</p>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

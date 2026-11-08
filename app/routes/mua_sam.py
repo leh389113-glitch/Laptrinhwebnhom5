@@ -17,13 +17,14 @@ def danh_sach():
 @mua_sam_bp.route("/de-nghi/tao", methods=["GET", "POST"])
 @yeu_cau_vai_tro("mua_sam", "quan_ly_kho")
 def tao_de_nghi():
-    """Lập đề nghị / Yêu cầu mua sắm cơ sở vật chất mới (Bộ phận Mua sắm hoặc Quản lý tài sản đề xuất nhu cầu)."""
+    """Lập đề nghị / Yêu cầu mua sắm cơ sở vật chất mới (BM01)."""
     if request.method == "POST":
-        # Thu thập các dòng hàng hóa từ form
         ten_hang_list = request.form.getlist("ten_hang_hoa[]")
         don_vi_list = request.form.getlist("don_vi_tinh[]")
         so_luong_list = request.form.getlist("so_luong[]")
         don_gia_list = request.form.getlist("don_gia_du_kien[]")
+        vi_tri_list = request.form.getlist("vi_tri_su_dung[]")
+        ly_do_list = request.form.getlist("ly_do_muc_dich[]")
         ghi_chu_list = request.form.getlist("ghi_chu[]")
 
         items = []
@@ -34,6 +35,8 @@ def tao_de_nghi():
                     "don_vi_tinh": don_vi_list[i] if i < len(don_vi_list) else "Cái",
                     "so_luong": so_luong_list[i] if i < len(so_luong_list) else 1,
                     "don_gia_du_kien": don_gia_list[i] if i < len(don_gia_list) else 0,
+                    "vi_tri_su_dung": vi_tri_list[i] if i < len(vi_tri_list) else "",
+                    "ly_do_muc_dich": ly_do_list[i] if i < len(ly_do_list) else "",
                     "ghi_chu": ghi_chu_list[i] if i < len(ghi_chu_list) else ""
                 })
 
@@ -41,6 +44,11 @@ def tao_de_nghi():
             "tieu_de": request.form.get("tieu_de"),
             "don_vi_de_nghi": request.form.get("don_vi_de_nghi"),
             "mo_ta": request.form.get("mo_ta"),
+            "muc_do_uu_tien": request.form.get("muc_do_uu_tien", "binh_thuong"),
+            "nguon_kinh_phi": request.form.get("nguon_kinh_phi", "Nguồn thu hợp pháp của Trường"),
+            "thoi_gian_can_hang": request.form.get("thoi_gian_can_hang", ""),
+            "dia_diem_su_dung": request.form.get("dia_diem_su_dung", ""),
+            "ly_do_su_can_thiet": request.form.get("ly_do_su_can_thiet", ""),
             "items": items
         }
 
@@ -58,7 +66,7 @@ def tao_de_nghi():
 @mua_sam_bp.route("/de-nghi/<int:id>")
 @yeu_cau_vai_tro("mua_sam", "quan_ly_kho", "quan_tri")
 def chi_tiet(id):
-    """Xem chi tiết đề nghị mua sắm."""
+    """Xem chi tiết đề nghị mua sắm và tiến trình các bước mua sắm M08."""
     try:
         de_nghi = ms_svc.lay_chi_tiet_de_nghi(id)
         return render_template("mua_sam/chi_tiet.html", de_nghi=de_nghi)
@@ -100,6 +108,84 @@ def tu_choi(id):
 
     return redirect(url_for("mua_sam.chi_tiet", id=id))
 
+@mua_sam_bp.route("/de-nghi/<int:id>/khao-sat", methods=["POST"])
+@yeu_cau_vai_tro("mua_sam")
+def khao_sat(id):
+    """Lập biên bản khảo sát nhu cầu mua sắm thực tế BM02."""
+    du_lieu_form = {
+        "noi_dung": request.form.get("noi_dung"),
+        "dia_diem": request.form.get("dia_diem"),
+        "can_bo_khao_sat": request.form.get("can_bo_khao_sat"),
+        "dai_dien_don_vi": request.form.get("dai_dien_don_vi"),
+        "ket_qua_danh_gia": request.form.get("ket_qua_danh_gia"),
+        "kiem_tra_kho": request.form.get("kiem_tra_kho"),
+        "doi_chieu_dinh_muc": request.form.get("doi_chieu_dinh_muc"),
+        "muc_do_can_thiet": request.form.get("muc_do_can_thiet"),
+        "phuong_an_de_xuat": request.form.get("phuong_an_de_xuat"),
+        "ket_luan": request.form.get("ket_luan")
+    }
+    try:
+        cleaned = schemas.xac_thuc_khao_sat(du_lieu_form)
+        ms_svc.tao_khao_sat(id, cleaned)
+        flash("Đã lập biên bản khảo sát nhu cầu mua sắm BM02 thành công!", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
+
+    return redirect(url_for("mua_sam.chi_tiet", id=id))
+
+@mua_sam_bp.route("/de-nghi/<int:id>/bao-gia", methods=["POST"])
+@yeu_cau_vai_tro("mua_sam")
+def them_bao_gia(id):
+    """Cập nhật báo giá cạnh tranh từ các nhà cung cấp."""
+    du_lieu_form = {
+        "nha_cung_cap": request.form.get("nha_cung_cap"),
+        "ma_so_thue": request.form.get("ma_so_thue"),
+        "lien_he": request.form.get("lien_he"),
+        "tong_gia": request.form.get("tong_gia"),
+        "hieu_luc": request.form.get("hieu_luc"),
+        "ghi_chu": request.form.get("ghi_chu")
+    }
+    try:
+        cleaned = schemas.xac_thuc_bao_gia(du_lieu_form)
+        ms_svc.them_bao_gia(id, cleaned)
+        flash("Đã thêm báo giá cạnh tranh thành công!", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
+
+    return redirect(url_for("mua_sam.chi_tiet", id=id))
+
+@mua_sam_bp.route("/de-nghi/<int:id>/chon-bao-gia/<int:bao_gia_id>", methods=["POST"])
+@yeu_cau_vai_tro("mua_sam")
+def chon_bao_gia(id, bao_gia_id):
+    """Lựa chọn nhà cung cấp trúng thầu."""
+    try:
+        ms_svc.chon_bao_gia(id, bao_gia_id)
+        flash("Đã xác nhận lựa chọn nhà cung cấp trúng thầu!", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
+
+    return redirect(url_for("mua_sam.chi_tiet", id=id))
+
+@mua_sam_bp.route("/de-nghi/<int:id>/nghiem-thu", methods=["POST"])
+@yeu_cau_vai_tro("mua_sam")
+def lap_nghiem_thu(id):
+    """Lập biên bản kiểm tra, nghiệm thu hàng hóa trước khi bàn giao cho M09."""
+    du_lieu_form = {
+        "dai_dien_ben_mua": request.form.get("dai_dien_ben_mua"),
+        "dai_dien_nha_cung_cap": request.form.get("dai_dien_nha_cung_cap"),
+        "dai_dien_don_vi_su_dung": request.form.get("dai_dien_don_vi_su_dung"),
+        "ket_qua": request.form.get("ket_qua", "dat"),
+        "y_kien_danh_gia": request.form.get("y_kien_danh_gia")
+    }
+    try:
+        cleaned = schemas.xac_thuc_nghiem_thu(du_lieu_form)
+        ms_svc.lap_bien_ban_nghiem_thu(id, cleaned)
+        flash("Đã lập biên bản kiểm tra & nghiệm thu hàng hóa thành công!", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
+
+    return redirect(url_for("mua_sam.chi_tiet", id=id))
+
 @mua_sam_bp.route("/de-nghi/<int:id>/tiep-nhan", methods=["GET", "POST"])
 @yeu_cau_vai_tro("quan_ly_kho")
 def tiep_nhan(id):
@@ -121,7 +207,6 @@ def tiep_nhan(id):
 @mua_sam_bp.route("/ho-so")
 @yeu_cau_vai_tro("mua_sam", "quan_tri")
 def ho_so():
-    """Danh sách hồ sơ mua sắm."""
+    """Danh sách hồ sơ mua sắm & hợp đồng."""
     danh_sach_hs = ms_svc.lay_danh_sach_ho_so()
     return render_template("mua_sam/ho_so.html", ho_so_list=danh_sach_hs)
-

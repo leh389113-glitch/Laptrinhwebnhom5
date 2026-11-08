@@ -30,8 +30,54 @@ def sinh_ma_de_nghi() -> str:
 
     return f"{prefix}{so_tt:03d}"
 
+def sinh_ma_khao_sat() -> str:
+    """Sinh mã phiếu khảo sát tự động KS-YYYYMMDD-XXX."""
+    db = get_db()
+    hien_tai = clock.now()
+    ngay_str = hien_tai.strftime("%Y%m%d")
+    prefix = f"KS-{ngay_str}-"
+
+    row = db.execute(
+        "SELECT ma_khao_sat FROM khao_sat_nhu_cau WHERE ma_khao_sat LIKE ? ORDER BY id DESC LIMIT 1",
+        (f"{prefix}%",)
+    ).fetchone()
+
+    if row:
+        phan_duoi = row["ma_khao_sat"].split("-")[-1]
+        try:
+            so_tt = int(phan_duoi) + 1
+        except ValueError:
+            so_tt = 1
+    else:
+        so_tt = 1
+
+    return f"{prefix}{so_tt:03d}"
+
+def sinh_ma_nghiem_thu() -> str:
+    """Sinh mã biên bản nghiệm thu tự động NT-YYYYMMDD-XXX."""
+    db = get_db()
+    hien_tai = clock.now()
+    ngay_str = hien_tai.strftime("%Y%m%d")
+    prefix = f"NT-{ngay_str}-"
+
+    row = db.execute(
+        "SELECT ma_nghiem_thu FROM nghiem_thu_mua_sam WHERE ma_nghiem_thu LIKE ? ORDER BY id DESC LIMIT 1",
+        (f"{prefix}%",)
+    ).fetchone()
+
+    if row:
+        phan_duoi = row["ma_nghiem_thu"].split("-")[-1]
+        try:
+            so_tt = int(phan_duoi) + 1
+        except ValueError:
+            so_tt = 1
+    else:
+        so_tt = 1
+
+    return f"{prefix}{so_tt:03d}"
+
 def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
-    """Tạo mới một đề nghị mua sắm kèm các hạng mục hàng hóa."""
+    """Tạo mới một đề nghị mua sắm kèm các hạng mục hàng hóa theo chuẩn BM01."""
     db = get_db()
     ma_de_nghi = sinh_ma_de_nghi()
     ngay_hien_tai = clock.now().isoformat()
@@ -41,7 +87,6 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
     if tong_du_toan is None:
         tong_du_toan = sum(float(it.get("thanh_tien", it.get("so_luong", 0) * it.get("don_gia_du_kien", 0))) for it in items)
 
-    # Phân cấp thẩm quyền phê duyệt ban đầu theo ngưỡng 100 triệu
     trang_thai_khoi_tao = "cho_lanh_dao_duyet" if float(tong_du_toan) >= NGUONG_PHE_DUYET_LANH_DAO else "cho_phe_duyet"
 
     cursor = db.execute(
@@ -49,9 +94,11 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
         INSERT INTO de_nghi_mua_sam (
             ma_de_nghi, tieu_de, mo_ta, don_vi_de_nghi,
             nguoi_de_nghi_id, tong_du_toan, trang_thai,
-            ngay_tao, ngay_cap_nhat
+            muc_do_uu_tien, nguon_kinh_phi, thoi_gian_can_hang,
+            dia_diem_su_dung, ly_do_su_can_thiet, nguon_goc,
+            bao_cao_hu_hai_id, ngay_tao, ngay_cap_nhat
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             ma_de_nghi,
@@ -61,6 +108,13 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
             nguoi_de_nghi_id,
             tong_du_toan,
             trang_thai_khoi_tao,
+            du_lieu.get("muc_do_uu_tien", "binh_thuong"),
+            du_lieu.get("nguon_kinh_phi", "Nguồn thu hợp pháp của Trường"),
+            du_lieu.get("thoi_gian_can_hang", ""),
+            du_lieu.get("dia_diem_su_dung", ""),
+            du_lieu.get("ly_do_su_can_thiet", ""),
+            du_lieu.get("nguon_goc", "moi"),
+            du_lieu.get("bao_cao_hu_hai_id"),
             ngay_hien_tai,
             ngay_hien_tai
         )
@@ -75,9 +129,10 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
             """
             INSERT INTO chi_tiet_de_nghi (
                 de_nghi_id, ten_hang_hoa, don_vi_tinh,
-                so_luong, don_gia_du_kien, thanh_tien, ghi_chu
+                so_luong, don_gia_du_kien, thanh_tien,
+                vi_tri_su_dung, ly_do_muc_dich, ghi_chu
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 de_nghi_id,
@@ -86,6 +141,8 @@ def tao_de_nghi(du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
                 so_luong,
                 don_gia,
                 thanh_tien,
+                item.get("vi_tri_su_dung", ""),
+                item.get("ly_do_muc_dich", ""),
                 item.get("ghi_chu", "")
             )
         )
@@ -108,6 +165,34 @@ def lay_danh_sach_de_nghi(trang_thai: str = None) -> list:
 
     query += " ORDER BY d.id DESC"
     rows = db.execute(query, params).fetchall()
+    return [dict(r) for r in rows]
+
+def lay_de_nghi_cho_tiep_nhan() -> list:
+    """Lấy danh sách các đề nghị đã phê duyệt hoặc đang mua, chờ tiếp nhận hàng vào kho."""
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT d.*, u.ho_ten AS nguoi_de_nghi_ten
+        FROM de_nghi_mua_sam d
+        LEFT JOIN nguoi_dung u ON d.nguoi_de_nghi_id = u.id
+        WHERE d.trang_thai IN ('da_phe_duyet', 'dang_mua')
+        ORDER BY d.id DESC
+        """
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+def lay_de_nghi_cho_thanh_toan() -> list:
+    """Lấy danh sách đề nghị đã tiếp nhận hàng hóa (da_nhan), chờ kế toán giải ngân."""
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT d.*, u.ho_ten AS nguoi_de_nghi_ten
+        FROM de_nghi_mua_sam d
+        LEFT JOIN nguoi_dung u ON d.nguoi_de_nghi_id = u.id
+        WHERE d.trang_thai = 'da_nhan'
+        ORDER BY d.id DESC
+        """
+    ).fetchall()
     return [dict(r) for r in rows]
 
 def lay_chi_tiet_de_nghi(de_nghi_id: int) -> dict:
@@ -136,6 +221,24 @@ def lay_chi_tiet_de_nghi(de_nghi_id: int) -> dict:
         (de_nghi_id,)
     ).fetchall()
     de_nghi["items"] = [dict(it) for it in items]
+
+    khao_sat = db.execute(
+        "SELECT * FROM khao_sat_nhu_cau WHERE de_nghi_id = ? ORDER BY id DESC LIMIT 1",
+        (de_nghi_id,)
+    ).fetchone()
+    de_nghi["khao_sat"] = dict(khao_sat) if khao_sat else None
+
+    bao_gia = db.execute(
+        "SELECT * FROM bao_gia WHERE de_nghi_id = ? ORDER BY tong_gia ASC",
+        (de_nghi_id,)
+    ).fetchall()
+    de_nghi["bao_gia"] = [dict(bg) for bg in bao_gia]
+
+    nghiem_thu = db.execute(
+        "SELECT * FROM nghiem_thu_mua_sam WHERE de_nghi_id = ? ORDER BY id DESC LIMIT 1",
+        (de_nghi_id,)
+    ).fetchone()
+    de_nghi["nghiem_thu"] = dict(nghiem_thu) if nghiem_thu else None
 
     ho_so = db.execute(
         "SELECT * FROM ho_so_mua_sam WHERE de_nghi_id = ?",
@@ -182,7 +285,6 @@ def phe_duyet_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "
         raise LoiNghiepVu("TRANG_THAI_KHONG_HOP_LE", "Chỉ có thể phê duyệt đề nghị đang chờ phê duyệt.")
 
     tong_tien = float(row["tong_du_toan"] or 0)
-    # Kiểm tra thẩm quyền duyệt theo kinh phí
     if tong_tien >= NGUONG_PHE_DUYET_LANH_DAO and vai_tro != "quan_tri":
         raise LoiNghiepVu(
             "KHONG_DU_QUYEN",
@@ -244,8 +346,103 @@ def tu_choi_de_nghi(de_nghi_id: int, nguoi_phe_duyet_id: int, ghi_chu: str = "",
     db.commit()
     return lay_chi_tiet_de_nghi(de_nghi_id)
 
+def tao_khao_sat(de_nghi_id: int, du_lieu: dict) -> dict:
+    """Lập biên bản khảo sát nhu cầu mua sắm thực tế BM02."""
+    db = get_db()
+    row = db.execute("SELECT id FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
+    if not row:
+        raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
+
+    ma_khao_sat = sinh_ma_khao_sat()
+    ngay_hien_tai = clock.now().isoformat()
+
+    db.execute(
+        """
+        INSERT INTO khao_sat_nhu_cau (
+            ma_khao_sat, de_nghi_id, noi_dung, ngay_khao_sat,
+            dia_diem, can_bo_khao_sat, dai_dien_don_vi,
+            ket_qua_danh_gia, kiem_tra_kho, doi_chieu_dinh_muc,
+            muc_do_can_thiet, phuong_an_de_xuat, ket_luan, ngay_tao
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            ma_khao_sat,
+            de_nghi_id,
+            du_lieu["noi_dung"],
+            ngay_hien_tai,
+            du_lieu.get("dia_diem", ""),
+            du_lieu.get("can_bo_khao_sat", ""),
+            du_lieu.get("dai_dien_don_vi", ""),
+            du_lieu.get("ket_qua_danh_gia", ""),
+            du_lieu.get("kiem_tra_kho", ""),
+            du_lieu.get("doi_chieu_dinh_muc", ""),
+            du_lieu.get("muc_do_can_thiet", "can_thiet"),
+            du_lieu.get("phuong_an_de_xuat", "mua_bo_sung"),
+            du_lieu.get("ket_luan", "phu_hop"),
+            ngay_hien_tai
+        )
+    )
+    db.commit()
+    return lay_chi_tiet_de_nghi(de_nghi_id)
+
+def them_bao_gia(de_nghi_id: int, du_lieu: dict) -> dict:
+    """Thêm một báo giá cạnh tranh cho đề nghị mua sắm."""
+    db = get_db()
+    row = db.execute("SELECT id FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
+    if not row:
+        raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
+
+    ngay_hien_tai = clock.now().isoformat()
+    db.execute(
+        """
+        INSERT INTO bao_gia (
+            de_nghi_id, nha_cung_cap, ma_so_thue, lien_he,
+            tong_gia, ngay_bao_gia, hieu_luc, ghi_chu
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            de_nghi_id,
+            du_lieu["nha_cung_cap"],
+            du_lieu.get("ma_so_thue", ""),
+            du_lieu.get("lien_he", ""),
+            du_lieu["tong_gia"],
+            ngay_hien_tai,
+            du_lieu.get("hieu_luc", "30 ngày"),
+            du_lieu.get("ghi_chu", "")
+        )
+    )
+    db.commit()
+    return lay_chi_tiet_de_nghi(de_nghi_id)
+
+def chon_bao_gia(de_nghi_id: int, bao_gia_id: int) -> dict:
+    """Chọn nhà cung cấp trúng thầu từ các báo giá."""
+    db = get_db()
+    bg = db.execute("SELECT * FROM bao_gia WHERE id = ? AND de_nghi_id = ?", (bao_gia_id, de_nghi_id)).fetchone()
+    if not bg:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Báo giá không tồn tại.")
+
+    # Reset selection for this proposal
+    db.execute("UPDATE bao_gia SET duoc_chon = 0 WHERE de_nghi_id = ?", (de_nghi_id,))
+    db.execute("UPDATE bao_gia SET duoc_chon = 1 WHERE id = ?", (bao_gia_id,))
+
+    # Update provider info into de_nghi_mua_sam
+    db.execute(
+        """
+        UPDATE de_nghi_mua_sam
+        SET nha_cung_cap = ?,
+            gia_tri_hop_dong = ?,
+            ngay_cap_nhat = ?
+        WHERE id = ?
+        """,
+        (bg["nha_cung_cap"], bg["tong_gia"], clock.now().isoformat(), de_nghi_id)
+    )
+    db.commit()
+    return lay_chi_tiet_de_nghi(de_nghi_id)
+
 def tao_ho_so_mua_sam(de_nghi_id: int, nha_cung_cap: str, so_hop_dong: str, gia_tri: float, ghi_chu: str = "") -> dict:
-    """Tạo hồ sơ mua sắm cho đề nghị đã được duyệt."""
+    """Tạo hồ sơ mua sắm & hợp đồng cho đề nghị đã được duyệt."""
     db = get_db()
     row = db.execute("SELECT id, trang_thai FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
     if not row:
@@ -259,19 +456,79 @@ def tao_ho_so_mua_sam(de_nghi_id: int, nha_cung_cap: str, so_hop_dong: str, gia_
         """,
         (de_nghi_id, nha_cung_cap, so_hop_dong, gia_tri, ngay_tao, ghi_chu)
     )
-    # Cập nhật trạng thái sang 'dang_mua' nếu đang là 'da_phe_duyet'
-    if row["trang_thai"] == "da_phe_duyet":
-        db.execute(
-            "UPDATE de_nghi_mua_sam SET trang_thai = 'dang_mua', ngay_cap_nhat = ? WHERE id = ?",
-            (ngay_tao, de_nghi_id)
-        )
+    
+    # Cập nhật số hợp đồng và nhà cung cấp vào đề nghị mua sắm
+    db.execute(
+        """
+        UPDATE de_nghi_mua_sam
+        SET so_hop_dong = ?,
+            nha_cung_cap = ?,
+            gia_tri_hop_dong = ?,
+            trang_thai = CASE WHEN trang_thai = 'da_phe_duyet' THEN 'dang_mua' ELSE trang_thai END,
+            ngay_cap_nhat = ?
+        WHERE id = ?
+        """,
+        (so_hop_dong, nha_cung_cap, gia_tri, ngay_tao, de_nghi_id)
+    )
     db.commit()
     return {"id": cursor.lastrowid, "de_nghi_id": de_nghi_id}
 
+def lap_bien_ban_nghiem_thu(de_nghi_id: int, du_lieu: dict) -> dict:
+    """Lập biên bản kiểm tra, nghiệm thu hàng hóa trước khi bàn giao cho M09."""
+    db = get_db()
+    row = db.execute("SELECT id FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
+    if not row:
+        raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
+
+    ma_nghiem_thu = sinh_ma_nghiem_thu()
+    ngay_hien_tai = clock.now().isoformat()
+
+    db.execute(
+        """
+        INSERT INTO nghiem_thu_mua_sam (
+            ma_nghiem_thu, de_nghi_id, ngay_nghiem_thu,
+            dai_dien_ben_mua, dai_dien_nha_cung_cap, dai_dien_don_vi_su_dung,
+            ket_qua, y_kien_danh_gia, ngay_tao
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            ma_nghiem_thu,
+            de_nghi_id,
+            ngay_hien_tai,
+            du_lieu.get("dai_dien_ben_mua", ""),
+            du_lieu.get("dai_dien_nha_cung_cap", ""),
+            du_lieu.get("dai_dien_don_vi_su_dung", ""),
+            du_lieu.get("ket_qua", "dat"),
+            du_lieu.get("y_kien_danh_gia", ""),
+            ngay_hien_tai
+        )
+    )
+
+    db.execute(
+        """
+        UPDATE de_nghi_mua_sam
+        SET da_nghiem_thu = 1,
+            ngay_nghiem_thu = ?,
+            ghi_chu_nghiem_thu = ?,
+            ngay_cap_nhat = ?
+        WHERE id = ?
+        """,
+        (ngay_hien_tai, du_lieu.get("y_kien_danh_gia", ""), ngay_hien_tai, de_nghi_id)
+    )
+    db.commit()
+    return lay_chi_tiet_de_nghi(de_nghi_id)
+
 def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) -> dict:
     """
-    Ghi nhận tiếp nhận hàng hóa từ đề nghị mua sắm.
-    Quy tắc tích hợp: Tự động chuyển đề nghị sang 'da_nhan' và tạo các bản ghi tài sản mới trong M09!
+    Ghi nhận tiếp nhận hàng hóa từ đề nghị mua sắm theo biên bản giao nhận/nghiệm thu.
+    Quy tắc tích hợp M08 -> M09:
+    - Chuyển đề nghị sang 'da_nhan'.
+    - Tự động phân loại tài sản:
+        + Nếu đơn giá >= 10 triệu: 'tai_san_co_dinh' (Mã: TS-YYYY-XXXX).
+        + Nếu đơn giá < 10 triệu: 'cong_cu_dung_cu' (Mã: CCDC-YYYY-XXXX).
+    - Tạo các bản ghi tài sản mới vào kho M09 với trạng thái 'cho_ban_giao'.
+    - Nếu đề nghị gắn liền với báo cáo hư hại (thay thế), cập nhật báo cáo hư hại sang 'da_xu_ly'.
     """
     db = get_db()
     row = db.execute("SELECT * FROM de_nghi_mua_sam WHERE id = ?", (de_nghi_id,)).fetchone()
@@ -283,7 +540,6 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
 
     ngay_hien_tai = clock.now().isoformat()
 
-    # Tạo bản ghi tiếp nhận hàng
     cursor = db.execute(
         """
         INSERT INTO tiep_nhan_hang (de_nghi_id, ngay_tiep_nhan, nguoi_tiep_nhan_id, ghi_chu)
@@ -293,14 +549,16 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
     )
     tiep_nhan_id = cursor.lastrowid
 
-    # Lấy danh sách hàng hóa của đề nghị
     hang_hoa_rows = db.execute("SELECT * FROM chi_tiet_de_nghi WHERE de_nghi_id = ?", (de_nghi_id,)).fetchall()
 
     from app.services import tai_san as tai_san_svc
 
-    # Ghi chi tiết tiếp nhận và tự động tạo tài sản trong kho (M09)
-    for hang in hang_hoa_rows:
+    for hang_row in hang_hoa_rows:
+        hang = dict(hang_row)
         so_luong_nhan = hang["so_luong"]
+        don_gia = float(hang["don_gia_du_kien"] or 0)
+        phan_loai = "tai_san_co_dinh" if don_gia >= 10_000_000 else "cong_cu_dung_cu"
+
         db.execute(
             """
             INSERT INTO chi_tiet_tiep_nhan (tiep_nhan_id, ten_hang_hoa, so_luong_thuc_nhan, don_vi_tinh, tinh_trang, ghi_chu)
@@ -309,26 +567,28 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
             (tiep_nhan_id, hang["ten_hang_hoa"], so_luong_nhan, hang["don_vi_tinh"], "Tiếp nhận từ đề nghị " + row["ma_de_nghi"])
         )
 
-        # Tạo từng tài sản hoặc lô tài sản vào M09
-        for i in range(so_luong_nhan):
-            ma_tai_san = tai_san_svc.sinh_ma_tai_san()
+        for _ in range(so_luong_nhan):
+            ma_tai_san = tai_san_svc.sinh_ma_tai_san(phan_loai=phan_loai)
             db.execute(
                 """
                 INSERT INTO tai_san (
                     ma_tai_san, ten_tai_san, mo_ta, loai_tai_san,
-                    vi_tri, phong_ban, gia_tri, ngay_tiep_nhan,
+                    phan_loai, tinh_trang_ky_thuat,
+                    vi_tri, phong_ban, don_vi_su_dung, gia_tri, ngay_tiep_nhan,
                     trang_thai, de_nghi_id, ngay_tao, ngay_cap_nhat
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cho_ban_giao', ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, 'binh_thuong', ?, ?, ?, ?, ?, 'cho_ban_giao', ?, ?, ?)
                 """,
                 (
                     ma_tai_san,
                     hang["ten_hang_hoa"],
-                    f"Mua theo đề nghị {row['ma_de_nghi']}",
+                    f"Mua theo đề nghị {row['ma_de_nghi']}. {hang.get('ghi_chu', '')}",
                     "Thiết bị cơ sở vật chất",
-                    "Kho trung tâm",
+                    phan_loai,
+                    hang.get("vi_tri_su_dung") or "Kho trung tâm",
                     row["don_vi_de_nghi"],
-                    hang["don_gia_du_kien"],
+                    row["don_vi_de_nghi"],
+                    don_gia,
                     ngay_hien_tai,
                     de_nghi_id,
                     ngay_hien_tai,
@@ -341,8 +601,22 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
         "UPDATE de_nghi_mua_sam SET trang_thai = 'da_nhan', ngay_cap_nhat = ? WHERE id = ?",
         (ngay_hien_tai, de_nghi_id)
     )
-    db.commit()
 
+    # Nếu đề nghị này giải quyết cho một báo cáo hư hại, cập nhật báo cáo hư hại sang 'da_xu_ly'
+    if row["bao_cao_hu_hai_id"]:
+        db.execute(
+            """
+            UPDATE bao_cao_hu_hai
+            SET trang_thai = 'da_xu_ly',
+                nguoi_xu_ly_id = ?,
+                ngay_xu_ly = ?,
+                ghi_chu_xu_ly = 'Đã hoàn tất mua sắm thay thế và nhập kho M09'
+            WHERE id = ?
+            """,
+            (nguoi_tiep_nhan_id, ngay_hien_tai, row["bao_cao_hu_hai_id"])
+        )
+
+    db.commit()
     return lay_chi_tiet_de_nghi(de_nghi_id)
 
 def lay_danh_sach_ho_so() -> list:

@@ -57,7 +57,7 @@
         <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.trang_chu') }}"><i class="fa-solid fa-house me-1"></i> Trang chủ</a></li>
           
-          {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
+          {% if session.get('vai_tro') in ['mua_sam', 'quan_ly_kho', 'quan_tri'] %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('mua_sam.danh_sach') }}"><i class="fa-solid fa-cart-shopping me-1"></i> M08 - Mua sắm</a></li>
           {% endif %}
 
@@ -68,7 +68,8 @@
               </a>
               <ul class="dropdown-menu shadow border-0">
                 <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach') }}"><i class="fa-solid fa-boxes-stacked me-2 text-primary"></i> Danh mục tài sản</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach_hu_hai') }}"><i class="fa-solid fa-screwdriver-wrench me-2 text-danger"></i> Xử lý Báo cáo hư hại</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach_hu_hai') }}"><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> Xử lý Báo cáo hư hại</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('tai_san.danh_sach_sua_chua') }}"><i class="fa-solid fa-screwdriver-wrench me-2 text-warning"></i> Sửa chữa & Bảo trì</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('tai_san.kiem_ke') }}"><i class="fa-solid fa-clipboard-check me-2 text-success"></i> Kiểm kê tài sản</a></li>
               </ul>
             </li>

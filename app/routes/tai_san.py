@@ -13,9 +13,24 @@ tai_san_bp = Blueprint("tai_san", __name__, url_prefix="/tai-san")
 def danh_sach():
     """Xem toàn bộ danh sách tài sản cơ sở vật chất (Bộ phận Quản lý tài sản / Admin)."""
     trang_thai = request.args.get("trang_thai")
+    phan_loai = request.args.get("phan_loai")
+    tinh_trang_ky_thuat = request.args.get("tinh_trang_ky_thuat")
     tu_khoa = request.args.get("tu_khoa")
-    ds_tai_san = ts_svc.lay_danh_sach_tai_san(trang_thai=trang_thai, tu_khoa=tu_khoa)
-    return render_template("tai_san/danh_sach.html", tai_san_list=ds_tai_san, trang_thai_chon=trang_thai, tu_khoa=tu_khoa)
+
+    ds_tai_san = ts_svc.lay_danh_sach_tai_san(
+        trang_thai=trang_thai,
+        tu_khoa=tu_khoa,
+        phan_loai=phan_loai,
+        tinh_trang_ky_thuat=tinh_trang_ky_thuat
+    )
+    return render_template(
+        "tai_san/danh_sach.html",
+        tai_san_list=ds_tai_san,
+        trang_thai_chon=trang_thai,
+        phan_loai_chon=phan_loai,
+        tinh_trang_chon=tinh_trang_ky_thuat,
+        tu_khoa=tu_khoa
+    )
 
 @tai_san_bp.route("/cua-toi")
 @yeu_cau_dang_nhap
@@ -44,10 +59,17 @@ def chinh_sua(id):
         du_lieu_form = {
             "ten_tai_san": request.form.get("ten_tai_san"),
             "loai_tai_san": request.form.get("loai_tai_san"),
+            "phan_loai": request.form.get("phan_loai"),
+            "tinh_trang_ky_thuat": request.form.get("tinh_trang_ky_thuat"),
             "vi_tri": request.form.get("vi_tri"),
             "phong_ban": request.form.get("phong_ban"),
+            "don_vi_su_dung": request.form.get("don_vi_su_dung"),
             "mo_ta": request.form.get("mo_ta"),
-            "gia_tri": request.form.get("gia_tri")
+            "gia_tri": request.form.get("gia_tri"),
+            "so_serial": request.form.get("so_serial"),
+            "model": request.form.get("model"),
+            "hang_san_xuat": request.form.get("hang_san_xuat"),
+            "thoi_han_bao_hanh": request.form.get("thoi_han_bao_hanh")
         }
         try:
             cleaned = schemas.xac_thuc_tai_san(du_lieu_form)
@@ -99,6 +121,38 @@ def bao_tri(id):
             flash(e.thong_bao, "danger")
 
     return render_template("tai_san/bao_tri.html", tai_san=tai_san)
+
+# =========================================================================
+# QUY TRÌNH SỬA CHỮA M09 (PHẦN III CỦA QUY TRÌNH & YÊU CẦU 1)
+# =========================================================================
+
+@tai_san_bp.route("/sua-chua")
+@yeu_cau_vai_tro("quan_ly_kho", "quan_tri")
+def danh_sach_sua_chua():
+    """Xem danh sách các yêu cầu sửa chữa cơ sở vật chất tại M09."""
+    trang_thai = request.args.get("trang_thai")
+    ds = ts_svc.lay_danh_sach_sua_chua(trang_thai=trang_thai)
+    return render_template("tai_san/sua_chua.html", sua_chua_list=ds, trang_thai_chon=trang_thai)
+
+@tai_san_bp.route("/sua-chua/<int:id>/nghiem-thu", methods=["POST"])
+@yeu_cau_vai_tro("quan_ly_kho")
+def nghiem_thu_sua_chua(id):
+    """Nghiệm thu hoàn thành sửa chữa thiết bị, đưa tài sản về trạng thái hoạt động."""
+    du_lieu = {
+        "chi_phi_thuc_te": request.form.get("chi_phi_thuc_te", 0),
+        "ghi_chu": request.form.get("ghi_chu", "")
+    }
+    try:
+        ts_svc.nghiem_thu_sua_chua(id, du_lieu, session["nguoi_dung_id"])
+        flash("Nghiệm thu hoàn tất sửa chữa thành công! Tài sản đã hoạt động bình thường.", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
+
+    return redirect(url_for("tai_san.danh_sach_sua_chua"))
+
+# =========================================================================
+# KIỂM KÊ TÀI SẢN
+# =========================================================================
 
 @tai_san_bp.route("/kiem-ke")
 @yeu_cau_vai_tro("quan_ly_kho", "quan_tri")
@@ -157,7 +211,7 @@ def danh_sach_hu_hai():
 def xu_ly_hu_hai(id):
     """
     Bộ phận Quản lý tài sản xác minh thực tế và đánh giá tình trạng hư hại theo Yêu cầu 1.docx:
-    - Sửa chữa được -> chuyển sang trạng thái 'dang_sua_chua'
+    - Sửa chữa được -> chuyển sang trạng thái 'dang_sua_chua' và tạo yêu cầu sửa chữa M09
     - Cần thay thế -> lập biên bản đánh giá 'can_thay_the'
     - Hoàn tất xử lý -> 'da_xu_ly'
     """

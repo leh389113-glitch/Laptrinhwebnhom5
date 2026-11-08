@@ -78,6 +78,13 @@ def xac_thuc_de_nghi_mua_sam(data: Dict[str, Any]) -> Dict[str, Any]:
     tieu_de = (data.get("tieu_de") or "").strip()
     don_vi_de_nghi = (data.get("don_vi_de_nghi") or "").strip()
     mo_ta = (data.get("mo_ta") or "").strip()
+    muc_do_uu_tien = (data.get("muc_do_uu_tien") or "binh_thuong").strip()
+    nguon_kinh_phi = (data.get("nguon_kinh_phi") or "Nguồn thu hợp pháp của Trường").strip()
+    thoi_gian_can_hang = (data.get("thoi_gian_can_hang") or "").strip()
+    dia_diem_su_dung = (data.get("dia_diem_su_dung") or "").strip()
+    ly_do_su_can_thiet = (data.get("ly_do_su_can_thiet") or "").strip()
+    nguon_goc = (data.get("nguon_goc") or "moi").strip()
+    bao_cao_hu_hai_id = data.get("bao_cao_hu_hai_id")
 
     if not tieu_de:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tiêu đề đề nghị mua sắm không được để trống.")
@@ -114,6 +121,8 @@ def xac_thuc_de_nghi_mua_sam(data: Dict[str, Any]) -> Dict[str, Any]:
             "so_luong": so_luong,
             "don_gia_du_kien": don_gia,
             "thanh_tien": thanh_tien,
+            "vi_tri_su_dung": (item.get("vi_tri_su_dung") or "").strip(),
+            "ly_do_muc_dich": (item.get("ly_do_muc_dich") or "").strip(),
             "ghi_chu": (item.get("ghi_chu") or "").strip()
         })
 
@@ -122,7 +131,79 @@ def xac_thuc_de_nghi_mua_sam(data: Dict[str, Any]) -> Dict[str, Any]:
         "don_vi_de_nghi": don_vi_de_nghi,
         "mo_ta": mo_ta,
         "tong_du_toan": tong_du_toan,
-        "items": cleaned_items
+        "items": cleaned_items,
+        "muc_do_uu_tien": muc_do_uu_tien,
+        "nguon_kinh_phi": nguon_kinh_phi,
+        "thoi_gian_can_hang": thoi_gian_can_hang,
+        "dia_diem_su_dung": dia_diem_su_dung,
+        "ly_do_su_can_thiet": ly_do_su_can_thiet,
+        "nguon_goc": nguon_goc,
+        "bao_cao_hu_hai_id": int(bao_cao_hu_hai_id) if bao_cao_hu_hai_id else None
+    }
+
+def xac_thuc_khao_sat(data: Dict[str, Any]) -> Dict[str, Any]:
+    noi_dung = (data.get("noi_dung") or "").strip()
+    dia_diem = (data.get("dia_diem") or "").strip()
+    can_bo_khao_sat = (data.get("can_bo_khao_sat") or "").strip()
+    dai_dien_don_vi = (data.get("dai_dien_don_vi") or "").strip()
+    ket_qua_danh_gia = (data.get("ket_qua_danh_gia") or "").strip()
+    kiem_tra_kho = (data.get("kiem_tra_kho") or "Khô không còn vật tư đáp ứng").strip()
+    doi_chieu_dinh_muc = (data.get("doi_chieu_dinh_muc") or "Phù hợp định mức").strip()
+    muc_do_can_thiet = (data.get("muc_do_can_thiet") or "can_thiet").strip()
+    phuong_an_de_xuat = (data.get("phuong_an_de_xuat") or "mua_bo_sung").strip()
+    ket_luan = (data.get("ket_luan") or "phu_hop").strip()
+
+    if not noi_dung:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung khảo sát không được để trống.")
+
+    return {
+        "noi_dung": noi_dung,
+        "dia_diem": dia_diem,
+        "can_bo_khao_sat": can_bo_khao_sat,
+        "dai_dien_don_vi": dai_dien_don_vi,
+        "ket_qua_danh_gia": ket_qua_danh_gia,
+        "kiem_tra_kho": kiem_tra_kho,
+        "doi_chieu_dinh_muc": doi_chieu_dinh_muc,
+        "muc_do_can_thiet": muc_do_can_thiet,
+        "phuong_an_de_xuat": phuong_an_de_xuat,
+        "ket_luan": ket_luan
+    }
+
+def xac_thuc_bao_gia(data: Dict[str, Any]) -> Dict[str, Any]:
+    nha_cung_cap = (data.get("nha_cung_cap") or "").strip()
+    if not nha_cung_cap:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tên nhà cung cấp không được để trống.")
+    
+    try:
+        tong_gia = float(data.get("tong_gia", 0))
+    except (ValueError, TypeError):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tổng giá báo giá không hợp lệ.")
+
+    if tong_gia <= 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tổng giá báo giá phải lớn hơn 0.")
+
+    return {
+        "nha_cung_cap": nha_cung_cap,
+        "ma_so_thue": (data.get("ma_so_thue") or "").strip(),
+        "lien_he": (data.get("lien_he") or "").strip(),
+        "tong_gia": tong_gia,
+        "hieu_luc": (data.get("hieu_luc") or "30 ngày").strip(),
+        "ghi_chu": (data.get("ghi_chu") or "").strip()
+    }
+
+def xac_thuc_nghiem_thu(data: Dict[str, Any]) -> Dict[str, Any]:
+    dai_dien_ben_mua = (data.get("dai_dien_ben_mua") or "").strip()
+    dai_dien_nha_cung_cap = (data.get("dai_dien_nha_cung_cap") or "").strip()
+    dai_dien_don_vi_su_dung = (data.get("dai_dien_don_vi_su_dung") or "").strip()
+    ket_qua = (data.get("ket_qua") or "dat").strip()
+    y_kien_danh_gia = (data.get("y_kien_danh_gia") or "").strip()
+
+    return {
+        "dai_dien_ben_mua": dai_dien_ben_mua,
+        "dai_dien_nha_cung_cap": dai_dien_nha_cung_cap,
+        "dai_dien_don_vi_su_dung": dai_dien_don_vi_su_dung,
+        "ket_qua": ket_qua,
+        "y_kien_danh_gia": y_kien_danh_gia
     }
 
 def xac_thuc_tiep_nhan(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -164,9 +245,17 @@ def xac_thuc_tai_san(data: Dict[str, Any]) -> Dict[str, Any]:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Tên tài sản không được để trống.")
 
     loai_tai_san = (data.get("loai_tai_san") or "").strip()
+    phan_loai = (data.get("phan_loai") or "tai_san_co_dinh").strip()
+    tinh_trang_ky_thuat = (data.get("tinh_trang_ky_thuat") or "binh_thuong").strip()
     vi_tri = (data.get("vi_tri") or "").strip()
     phong_ban = (data.get("phong_ban") or "").strip()
+    don_vi_su_dung = (data.get("don_vi_su_dung") or phong_ban).strip()
     mo_ta = (data.get("mo_ta") or "").strip()
+    so_serial = (data.get("so_serial") or "").strip()
+    model = (data.get("model") or "").strip()
+    hang_san_xuat = (data.get("hang_san_xuat") or "").strip()
+    thoi_han_bao_hanh = (data.get("thoi_han_bao_hanh") or "").strip()
+
     try:
         gia_tri = float(data.get("gia_tri", 0))
     except (ValueError, TypeError):
@@ -175,9 +264,16 @@ def xac_thuc_tai_san(data: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "ten_tai_san": ten_tai_san,
         "loai_tai_san": loai_tai_san,
+        "phan_loai": phan_loai,
+        "tinh_trang_ky_thuat": tinh_trang_ky_thuat,
         "vi_tri": vi_tri,
         "phong_ban": phong_ban,
+        "don_vi_su_dung": don_vi_su_dung,
         "mo_ta": mo_ta,
+        "so_serial": so_serial,
+        "model": model,
+        "hang_san_xuat": hang_san_xuat,
+        "thoi_han_bao_hanh": thoi_han_bao_hanh,
         "gia_tri": max(0.0, gia_tri)
     }
 
@@ -212,6 +308,42 @@ def xac_thuc_bao_tri(data: Dict[str, Any]) -> Dict[str, Any]:
         "noi_dung": noi_dung,
         "chi_phi": max(0.0, chi_phi),
         "don_vi_thuc_hien": don_vi_thuc_hien,
+        "ghi_chu": ghi_chu
+    }
+
+def xac_thuc_yeu_cau_sua_chua(data: Dict[str, Any]) -> Dict[str, Any]:
+    noi_dung = (data.get("noi_dung") or "").strip()
+    if not noi_dung:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung yêu cầu sửa chữa không được để trống.")
+
+    loai_sua_chua = (data.get("loai_sua_chua") or "sua_chua_nho").strip()
+    hien_trang = (data.get("hien_trang") or "").strip()
+    don_vi_thuc_hien = (data.get("don_vi_thuc_hien") or "").strip()
+    ghi_chu = (data.get("ghi_chu") or "").strip()
+    
+    try:
+        chi_phi_du_kien = float(data.get("chi_phi_du_kien", 0))
+    except (ValueError, TypeError):
+        chi_phi_du_kien = 0.0
+
+    try:
+        tai_san_id = int(data.get("tai_san_id", 0)) if data.get("tai_san_id") else None
+    except (ValueError, TypeError):
+        tai_san_id = None
+
+    try:
+        bao_cao_hu_hai_id = int(data.get("bao_cao_hu_hai_id", 0)) if data.get("bao_cao_hu_hai_id") else None
+    except (ValueError, TypeError):
+        bao_cao_hu_hai_id = None
+
+    return {
+        "noi_dung": noi_dung,
+        "loai_sua_chua": loai_sua_chua,
+        "hien_trang": hien_trang,
+        "don_vi_thuc_hien": don_vi_thuc_hien,
+        "chi_phi_du_kien": max(0.0, chi_phi_du_kien),
+        "tai_san_id": tai_san_id,
+        "bao_cao_hu_hai_id": bao_cao_hu_hai_id,
         "ghi_chu": ghi_chu
     }
 

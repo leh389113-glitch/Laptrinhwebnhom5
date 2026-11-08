@@ -1,7 +1,8 @@
 # AGENTS.md — Hướng dẫn cho AI Agent
 
-> Tài liệu này mô tả toàn bộ quy ước, kiến trúc và hướng dẫn hành vi dành cho AI Agent khi làm việc trong dự án **Website Quản lý Cơ sở Vật chất**.  
-> Agent **phải đọc và tuân thủ** toàn bộ nội dung trong file này trước khi thực hiện bất kỳ thay đổi nào.
+> Tài liệu này mô tả toàn bộ quy ước, kiến trúc, quy trình nghiệp vụ và hướng dẫn hành vi bắt buộc dành cho AI Agent khi làm việc trong dự án **Website Quản lý Cơ sở Vật chất (NEU Facility Hub)**.  
+> Nội dung đã được chuẩn hóa toàn diện dựa trên tài liệu nghiệp vụ chi tiết `Quy_trinh_M08_M09_M17_da_chinh_sua.txt`, biểu mẫu `PHỤ LỤC 01.docx`, và tài liệu liên kết 3 phân hệ `Yêu cầu 1.docx`.  
+> Agent **phải đọc và tuân thủ** toàn bộ nội dung trong file này trước và trong quá trình thực hiện bất kỳ thay đổi nào.
 
 ---
 
@@ -9,400 +10,249 @@
 
 | Mục | Nội dung |
 |---|---|
-| **Tên đề tài** | Xây dựng Website Quản lý Cơ sở Vật chất |
-| **Mục tiêu** | Số hóa quy trình mua sắm, tiếp nhận, quản lý tài sản và tổng hợp báo cáo tại trường đại học |
-| **Công nghệ** | Python (Flask), HTML, CSS, JavaScript (Bootstrap 5, Chart.js), SQLite (sqlite3), Jinja2, pytest |
-| **Giao diện nhận diện** | Thiết kế theo form mẫu & nhận diện thương hiệu của **Trường Đại học Kinh tế Quốc dân (NEU)**: tông màu xanh Navy (`#002D62`), xanh dương (`#0B4F9C`), đỏ điểm nhấn (`#C41230`), vàng kim (`#F5A623`), font Source Sans Pro / Roboto, logo NEU chính thức |
-| **Ngôn ngữ giao diện** | Tiếng Việt |
-| **Ngôn ngữ code** | Tiếng Việt cho tên biến nghiệp vụ, tên bảng CSDL, thông báo lỗi; tiếng Anh cho tên hàm kỹ thuật và cú pháp |
-
-### Mục tiêu nghiệp vụ
-
-- Nghiên cứu, phân tích quy trình quản lý cơ sở vật chất từ khâu **đề xuất mua sắm → tiếp nhận hàng hóa → nhập kho & quản lý tài sản → tổng hợp báo cáo**.
-- Số hóa quy trình mua sắm và quản lý tài sản tập trung, minh bạch, chính xác.
-- Giảm thiểu sai sót thủ công, tiết kiệm thời gian xử lý hồ sơ.
-- Hỗ trợ lãnh đạo và các phòng ban chuyên trách ra quyết định dựa trên dữ liệu thực tế.
+| **Tên đề tài** | Xây dựng Website Quản lý Cơ sở Vật chất trường Đại học |
+| **Mục tiêu** | Số hóa toàn diện và liên thông chu trình quản lý CSVC: **Đề xuất mua sắm (M08) → Tiếp nhận hàng hóa & Nghiệm thu → Phân loại nhập kho & Quản lý vòng đời tài sản / Sửa chữa (M09) → Kế toán thanh toán → Giám sát & Báo cáo quản trị (M17)** |
+| **Công nghệ** | Python 3 (Flask), HTML5, CSS3, JavaScript (Bootstrap 5, Chart.js), SQLite (sqlite3 with row_factory), Jinja2, pytest |
+| **Giao diện nhận diện** | Thiết kế chuẩn theo nhận diện thương hiệu của **Trường Đại học Kinh tế Quốc dân (NEU)**: tông màu xanh Navy (`#002D62`), xanh dương (`#0B4F9C`), đỏ điểm nhấn (`#C41230`), vàng kim (`#F5A623`), font Source Sans Pro / Roboto, logo NEU chính thức |
+| **Ngôn ngữ giao diện** | Tiếng Việt chuẩn mực công vụ, rõ ràng, dễ hiểu |
+| **Ngôn ngữ code** | Tiếng Việt cho tên biến nghiệp vụ, tên bảng CSDL, thông báo lỗi người dùng; tiếng Anh cho tên hàm kỹ thuật và cú pháp hạ tầng |
 
 ---
 
-## 2. Đối tượng người dùng và phân quyền
+## 2. Đối tượng người dùng và phân quyền (RBAC Matrix)
 
-Hệ thống được thiết kế chuyên biệt cho 4 nhóm người dùng nội bộ và công chúng (không có tài khoản người dùng nội bộ thông thường):
+Hệ thống được thiết kế chuyên biệt cho 4 vai trò nội bộ và 1 đối tượng công chúng. **Tuyệt đối không có vai trò người dùng nội bộ thông thường (`nguoi_dung`)**:
 
-| Vai trò | Mã vai trò | Quyền hạn và phạm vi truy cập |
+| Vai trò | Mã vai trò | Quyền hạn và phạm vi tác nghiệp |
 |---|---|---|
-| **Bộ phận Mua sắm** | `mua_sam` | Quản lý đề nghị mua sắm, lập đề nghị mới, tạo hồ sơ mua sắm (M08 - `/mua-sam/`); Trưởng BP Mua sắm duyệt các đề nghị < 100 triệu. |
-| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | Quản lý toàn bộ vòng đời tài sản (M09 - `/tai-san/`); Tiếp nhận hàng hóa vào kho (`/mua-sam/de-nghi/<id>/tiep-nhan`); Tiếp nhận phản ánh hư hại công khai, xác minh hiện trường, lập phương án sửa chữa hoặc đề xuất mua sắm thay thế chuyển M08 (`/tai-san/bao-cao-hu-hai`). |
-| **Kế toán** | `ke_toan` | Quản lý hóa đơn và ghi nhận thanh toán các đề nghị mua sắm đã tiếp nhận hàng (M08 - `/ke-toan/`). |
-| **Quản trị viên (Admin)** | `quan_tri` | **Admin chỉ có quyền duyệt và giám sát**: Phê duyệt/từ chối các đề nghị mua sắm (bắt buộc duyệt các gói ≥ 100 triệu), quản lý tài khoản người dùng (`/admin/tai-khoan`); **Đối với các phân hệ khác (M08, M09, Kế toán, Báo cáo hư hại), Admin chỉ có quyền xem (giám sát), không thực hiện tác nghiệp thay các bộ phận**. |
-| **Công chúng / Bất kỳ ai** | _(không có)_ | Truy cập trang chủ (`/`), gửi báo cáo sự cố hư hại vật chất (`/bao-cao-hu-hai`) mà không cần đăng nhập, đăng nhập (`/dang-nhap`), đăng ký tài khoản (`/dang-ky`). |
+| **Bộ phận Mua sắm** | `mua_sam` | - Lập đề nghị mua sắm mới (M08), khảo sát nhu cầu/hiện trạng (BM02), thu thập và chọn báo giá cạnh tranh (tối thiểu 3 báo giá), lập hồ sơ/hợp đồng mua sắm.<br>- **Phân cấp phê duyệt**: Trưởng bộ phận Mua sắm (`chuc_danh = 'truong_bo_phan'`) có thẩm quyền phê duyệt các đề nghị mua sắm có kinh phí **dưới 100 triệu đồng**.<br>- Cán bộ mua sắm thông thường không có quyền phê duyệt đề nghị. |
+| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | - Quản lý toàn bộ vòng đời tài sản (M09 - `/tai-san/`): cấp mã định danh TSCĐ / CCDC, quản lý bàn giao vị trí (BM03), kiểm kê định kỳ (BM05).<br>- **Chuyên trách tiếp nhận hàng hóa & nghiệm thu kỹ thuật** (BM04) từ các đề nghị mua sắm đã duyệt của M08 (`/mua-sam/de-nghi/<id>/tiep-nhan`).<br>- **Tiếp nhận & xử lý phản ánh hư hại công khai**: Trực tiếp xác minh hiện trường, quyết định phương án **Sửa chữa** (lập phiếu sửa chữa M09, nghiệm thu phục hồi) hoặc **Thay thế** (lập đề xuất mua sắm thay thế chuyển sang M08). |
+| **Kế toán** | `ke_toan` | - Quản lý hồ sơ thanh toán, kiểm tra chứng từ (hợp đồng, biên bản nghiệm thu BM04, hóa đơn).<br>- Xác nhận giải ngân thanh toán hoàn tất cho các gói mua sắm đã được tiếp nhận hàng hóa đầy đủ (`/ke-toan/`). |
+| **Quản trị viên (Admin / Lãnh đạo)** | `quan_tri` | - **Chỉ có quyền Phê duyệt và Giám sát**: Phê duyệt/từ chối các đề nghị mua sắm (bắt buộc duyệt các gói kinh phí **từ 100 triệu đồng trở lên**), quản lý tài khoản người dùng (`/admin/tai-khoan`).<br>- **Nguyên tắc ranh giới quyền hạn**: Đối với các phân hệ tác nghiệp chuyên môn (nhập hàng, bàn giao tài sản, nghiệm thu kỹ thuật, sửa chữa, giải ngân thanh toán), Admin **chỉ có quyền xem (giám sát)**, không được thực hiện tác nghiệp thay các phòng ban. |
+| **Công chúng / Bất kỳ ai** | _(không có tài khoản)_ | - Truy cập trang chủ (`/`), gửi báo cáo sự cố hư hại vật chất công khai (`/bao-cao-hu-hai`) mà không cần đăng nhập hay tài khoản.<br>- Đăng nhập (`/dang-nhap`), đăng ký tài khoản cán bộ đơn vị (`/dang-ky`). |
 
-> **Quy tắc phân quyền:**
-> 1. **Loại bỏ hoàn toàn người dùng nội bộ thông thường (`nguoi_dung`)**: Giảng viên, sinh viên, cán bộ hay khách khi phát hiện hỏng hóc cơ sở vật chất chỉ cần vào trang công khai `/bao-cao-hu-hai` gửi thông tin mà không cần tài khoản.
-> 2. **Tách biệt rõ ràng 2 bộ phận**:
->    - `mua_sam`: Chuyên trách lập, theo dõi hồ sơ mua sắm và duyệt đơn < 100 triệu.
->    - `quan_ly_kho`: Chuyên trách kiểm tra hàng, nhập kho, cấp mã tài sản, xử lý phản ánh hư hại hiện trường và lập đề xuất thay thế.
-> 3. **Nguyên tắc quyền hạn Admin (Lãnh đạo)**: Admin chỉ có quyền duyệt đề nghị mua sắm (gói ≥ 100 triệu) và quản lý tài khoản người dùng; tất cả các tính năng nghiệp vụ khác (nhập hàng, bàn giao tài sản, thanh toán, sửa chữa) Admin chỉ có quyền xem.
-> 4. Mọi route có bảo vệ phải kiểm tra `session["vai_tro"]`. Nếu chưa đăng nhập → redirect về `/dang-nhap`. Nếu không đủ quyền → trả về mã HTTP 403 kèm thông báo tiếng Việt rõ ràng.
-
----
-
-## 3. Kiến trúc trang (Pages Architecture)
-
-### 3.1 Tổng quan các trang
-
-| # | Tên trang | URL | Quyền truy cập | Blueprint |
-|---|---|---|---|---|
-| 1 | Trang chủ | `/` | Công khai (Public) | `main` |
-| 2 | Báo cáo hư hại | `/bao-cao-hu-hai` | Công khai (Không cần tài khoản) | `main` |
-| 3 | Đăng nhập / Đăng ký | `/dang-nhap`, `/dang-ky` | Công khai (Khách) | `auth` |
-| 4 | M08 — Mua sắm | `/mua-sam/` | `mua_sam`, `quan_ly_kho` (xem/tiếp nhận), `quan_tri` | `mua_sam` |
-| 5 | M08 — Kế toán | `/ke-toan/` | `ke_toan`, `quan_tri` | `ke_toan` |
-| 6 | M09 — Quản lý tài sản | `/tai-san/` | `quan_ly_kho`, `quan_tri` | `tai_san` |
-| 7 | Admin Dashboard | `/admin/` | `quan_tri` | `admin` |
+### Quy tắc phân quyền cốt lõi:
+1. **Loại bỏ vai trò `nguoi_dung`**: Bất kỳ sinh viên, giảng viên hay khách vãng lai khi phát hiện hỏng hóc chỉ cần vào form công khai `/bao-cao-hu-hai` để báo cáo.
+2. **Ẩn nút báo cáo hư hại khi đã đăng nhập**: Nút "Báo cáo hư hại vật chất" (màu đỏ) chỉ hiển thị tại Trang chủ (`/`) khi **chưa đăng nhập**. Khi người dùng đã đăng nhập vào hệ thống làm việc thì ẩn/xóa hoàn toàn nút này ở mọi trang để tránh nhầm lẫn luồng tác nghiệp.
+3. **Ngưỡng thẩm quyền 100 triệu đồng**:
+   - Gói `< 100,000,000 VNĐ`: Trạng thái `cho_phe_duyet` → Trưởng BP Mua sắm hoặc Admin có thể duyệt.
+   - Gói `≥ 100,000,000 VNĐ`: Trạng thái `cho_lanh_dao_duyet` → Bắt buộc Admin (Lãnh đạo) duyệt; Cán bộ hoặc Trưởng BP Mua sắm cố tình duyệt sẽ bị chặn mã HTTP 403 `KHONG_DU_QUYEN`.
+4. **Phân định rõ ràng Mua sắm và Quản lý tài sản**:
+   - `mua_sam`: Phụ trách thương thảo, báo giá, hợp đồng, theo dõi tiến độ cung ứng.
+   - `quan_ly_kho`: Phụ trách kỹ thuật, tiếp nhận hàng, nghiệm thu kỹ thuật, gắn mã tài sản, theo dõi hiện trường, bảo trì sửa chữa.
 
 ---
 
-### 3.2 Trang chủ (`/`)
+## 3. Kiến trúc luồng nghiệp vụ liên thông (M08 ⇄ M09 ⇄ M17)
 
-**Mục đích:** Giới thiệu hệ thống quản lý cơ sở vật chất theo nhận diện NEU, điều hướng trực quan đến các nghiệp vụ.
+### 3.1 Quy trình Mua sắm tài sản & vật tư (M08)
+```mermaid
+graph TD
+    A["Lập đề nghị mua sắm (BM01/Phụ lục 01)"] --> B{"Tổng kinh phí ước tính"}
+    B -- "< 100 triệu VNĐ" --> C["Trạng thái: cho_phe_duyet"]
+    B -- "≥ 100 triệu VNĐ" --> D["Trạng thái: cho_lanh_dao_duyet"]
+    C --> E{"Trưởng BP Mua sắm hoặc Admin duyệt"}
+    D --> F{"Chỉ Admin (Lãnh đạo) duyệt"}
+    E -- "Từ chối" --> G["Trạng thái: tu_choi (Ghi rõ lý do)"]
+    F -- "Từ chối" --> G
+    E -- "Duyệt" --> H["Trạng thái: da_phe_duyet"]
+    F -- "Duyệt" --> H
+    H --> I["Lập khảo sát nhu cầu/hiện trạng (BM02)"]
+    I --> J["Thu thập tối thiểu 3 Báo giá cạnh tranh"]
+    J --> K["Lựa chọn nhà cung cấp & Ký hợp đồng"]
+    K --> L["BP Quản lý tài sản nghiệm thu kỹ thuật (BM04)"]
+    L --> M["BP Quản lý tài sản tiếp nhận hàng hóa (Nhập kho M09)"]
+    M --> N["Trạng thái đề nghị: da_nhan"]
+    N --> O["Hệ thống tự động sinh mã tài sản trong kho M09"]
+    O --> P["Kế toán kiểm tra chứng từ & ghi nhận thanh toán"]
+    P --> Q["Trạng thái đề nghị: hoan_tat"]
+```
 
-**Hiển thị:**
-- Header thương hiệu: Logo NEU, tên trường Đại học Kinh tế Quốc dân, tên hệ thống.
-- Banner giới thiệu quy trình cơ sở vật chất số hóa: Mua sắm → Quản lý tài sản → Kế toán thanh toán → Báo cáo quản trị.
-- Nút tác vụ nổi bật:
-  - **"Báo cáo hư hại vật chất"** (màu đỏ NEU) → `/bao-cao-hu-hai` (Chỉ hiển thị trên Trang chủ khi **chưa đăng nhập**; sau khi người dùng đăng nhập thì ẩn/xóa toàn bộ nút báo cáo hư hại).
-  - **"Đăng nhập hệ thống"** (màu xanh Navy) → `/dang-nhap` (Dành cho cán bộ các phòng ban).
-  - **"Đăng ký tài khoản"** → `/dang-ky`.
+### 3.2 Quy trình Xử lý sự cố hư hại & Quản lý vòng đời tài sản (M09)
+```mermaid
+graph TD
+    A1["Người dùng gửi phản ánh hư hại công khai (/bao-cao-hu-hai)"] --> A2["Trạng thái phản ánh: cho_tiep_nhan"]
+    A2 --> A3["BP Quản lý tài sản xác minh hiện trường"]
+    A3 --> A4{"Đánh giá khả năng khắc phục"}
+    
+    A4 -- "Có thể sửa chữa tại chỗ/thuê ngoài" --> B1["Tạo Yêu cầu sửa chữa M09 (BM01)"]
+    B1 --> B2["Phân công kỹ thuật viên / Đơn vị sửa chữa"]
+    B2 --> B3["Nghiệm thu sửa chữa hoàn tất"]
+    B3 --> B4["Khôi phục trạng thái tài sản: dang_su_dung, bình thường"]
+    B4 --> B5["Tự động chuyển phản ánh công khai: da_xu_ly"]
+    
+    A4 -- "Hư hỏng hoàn toàn / Không thể sửa" --> C1["Lập đề xuất mua sắm thay thế sang M08"]
+    C1 --> C2["Tạo đề nghị mua sắm M08 nguồn gốc 'thay_the_hu_hai'"]
+    C2 --> C3["Tài sản cũ chuyển trạng thái: cho_thanh_ly"]
+    C3 --> C4["M08 thực hiện mua sắm → Khi M09 tiếp nhận hàng mới"]
+    C4 --> C5["Tự động cập nhật phản ánh công khai ban đầu: da_xu_ly"]
+```
 
-**Template:** `templates/main/trang_chu.html`  
-**Route:** `GET /`
+### 3.3 Quy tắc phân loại mã tài sản thông minh
+- **Tài sản cố định (TSCĐ)**: Đơn giá $\ge$ 10,000,000 VNĐ.
+  - Phân loại: `tai_san_co_dinh`
+  - Tiền tố mã tài sản: `TS-YYYY-XXXX` (Ví dụ: `TS-2026-0001`)
+- **Công cụ dụng cụ (CCDC)**: Đơn giá < 10,000,000 VNĐ.
+  - Phân loại: `cong_cu_dung_cu`
+  - Tiền tố mã tài sản: `CCDC-YYYY-XXXX` (Ví dụ: `CCDC-2026-0001`)
 
 ---
 
-### 3.3 Trang Đăng nhập / Đăng ký (`/dang-nhap`, `/dang-ky`)
+## 4. Danh mục quy tắc nghiệp vụ bắt buộc (BR01 – BR12)
 
-#### Đăng nhập (`/dang-nhap`)
-- Form nhập: tên đăng nhập, mật khẩu.
-- Sau khi xác thực thành công → lưu `session["vai_tro"]`, `session["nguoi_dung_id"]`, `session["ho_ten"]`.
-- **Chuyển hướng tự động theo vai trò (Redirect on Login):**
+| Mã luật | Nội dung chi tiết |
+|---|---|
+| **BR01** | **Ngưỡng duyệt kinh phí**: Đề nghị < 100tr do Trưởng BP Mua sắm hoặc Admin duyệt; đề nghị $\ge$ 100tr bắt buộc Admin duyệt. |
+| **BR02** | **Ranh giới tác nghiệp của Admin**: Admin chỉ có quyền Duyệt đề nghị $\ge$ 100tr và Quản lý tài khoản. Admin tuyệt đối không tiếp nhận hàng, không bàn giao tài sản, không giải ngân thanh toán, không trực tiếp sửa chữa. |
+| **BR03** | **Khảo sát nhu cầu (BM02)**: Trước khi mua sắm số lượng lớn, BP Mua sắm lập phiếu khảo sát ghi nhận hiện trạng và mức độ cấp thiết. |
+| **BR04** | **Quy tắc 3 báo giá cạnh tranh**: Mỗi gói mua sắm phải thu thập tối thiểu 3 báo giá từ các nhà cung cấp độc lập trước khi lựa chọn. |
+| **BR05** | **Nghiệm thu kỹ thuật (BM04)**: Hàng hóa giao đến phải được BP Quản lý tài sản lập biên bản kiểm tra đạt yêu cầu kỹ thuật mới được nhập kho. |
+| **BR06** | **Tự động sinh tài sản vào kho M09**: Khi BP Quản lý tài sản nhấn "Tiếp nhận hàng hóa" cho đề nghị M08, hệ thống tự động sinh bản ghi tài sản tương ứng với trạng thái `cho_ban_giao`. |
+| **BR07** | **Điều kiện thanh toán kế toán**: Kế toán chỉ được duyệt giải ngân cho các đề nghị mua sắm đã có trạng thái `da_nhan` (đã tiếp nhận hàng và nghiệm thu đầy đủ). |
+| **BR08** | **Báo cáo hư hại hoàn toàn công khai**: Bất kỳ ai cũng có thể gửi phản ánh tại `/bao-cao-hu-hai` mà không cần tài khoản, mật khẩu hay captcha. |
+| **BR09** | **Ẩn nút báo cáo hư hại khi đã đăng nhập**: Trang chủ và toàn bộ navbar không hiển thị nút báo cáo sự cố khi phiên làm việc đã đăng nhập. |
+| **BR10** | **Phân nhánh xử lý hư hại**: BP Quản lý tài sản xác minh: nếu sửa chữa được → tạo yêu cầu sửa chữa M09; nếu hỏng nặng cần thay thế → tự động sinh đề nghị mua sắm mới M08 liên kết với phản ánh. |
+| **BR11** | **Tự động khép hồ sơ phản ánh**: Khi ca sửa chữa M09 được nghiệm thu HOẶC đề nghị mua sắm thay thế M08 được tiếp nhận hàng, phản ánh hư hại công khai tự động chuyển thành `da_xu_ly`. |
+| **BR12** | **Kiểm kê chênh lệch**: Phiếu kiểm kê M09 phải ghi nhận rõ số lượng hệ thống, số lượng thực tế, tự động tính chênh lệch và trạng thái thừa/thiếu/khớp. |
+
+---
+
+## 5. Kiến trúc trang và hệ thống Endpoint
+
+### 5.1 Danh mục Blueprint & Routes
 
 ```
-vai_tro == "mua_sam"     → /mua-sam/   (Trang làm việc Mua sắm)
-vai_tro == "quan_ly_kho" → /tai-san/   (Trang Quản lý tài sản)
+/ (main)
+├── GET  /                              # Trang chủ NEU Facility Hub (Công khai)
+├── GET  /bao-cao-hu-hai                # Form công khai gửi phản ánh sự cố
+├── POST /bao-cao-hu-hai                # Xử lý tiếp nhận phản ánh hư hại
+└── GET  /cam-on                        # Trang thông báo gửi phản ánh thành công
+
+/auth (auth)
+├── GET/POST /dang-nhap                 # Đăng nhập hệ thống (Phân hướng tự động theo vai trò)
+├── GET/POST /dang-ky                   # Đăng ký tài khoản cán bộ đơn vị
+└── GET      /dang-xuat                 # Đăng xuất phiên làm việc
+
+/mua-sam (mua_sam) - Yêu cầu: mua_sam | quan_ly_kho (xem/tiếp nhận) | quan_tri (xem/duyệt)
+├── GET       /mua-sam/                 # Danh sách đề nghị mua sắm
+├── GET/POST  /mua-sam/de-nghi/tao      # Lập đề nghị mua sắm mới (BM01/Phụ lục 01)
+├── GET       /mua-sam/de-nghi/<id>     # Chi tiết đề nghị, khảo sát, báo giá, nghiệm thu
+├── POST      /mua-sam/de-nghi/<id>/phe-duyet # Phê duyệt (Kiểm tra thẩm quyền 100tr)
+├── POST      /mua-sam/de-nghi/<id>/tu-choi   # Từ chối đề nghị kèm lý do
+├── POST      /mua-sam/de-nghi/<id>/khao-sat  # Lập phiếu khảo sát hiện trạng (BM02)
+├── POST      /mua-sam/de-nghi/<id>/bao-gia   # Thêm báo giá nhà cung cấp
+├── POST      /mua-sam/de-nghi/<id>/chon-bao-gia # Lựa chọn báo giá trúng thầu
+├── POST      /mua-sam/de-nghi/<id>/nghiem-thu   # Lập biên bản nghiệm thu kỹ thuật (BM04)
+├── GET/POST  /mua-sam/de-nghi/<id>/tiep-nhan   # Tiếp nhận hàng hóa vào kho M09 (quan_ly_kho)
+└── GET       /mua-sam/ho-so            # Danh mục hợp đồng và hồ sơ mua sắm
+
+/ke-toan (ke_toan) - Yêu cầu: ke_toan | quan_tri (chỉ xem)
+├── GET   /ke-toan/                     # Danh sách đề nghị chờ thanh toán
+├── GET   /ke-toan/de-nghi/<id>         # Chi tiết chứng từ thanh toán
+├── POST  /ke-toan/de-nghi/<id>/thanh-toan # Ghi nhận giải ngân thanh toán hoàn tất
+└── GET   /ke-toan/lich-su              # Lịch sử các đợt giải ngân
+
+/tai-san (tai_san) - Yêu cầu: quan_ly_kho | quan_tri (chỉ xem)
+├── GET       /tai-san/                 # Danh mục tài sản & CCDC toàn trường
+├── GET       /tai-san/<id>             # Chi tiết tài sản, lịch sử bàn giao & bảo trì
+├── GET/POST  /tai-san/<id>/chinh-sua   # Cập nhật thông tin thông số kỹ thuật
+├── POST      /tai-san/<id>/ban-giao    # Bàn giao tài sản cho đơn vị/phòng học (BM03)
+├── GET/POST  /tai-san/<id>/bao-tri     # Ghi nhận bảo trì trực tiếp trên tài sản
+├── GET       /tai-san/sua-chua         # Quản lý toàn diện các ca sửa chữa M09
+├── POST      /tai-san/sua-chua/<id>/nghiem-thu # Nghiệm thu sửa chữa phục hồi
+├── GET       /tai-san/kiem-ke          # Danh sách phiếu kiểm kê tài sản (BM05)
+├── POST      /tai-san/kiem-ke/tao      # Lập đợt kiểm kê tài sản mới
+├── GET       /tai-san/bao-cao-hu-hai   # Tiếp nhận phản ánh hư hại công khai
+├── POST      /tai-san/bao-cao-hu-hai/<id>/xu-ly # Xác minh: Sửa chữa hoặc Thay thế
+└── POST      /tai-san/bao-cao-hu-hai/<id>/tao-mua-sam # Lập đề xuất mua sắm thay thế sang M08
+
+/admin (admin) - Yêu cầu: quan_tri (Lãnh đạo / Admin)
+├── GET   /admin/                       # Dashboard M17: KPI, biểu đồ Chart.js
+├── GET   /admin/mua-sam                # Trung tâm phê duyệt đề nghị mua sắm
+├── GET   /admin/tai-san                # Giám sát toàn bộ kho tài sản (chỉ xem)
+├── GET   /admin/bao-cao                # Báo cáo tổng hợp, xuất dữ liệu CSV
+├── GET   /admin/bao-cao-hu-hai         # Giám sát tiến độ xử lý phản ánh (chỉ xem)
+├── GET   /admin/tai-khoan              # Quản lý tài khoản người dùng
+└── POST  /admin/tai-khoan/<id>/doi-vai-tro # Cập nhật vai trò / chức danh
+```
+
+### 5.2 Điều hướng tự động sau đăng nhập (Login Redirection)
+```
+vai_tro == "mua_sam"     → /mua-sam/   (Trang công việc Mua sắm M08)
+vai_tro == "quan_ly_kho" → /tai-san/   (Trang Quản lý tài sản M09)
 vai_tro == "ke_toan"     → /ke-toan/   (Trang thanh toán Kế toán)
-vai_tro == "quan_tri"    → /admin/     (Admin Dashboard tổng hợp)
-```
-
-- Nếu sai thông tin → hiển thị thông báo lỗi tiếng Việt tại trang đăng nhập.
-- Nếu đã đăng nhập → tự động chuyển tiếp tới trang làm việc tương ứng (không bắt đăng nhập lại).
-
-#### Đăng ký (`/dang-ky`)
-- Form nhập: họ tên, email, tên đăng nhập, mật khẩu, xác nhận mật khẩu, và **đơn vị / bộ phận công tác**:
-  - `mua_sam`: Bộ phận Mua sắm
-  - `quan_ly_kho`: Bộ phận Quản lý tài sản
-  - `ke_toan`: Kế toán
-- Sau khi đăng ký thành công → chuyển về `/dang-nhap` kèm thông báo thành công.
-- Admin có thể thay đổi hoặc phân quyền lại vai trò tại `/admin/tai-khoan`.
-
----
-
-### 3.4 Trang M08 — Mua sắm (`/mua-sam/`)
-
-**Mục đích:** Quản lý toàn bộ quy trình lập đề nghị mua sắm, hồ sơ đấu thầu/chào hàng và tiếp nhận hàng hóa về kho.
-
-**Phân quyền chi tiết:**
-- `mua_sam`: Lập đề nghị mua sắm, quản lý hồ sơ, xem chi tiết; **Trưởng BP Mua sắm có thẩm quyền phê duyệt các đề nghị có kinh phí dưới 100 triệu đồng**.
-- `quan_ly_kho`: Được quyền xem danh sách đề nghị đã duyệt và **chuyên trách thực hiện tiếp nhận hàng hóa vào kho M09**.
-- `quan_tri`: Có quyền **Phê duyệt** hoặc **Từ chối** đề nghị mua sắm (bắt buộc phê duyệt các đề nghị từ 100 triệu đồng trở lên); các thao tác khác chỉ xem.
-
-**Các endpoint chính:**
-
-| URL | Chức năng | Vai trò được phép |
-|---|---|---|
-| `GET /mua-sam/` | Danh sách đề nghị mua sắm | `mua_sam`, `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `GET/POST /mua-sam/de-nghi/tao` | Lập phiếu đề nghị mua sắm mới | `mua_sam`, `quan_ly_kho` |
-| `GET /mua-sam/de-nghi/<id>` | Xem chi tiết đề nghị & danh mục vật tư | `mua_sam`, `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `POST /mua-sam/de-nghi/<id>/phe-duyet` | Phê duyệt đề nghị (<100tr: BP Mua sắm / Admin; ≥100tr: Lãnh đạo Admin) | `mua_sam`, `quan_tri` |
-| `POST /mua-sam/de-nghi/<id>/tu-choi` | Từ chối đề nghị kèm lý do | `mua_sam`, `quan_tri` |
-| `GET/POST /mua-sam/de-nghi/<id>/tiep-nhan` | Ghi nhận tiếp nhận hàng hóa (nhập kho M09) | `quan_ly_kho` (Admin không làm thay) |
-| `GET /mua-sam/ho-so` | Danh mục hồ sơ mua sắm (hợp đồng, báo giá) | `mua_sam`, `quan_tri` (chỉ xem) |
-
-**Trạng thái đề nghị mua sắm:**
-- `cho_phe_duyet` — Chờ phê duyệt (< 100 triệu)
-- `cho_lanh_dao_duyet` — Chờ Lãnh đạo phê duyệt (≥ 100 triệu)
-- `da_phe_duyet` — Đã phê duyệt (chờ giao hàng/nhập kho)
-- `tu_choi` — Từ chối
-- `dang_mua` — Đang triển khai mua sắm
-- `da_nhan` — Đã tiếp nhận hàng *(hệ thống tự động sinh tài sản vào kho M09)*
-- `hoan_tat` — Hoàn tất (đã thanh toán xong)
-
----
-
-### 3.5 Trang M08 — Kế toán (`/ke-toan/`)
-
-**Mục đích:** Kiểm soát chi phí, hóa đơn chứng từ và ghi nhận thanh toán các đề nghị mua sắm đã được bộ phận quản lý tài sản tiếp nhận đầy đủ.
-
-**Vai trò được phép:** `ke_toan` (tác nghiệp), `quan_tri` (chỉ xem)
-
-**Các endpoint chính:**
-
-| URL | Chức năng | Vai trò được phép |
-|---|---|---|
-| `GET /ke-toan/` | Danh sách đề nghị đã tiếp nhận, chờ thanh toán | `ke_toan`, `quan_tri` (chỉ xem) |
-| `GET /ke-toan/de-nghi/<id>` | Chi tiết thanh toán, vật tư, hóa đơn chứng từ | `ke_toan`, `quan_tri` (chỉ xem) |
-| `POST /ke-toan/de-nghi/<id>/thanh-toan` | Xác nhận đã thanh toán giải ngân | `ke_toan` (Admin không thanh toán thay) |
-| `GET /ke-toan/lich-su` | Lịch sử giải ngân & thanh toán theo kỳ | `ke_toan`, `quan_tri` (chỉ xem) |
-
----
-
-### 3.6 Trang M09 — Quản lý tài sản (`/tai-san/`)
-
-**Mục đích:** Quản lý tài sản trường học từ lúc nhập kho, cấp phát mã định danh, bàn giao phòng ban, tiếp nhận xử lý hư hại, theo dõi bảo trì, kiểm kê định kỳ đến thanh lý theo `Yêu cầu 1.docx`.
-
-**Vai trò được phép:** `quan_ly_kho` (chuyên trách tác nghiệp), `quan_tri` (chỉ xem giám sát)
-
-**Các endpoint chính:**
-
-| URL | Chức năng | Vai trò được phép |
-|---|---|---|
-| `GET /tai-san/` | Danh sách tài sản & trang thiết bị toàn trường | `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `GET /tai-san/<id>` | Chi tiết tài sản, lịch sử bàn giao & bảo trì | `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `GET/POST /tai-san/<id>/chinh-sua` | Cập nhật thông tin tài sản | `quan_ly_kho` |
-| `POST /tai-san/<id>/ban-giao` | Bàn giao tài sản cho đơn vị / phòng học / giảng đường | `quan_ly_kho` |
-| `GET/POST /tai-san/<id>/bao-tri` | Ghi nhận sự vụ bảo trì, sửa chữa, thay thế | `quan_ly_kho` |
-| `GET /tai-san/kiem-ke` | Danh sách các đợt kiểm kê tài sản | `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `POST /tai-san/kiem-ke/tao` | Tạo phiếu kiểm kê định kỳ mới | `quan_ly_kho` |
-| `GET /tai-san/bao-cao-hu-hai` | Tiếp nhận và theo dõi phản ánh hư hại từ công chúng | `quan_ly_kho`, `quan_tri` (chỉ xem) |
-| `POST /tai-san/bao-cao-hu-hai/<id>/xu-ly` | Xác minh hiện trường, chọn phương án Sửa chữa hoặc Thay thế | `quan_ly_kho` |
-| `POST /tai-san/bao-cao-hu-hai/<id>/tao-mua-sam` | Lập yêu cầu mua sắm thay thế chuyển sang M08 | `quan_ly_kho` |
-
-**Trạng thái tài sản:**
-- `cho_ban_giao` — Trong kho, chưa bàn giao
-- `dang_su_dung` — Đang sử dụng tại phòng học/khoa/viện
-- `dang_sua_chua` — Đang bảo dưỡng/sửa chữa
-- `cho_thanh_ly` — Chờ thanh lý
-- `da_thanh_ly` — Đã thanh lý, loại khỏi sổ tài sản
-
----
-
-### 3.7 Trang Báo cáo hư hại vật chất (`/bao-cao-hu-hai`)
-
-**Mục đích:** Kênh tiếp nhận phản ánh công khai dành cho tất cả mọi người (sinh viên, giảng viên, nhân viên, khách) khi phát hiện hỏng hóc, sự cố về bàn ghế, máy chiếu, điều hòa, bóng đèn, cửa, thiết bị vệ sinh...
-
-**Quyền truy cập:** **Công khai — Không cần tài khoản**
-
-**Dữ liệu tiếp nhận:**
-- Họ và tên người gửi *(bắt buộc)*
-- Số điện thoại hoặc email liên lạc *(bắt buộc)*
-- Vị trí sự cố (Tòa nhà, số phòng, khu vực giảng đường...) *(bắt buộc)*
-- Tên thiết bị / vật tư hư hại *(bắt buộc)*
-- Mức độ ảnh hưởng: Nhẹ / Trung bình / Nghiêm trọng *(bắt buộc)*
-- Mô tả chi tiết hiện trạng sự cố *(tùy chọn)*
-
-> **Luồng xử lý (theo Yêu cầu 1.docx):**
-> 1. Dữ liệu sau khi gửi được lưu trữ tập trung.
-> 2. **Bộ phận Quản lý tài sản (M09)** tiếp nhận, trực tiếp kiểm tra xác minh tại hiện trường:
->    - Nếu khắc phục được: Tạo phiếu bảo trì/sửa chữa (`dang_sua_chua`).
->    - Nếu không thể sửa: Lập biên bản đánh giá hư hỏng (`can_thay_the`) & tạo yêu cầu mua sắm thay thế chuyển sang phân hệ M08.
-> 3. **Admin**: Giám sát tiến độ xử lý hư hại toàn trường qua `/admin/bao-cao-hu-hai` (chỉ xem, không tác nghiệp thay bộ phận tài sản).
-
----
-
-### 3.8 Trang Admin Dashboard (`/admin/`)
-
-**Mục đích:** Trung tâm điều hành dành riêng cho Quản trị viên (`quan_tri`), tích hợp giám sát module M08, M09, M17, ra quyết định phê duyệt và quản lý tài khoản. **Nguyên tắc cốt lõi: Admin chỉ có quyền duyệt và giám sát, không làm thay chức năng tác nghiệp của các bộ phận chuyên môn.**
-
-**Các endpoint chính:**
-
-| URL | Chức năng | Vai trò |
-|---|---|---|
-| `GET /admin/` | Dashboard M17: Thẻ KPI, biểu đồ Chart.js thống kê tài sản, mua sắm | `quan_tri` |
-| `GET /admin/mua-sam` | Trung tâm duyệt mua sắm: Xem, phê duyệt, từ chối đề nghị | `quan_tri` |
-| `GET /admin/tai-san` | Giám sát toàn bộ tài sản và trạng thái kho M09 (chỉ xem) | `quan_tri` |
-| `GET /admin/bao-cao` | Tổng hợp báo cáo, xuất dữ liệu CSV | `quan_tri` |
-| `GET /admin/bao-cao-hu-hai` | Giám sát tiến độ xử lý phản ánh hư hại từ người dùng (chỉ xem) | `quan_tri` |
-| `GET /admin/tai-khoan` | Quản trị người dùng, thay đổi vai trò phân quyền | `quan_tri` |
-| `POST /admin/tai-khoan/<id>/doi-vai-tro` | Cập nhật vai trò cho tài khoản | `quan_tri` |
-
----
-
-### 3.9 Sơ đồ phân quyền tổng thể
-
-```
-Người dùng truy cập URL
-        │
-        ├─ URL Công khai (/, /bao-cao-hu-hai, /dang-nhap, /dang-ky)
-        │       └─ Cho phép truy cập trực tiếp
-        │
-        └─ URL Bảo vệ
-                │
-                ├─ Chưa đăng nhập?
-                │       └─ Chuyển hướng (302) → /dang-nhap
-                │
-                └─ Đã đăng nhập → Kiểm tra vai_tro trong Session:
-                        │
-                        ├─ /mua-sam/*   → Yêu cầu: mua_sam | quan_ly_kho (tiếp nhận) | quan_tri
-                        ├─ /ke-toan/*   → Yêu cầu: ke_toan | quan_tri
-                        ├─ /tai-san/*   → Yêu cầu: quan_ly_kho | quan_tri
-                        └─ /admin/*     → Yêu cầu: quan_tri (Admin)
-                                │
-                                └─ Sai vai trò: Trả về HTTP 403 Forbidden (thông báo lỗi tiếng Việt)
+vai_tro == "quan_tri"    → /admin/     (Admin Dashboard M17)
 ```
 
 ---
 
-## 4. Kiến trúc thư mục dự án
+## 6. Kiến trúc cơ sở dữ liệu (Database Schema)
 
-```
-Web quản lý cơ sở vật chất/
-├── app/
-│   ├── __init__.py              # Tạo Flask app, đăng ký blueprint, thiết lập context processor
-│   ├── db.py                    # Kết nối SQLite (sqlite3.Row), khởi tạo schema tự động
-│   ├── clock.py                 # Cung cấp clock.now() hỗ trợ mock thời gian qua CSV_GIO
-│   ├── errors.py                # Xử lý ngoại lệ nghiệp vụ và trả lỗi JSON chuẩn
-│   ├── schemas.py               # Xác thực dữ liệu đầu vào (Form & JSON)
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── auth.py              # Đăng nhập, đăng ký, băm mật khẩu sha256
-│   │   ├── mua_sam.py           # Nghiệp vụ M08: lập đề nghị, phê duyệt, tiếp nhận hàng
-│   │   ├── ke_toan.py           # Nghiệp vụ kế toán: hóa đơn, thanh toán
-│   │   ├── tai_san.py           # Nghiệp vụ M09: tài sản, mã định danh, bàn giao, bảo trì
-│   │   ├── bao_cao.py           # Nghiệp vụ M17: thống kê dashboard, xuất file CSV
-│   │   └── bao_cao_hu_hai.py    # Xử lý tiếp nhận phản ánh hư hại vật chất
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   ├── main.py              # Blueprint main: Trang chủ, Báo cáo hư hại (Public)
-│   │   ├── auth.py              # Blueprint auth: Đăng nhập, Đăng ký, Đăng xuất
-│   │   ├── mua_sam.py           # Blueprint mua_sam: M08 Mua sắm
-│   │   ├── ke_toan.py           # Blueprint ke_toan: M08 Kế toán thanh toán
-│   │   ├── tai_san.py           # Blueprint tai_san: M09 Kho & Quản lý tài sản
-│   │   └── admin.py             # Blueprint admin: Admin Dashboard & phân quyền
-│   ├── templates/
-│   │   ├── base.html            # Layout chính với Header & Navbar nhận diện NEU
-│   │   ├── main/
-│   │   │   ├── trang_chu.html   # Trang chủ NEU Facility Hub
-│   │   │   ├── bao_cao_hu_hai.html # Form báo cáo sự cố hư hại
-│   │   │   └── cam_on.html      # Xác nhận gửi báo cáo thành công
-│   │   ├── auth/
-│   │   │   ├── dang_nhap.html   # Giao diện đăng nhập chuẩn NEU
-│   │   │   └── dang_ky.html     # Giao diện đăng ký cán bộ đơn vị
-│   │   ├── mua_sam/             # Giao diện M08 Mua sắm
-│   │   ├── ke_toan/             # Giao diện M08 Kế toán
-│   │   ├── tai_san/             # Giao diện M09 Quản lý tài sản
-│   │   └── admin/               # Giao diện M17 Admin Dashboard
-│   └── static/
-│       ├── css/
-│       │   └── neu_style.css    # Màu sắc, font chữ, form theo nhận diện NEU
-│       └── img/
-│           └── neu_logo.webp    # Logo chính thức của NEU
-├── scripts/
-│   └── du_lieu_mau.py           # Khởi tạo CSDL và tạo 4 tài khoản mẫu chuẩn
-├── tests/
-│   ├── conftest.py              # Fixtures pytest (client test, bộ nhớ :memory:)
-│   ├── test_auth.py             # Kiểm thử xác thực & phân quyền 4 vai trò
-│   ├── test_mua_sam.py          # Kiểm thử vòng đời mua sắm M08
-│   ├── test_ke_toan.py          # Kiểm thử thanh toán M08
-│   ├── test_tai_san.py          # Kiểm thử quản lý tài sản M09
-│   ├── test_bao_cao.py          # Kiểm thử dashboard M17 & xuất CSV
-│   └── test_bao_cao_hu_hai.py   # Kiểm thử báo cáo hư hại công khai
-├── .env.example                 # Mẫu cấu hình môi trường
-├── requirements.txt             # Thư viện phụ thuộc (Flask, pytest)
-├── run.py                       # File chạy máy chủ web phát triển
-├── README.md                    # Hướng dẫn chi tiết cài đặt và sử dụng
-└── AGENTS.md                    # Bản đặc tả quy chuẩn này
-```
+Cơ sở dữ liệu SQLite (`csvc.db`) gồm 10 bảng nghiệp vụ chuẩn hóa:
+
+1. `nguoi_dung`: `id`, `ten_dang_nhap`, `mat_khau_hash`, `ho_ten`, `email`, `don_vi`, `vai_tro`, `chuc_danh` (`truong_bo_phan`, `can_bo`), `ngay_tao`.
+2. `de_nghi_mua_sam`: `id`, `ma_de_nghi`, `tieu_de`, `nguoi_de_nghi_id`, `nguon_goc` (`de_xuat_moi`, `thay_the_hu_hai`), `bao_cao_hu_hai_id`, `muc_do_uu_tien`, `nguon_kinh_phi`, `thoi_gian_can_hang`, `dia_diem_su_dung`, `ly_do_su_can_thiet`, `tong_tien_uoc_tinh`, `trang_thai` (`cho_phe_duyet`, `cho_lanh_dao_duyet`, `da_phe_duyet`, `tu_choi`, `dang_mua`, `da_nhan`, `hoan_tat`), `nguoi_duyet_id`, `ngay_duyet`, `ly_do_tu_choi`, `so_hop_dong`, `nha_cung_cap`, `gia_tri_hop_dong`, `da_nghiem_thu`, `ngay_nghiem_thu`, `ghi_chu_nghiem_thu`, `ngay_tao`.
+3. `chi_tiet_de_nghi`: `id`, `de_nghi_id`, `ten_hang_hoa`, `don_vi_tinh`, `so_luong`, `don_gia_uoc_tinh`, `thanh_tien_uoc_tinh`, `quy_cach_ky_thuat`, `vi_tri_su_dung`, `ly_do_muc_dich`.
+4. `khao_sat_nhu_cau`: `id`, `ma_khao_sat`, `de_nghi_id`, `nguoi_khao_sat_id`, `ngay_khao_sat`, `hien_trang_su_dung`, `su_can_thiet`, `de_xuat_phuong_an`, `ket_qua_khao_sat`.
+5. `bao_gia`: `id`, `de_nghi_id`, `ten_nha_cung_cap`, `ma_so_thue`, `so_dien_thoai`, `email`, `ngay_bao_gia`, `hieu_luc_den_ngay`, `tong_gia_tri`, `ghi_chu`, `da_chon`.
+6. `nghiem_thu_mua_sam`: `id`, `ma_bien_ban`, `de_nghi_id`, `nguoi_nghiem_thu_id`, `ngay_nghiem_thu`, `dia_diem_nghiem_thu`, `ket_qua_kiem_tra`, `tinh_trang_dong_goi`, `tinh_trang_ky_thuat`, `ket_luan`, `ghi_chu`.
+7. `tai_san`: `id`, `ma_tai_san`, `ten_tai_san`, `loai_tai_san`, `phan_loai` (`tai_san_co_dinh`, `cong_cu_dung_cu`), `so_serial`, `model`, `hang_san_xuat`, `thoi_han_bao_hanh`, `ngay_nhan`, `nguyen_gia`, `vi_tri`, `don_vi_su_dung`, `trang_thai` (`cho_ban_giao`, `dang_su_dung`, `dang_sua_chua`, `cho_thanh_ly`, `da_thanh_ly`), `tinh_trang_ky_thuat` (`binh_thuong`, `co_hu_hong`, `can_kiem_tra`), `de_nghi_mua_sam_id`, `nguoi_tao_id`, `ghi_chu`.
+8. `lich_su_ban_giao`: `id`, `tai_san_id`, `ngay_ban_giao`, `nguoi_ban_giao_id`, `nguoi_nhan`, `don_vi_nhan`, `vi_tri_moi`, `muc_dich_su_dung`, `ghi_chu`.
+9. `lich_su_bao_tri`: `id`, `tai_san_id`, `ngay_bao_tri`, `loai_bao_tri`, `mo_ta_su_co`, `don_vi_thuc_hien`, `chi_phi`, `ket_qua`, `ngay_hoan_thanh`, `nguoi_ghi_nhan_id`.
+10. `yeu_cau_sua_chua`: `id`, `ma_sua_chua`, `tai_san_id`, `bao_cao_hu_hai_id`, `nguoi_tao_id`, `ngay_yeu_cau`, `mo_ta_hu_hong`, `muc_do_uu_tien`, `phuong_an_sua_chua`, `don_vi_sua_chua`, `du_toan_kinh_phi`, `chi_phi_thuc_te`, `trang_thai` (`cho_sua_chua`, `dang_sua_chua`, `hoan_thanh`, `khong_the_sua`), `ket_qua_nghiem_thu`, `ngay_hoan_thanh`, `ghi_chu`.
+11. `kiem_ke`: `id`, `ma_kiem_ke`, `ngay_kiem_ke`, `nguoi_lap_id`, `ky_kiem_ke`, `ghi_chu`.
+12. `chi_tiet_kiem_ke`: `id`, `kiem_ke_id`, `tai_san_id`, `so_luong_he_thong`, `so_luong_thuc_te`, `chenh_lech`, `trang_thai_tai_san`, `tinh_trang_su_dung`, `ghi_chu`.
+13. `bao_cao_hu_hai`: `id`, `ho_ten_nguoi_gui`, `thong_tin_lien_he`, `vi_tri`, `ten_thiet_bi`, `muc_do`, `mo_ta`, `hinh_anh`, `trang_thai` (`cho_tiep_nhan`, `dang_xu_ly`, `da_xu_ly`, `tu_choi`), `phuong_an_xu_ly` (`sua_chua`, `thay_the`, `tu_choi`), `nguoi_xu_ly_id`, `ngay_xu_ly`, `ghi_chu_xu_ly`, `de_nghi_mua_sam_id`, `tai_san_id`, `ngay_gui`.
 
 ---
 
-## 5. Quy chuẩn kỹ thuật bắt buộc
+## 7. Danh mục tài khoản mẫu kiểm thử
 
-### 5.1 Phân tách trách nhiệm (Separation of Concerns)
+Hệ thống được thiết lập sẵn 5 tài khoản mẫu chuẩn để phục vụ kiểm thử và nghiệm thu:
 
-- **`routes/`**: Chỉ tiếp nhận HTTP request, trích xuất dữ liệu, kiểm tra quyền hạn cơ bản, gọi `services/` tương ứng và trả về `render_template` hoặc `redirect`. **Tuyệt đối không viết câu lệnh SQL trong routes**.
-- **`services/`**: Nơi thực thi toàn bộ logic nghiệp vụ, tính toán công nợ, sinh mã tài sản tự động, ghi nhận trạng thái và tương tác CSDL qua `db.py`.
-- **`db.py`**: Quản lý kết nối SQLite `g.db`, `row_factory = sqlite3.Row`.
-- **`clock.py`**: Cung cấp hàm `clock.now()` lấy thời gian thực hoặc giả lập qua biến môi trường `CSV_GIO`. Tất cả các thao tác ghi nhận thời gian trong `services/` **bắt buộc dùng `clock.now()`**.
-
-### 5.2 Xử lý lỗi chuẩn nghiệp vụ (`errors.py`)
-
-Khi có lỗi logic nghiệp vụ, service hoặc route phải trả về cấu trúc thống nhất:
-```json
-{
-  "loi": "MA_LOI_VIET_HOA_KHONG_DAU",
-  "thong_bao": "Nội dung giải thích lỗi bằng tiếng Việt có dấu đầy đủ."
-}
-```
-
-Các mã lỗi quy chuẩn:
-- `KHONG_DU_QUYEN`: Người dùng không có thẩm quyền thực hiện thao tác.
-- `CHUA_DANG_NHAP`: Yêu cầu đăng nhập trước khi tiếp tục.
-- `DE_NGHI_KHONG_TON_TAI`: Phiếu đề nghị mua sắm không tìm thấy.
-- `TAI_SAN_KHONG_TON_TAI`: Bản ghi tài sản không tồn tại.
-- `TRANG_THAI_KHONG_HOP_LE`: Thao tác không đúng trình tự trạng thái nghiệp vụ.
-- `DU_LIEU_DAU_VAO_KHONG_HOP_LE`: Dữ liệu gửi lên không đúng định dạng qua `schemas.py`.
+| Vai trò | Tên đăng nhập | Mật khẩu | Chức danh | Thẩm quyền đặc thù |
+|---|---|---|---|---|
+| **Quản trị viên (Admin / Lãnh đạo)** | `admin` | `admin123` | Lãnh đạo Trường | Duyệt đề nghị $\ge$ 100tr, quản lý tài khoản; các phân hệ khác chỉ xem giám sát |
+| **Trưởng BP Mua sắm** | `truongmuasam` | `muasam1234` | Trưởng bộ phận | Phê duyệt đề nghị mua sắm kinh phí dưới 100 triệu VNĐ |
+| **Cán bộ Mua sắm** | `cb_muasam` | `password123` | Cán bộ | Lập đề nghị mua sắm, lập khảo sát BM02, thêm báo giá |
+| **Quản lý tài sản** | `cb_kho` | `password123` | Cán bộ | Nghiệm thu hàng BM04, tiếp nhận vào kho, xử lý phản ánh hư hại, quản lý sửa chữa |
+| **Kế toán** | `cb_ketoan` | `password123` | Cán bộ | Kiểm tra chứng từ, xác nhận thanh toán giải ngân |
 
 ---
 
-## 6. Danh mục tài khoản mẫu kiểm thử
+## 8. Hướng dẫn lệnh (Commands)
 
-Hệ thống cung cấp sẵn 4 tài khoản mặc định ứng với từng vai trò phục vụ kiểm thử và nghiệm thu:
-
-| Vai trò | Tên đăng nhập | Mật khẩu | Trang chuyển hướng sau đăng nhập |
-|---|---|---|---|
-| **Quản trị viên (Admin)** | `admin` | `admin123` | `/admin/` |
-| **Bộ phận Mua sắm** | `cb_muasam` | `password123` | `/mua-sam/` |
-| **Bộ phận Quản lý tài sản** | `cb_kho` | `password123` | `/tai-san/` |
-| **Kế toán** | `cb_ketoan` | `password123` | `/ke-toan/` |
-
----
-
-## 7. Hướng dẫn lệnh (Commands)
-
-### 7.1 Cài đặt dependencies
+### 8.1 Cài đặt dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 7.2 Khởi tạo cơ sở dữ liệu và nạp dữ liệu mẫu
+### 8.2 Khởi tạo cơ sở dữ liệu và nạp dữ liệu mẫu
 ```bash
 python scripts/du_lieu_mau.py
 ```
 
-### 7.3 Chạy ứng dụng web
+### 8.3 Chạy ứng dụng web
 ```bash
 python run.py
 ```
-Ứng dụng sẽ khả dụng tại địa chỉ: **`http://127.0.0.1:5000`**
+Ứng dụng khả dụng tại địa chỉ: **`http://127.0.0.1:5000`**
 
-### 7.4 Chạy bộ kiểm thử tự động
+### 8.4 Chạy bộ kiểm thử tự động
 ```bash
 pytest -v
 ```
 
 ---
 
-## 8. Tích hợp dữ liệu liên module (Data Integrity)
+## 9. Checklist kiểm tra bắt buộc cho AI Agent
 
-1. **Mua sắm → Kho tài sản (M08 → M09):**
-   - Khi đề nghị mua sắm chuyển sang trạng thái `da_nhan` (do `quan_ly_kho` hoặc `quan_tri` xác nhận), hàm `tai_san_service.tao_tai_san_tu_de_nghi()` được gọi tự động để sinh mã tài sản mới (định dạng `TS-YYYY-XXXXX`) với trạng thái ban đầu `cho_ban_giao`.
-2. **Kho tài sản → Kế toán (M09 → M08 Thanh toán):**
-   - Kế toán chỉ được phép ghi nhận thanh toán (`hoan_tat`) cho các đề nghị mua sắm đã có xác nhận tiếp nhận hàng hóa (`da_nhan`).
-3. **M08, M09 → M17 Dashboard Admin:**
-   - Các chỉ số KPI (tổng giá trị tài sản, số đề nghị chờ duyệt, số sự cố hỏng hóc chưa khắc phục) được tính toán động từ bảng cơ sở dữ liệu tại thời điểm truy vấn.
-4. **Báo cáo hư hại công khai → Admin:**
-   - Mọi bản ghi gửi từ form `/bao-cao-hu-hai` được lưu vào bảng `bao_cao_hu_hai` với trạng thái `cho_xu_ly` để Quản trị viên theo dõi và điều phối đơn vị bảo trì xử lý.
-
----
-
-## 9. Checklist kiểm tra cho AI Agent
-
-Mỗi khi thực hiện thay đổi, AI Agent phải kiểm tra và xác nhận:
-- [ ] Không có vai trò `nguoi_dung` trong code và logic kiểm tra quyền.
-- [ ] Phân định rõ 2 vai trò `mua_sam` và `quan_ly_kho`.
-- [ ] Route `/bao-cao-hu-hai` hoàn toàn công khai, không bắt buộc session hay token.
-- [ ] Giao diện nhất quán với tông màu và logo nhận diện NEU.
-- [ ] Tất cả các route không chứa mã SQL trực tiếp (chỉ gọi `services/`).
-- [ ] Thời gian được xử lý tập trung thông qua `clock.now()`.
-- [ ] Nút "Báo cáo hư hại" chỉ xuất hiện tại trang chủ khi chưa đăng nhập; sau khi đăng nhập được xóa/ẩn hoàn toàn.
-- [ ] Toàn bộ 20 test cases của hệ thống phải vượt qua thành công: `pytest -v`.
+Mỗi khi chỉnh sửa hoặc nâng cấp bất kỳ tính năng nào, AI Agent phải kiểm tra và xác nhận:
+- [ ] **Không có vai trò `nguoi_dung`**: Chỉ sử dụng 4 vai trò nội bộ `quan_tri`, `mua_sam`, `quan_ly_kho`, `ke_toan`.
+- [ ] **Phân cấp duyệt 100 triệu**: Đề nghị $\ge$ 100 triệu VNĐ chỉ có `quan_tri` duyệt được; Trưởng BP Mua sắm chỉ duyệt được gói < 100 triệu.
+- [ ] **Ranh giới quyền hạn của Admin**: Admin chỉ duyệt đề nghị và quản lý tài khoản; không làm thay tác nghiệp tiếp nhận, bàn giao, thanh toán, sửa chữa.
+- [ ] **Nút báo cáo hư hại**: Chỉ hiển thị ở Trang chủ khi chưa đăng nhập; biến mất hoàn toàn khi người dùng đã đăng nhập.
+- [ ] **Phân loại tài sản**: Đơn giá $\ge$ 10tr tạo `TS-YYYY-XXXX` (`tai_san_co_dinh`); đơn giá < 10tr tạo `CCDC-YYYY-XXXX` (`cong_cu_dung_cu`).
+- [ ] **Chu trình sửa chữa M09**: Lập yêu cầu -> Nghiệm thu sửa chữa -> Khôi phục `dang_su_dung`, tình trạng `binh_thuong`, chuyển phản ánh sang `da_xu_ly`.
+- [ ] **Kiến trúc MVC nghiêm ngặt**: Route không chứa SQL, toàn bộ logic nghiệp vụ đặt trong `services/`, thời gian lấy qua `clock.now()`.
+- [ ] **Toàn bộ 23 test cases vượt qua thành công**: `pytest -v` phải đạt 100% Passed.

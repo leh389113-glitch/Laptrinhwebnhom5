@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Chi tiết đề nghị {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
 {% block content %}
-<div class="container">
+<div class="container my-4">
 
-  <div class="neu-page-header">
+  <div class="neu-page-header mb-4">
     <div>
-      <h2 class="neu-page-title">
+      <h2 class="neu-page-title text-primary fw-bold">
         <i class="fa-solid fa-file-invoice text-primary me-2"></i> CHI TIẾT ĐỀ NGHỊ: {{ de_nghi.ma_de_nghi }}
       </h2>
       <small class="text-muted">Đơn vị đề xuất: {{ de_nghi.don_vi_de_nghi }} | Ngày lập: {{ de_nghi.ngay_tao | dinh_dang_ngay }}</small>
@@ -14,44 +14,64 @@
       <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-outline-secondary">
         <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
       </a>
-      {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+      {% if session.get('vai_tro') == 'quan_ly_kho' and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
         <a href="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}" class="btn btn-success fw-bold">
-          <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận hàng nhập kho
+          <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận hàng nhập kho (M09)
         </a>
       {% endif %}
     </div>
   </div>
 
   <div class="row g-4">
-    <!-- Cột trái: Thông tin chung & Hàng hóa -->
+    <!-- Cột trái: Thông tin chung & Hàng hóa & Khảo sát & Báo giá & Nghiệm thu -->
     <div class="col-lg-8">
       
-      <div class="neu-card">
-        <div class="neu-card-header bg-primary-neu">
-          <span><i class="fa-solid fa-circle-info me-2"></i> Nội dung đề nghị mua sắm</span>
+      <!-- Thông tin chung -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="mb-0 fw-bold"><i class="fa-solid fa-circle-info me-2"></i> Nội dung đề nghị mua sắm</h5>
         </div>
-        <div class="neu-card-body">
-          <h4 class="fw-bold text-dark mb-3">{{ de_nghi.tieu_de }}</h4>
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h4 class="fw-bold text-dark mb-0">{{ de_nghi.tieu_de }}</h4>
+            {% if de_nghi.muc_do_uu_tien == 'khan_cap' %}
+              <span class="badge bg-danger">Khẩn cấp</span>
+            {% elif de_nghi.muc_do_uu_tien == 'can_som' %}
+              <span class="badge bg-warning text-dark">Cần sớm</span>
+            {% else %}
+              <span class="badge bg-secondary">Bình thường</span>
+            {% endif %}
+          </div>
+
           <p class="text-secondary mb-3">{{ de_nghi.mo_ta or 'Không có mô tả chi tiết kèm theo.' }}</p>
+
           <div class="row g-2 border-top pt-3 text-secondary small">
             <div class="col-sm-6"><strong>Người đề nghị:</strong> {{ de_nghi.nguoi_de_nghi_ten }}</div>
-            <div class="col-sm-6"><strong>Đơn vị:</strong> {{ de_nghi.don_vi_de_nghi }}</div>
+            <div class="col-sm-6"><strong>Đơn vị đề nghị:</strong> {{ de_nghi.don_vi_de_nghi }}</div>
+            <div class="col-sm-6"><strong>Nguồn kinh phí:</strong> {{ de_nghi.nguon_kinh_phi or 'Nguồn thu hợp pháp' }}</div>
+            <div class="col-sm-6"><strong>Địa điểm sử dụng:</strong> {{ de_nghi.dia_diem_su_dung or 'Theo đơn vị' }}</div>
             <div class="col-sm-6"><strong>Cập nhật lần cuối:</strong> {{ de_nghi.ngay_cap_nhat | dinh_dang_ngay }}</div>
             <div class="col-sm-6"><strong>Trạng thái:</strong> <span class="{{ de_nghi.trang_thai | badge_trang_thai }}">{{ de_nghi.trang_thai | ten_trang_thai }}</span></div>
+            {% if de_nghi.nha_cung_cap %}
+              <div class="col-12 mt-2 pt-2 border-top">
+                <strong>Nhà cung cấp đã chọn:</strong> <span class="badge bg-success">{{ de_nghi.nha_cung_cap }}</span>
+                {% if de_nghi.so_hop_dong %} | <strong>Hợp đồng:</strong> {{ de_nghi.so_hop_dong }}{% endif %}
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
 
       <!-- Danh mục hàng hóa -->
-      <div class="neu-card">
-        <div class="neu-card-header">
-          <span><i class="fa-solid fa-list-ol me-2"></i> Danh mục vật tư, thiết bị</span>
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-list-ol me-2 text-primary"></i> Danh mục vật tư, thiết bị</h5>
         </div>
         <div class="table-responsive">
-          <table class="neu-table">
-            <thead>
+          <table class="table table-bordered align-middle mb-0">
+            <thead class="table-light">
               <tr>
-                <th>STT</th>
+                <th style="width: 5%;">STT</th>
                 <th>Tên hàng hóa / Thiết bị</th>
                 <th>ĐVT</th>
                 <th class="text-center">Số lượng</th>
@@ -62,9 +82,10 @@
             <tbody>
               {% for it in de_nghi['items'] %}
               <tr>
-                <td>{{ loop.index }}</td>
+                <td class="text-center">{{ loop.index }}</td>
                 <td>
                   <strong>{{ it.ten_hang_hoa }}</strong>
+                  {% if it.vi_tri_su_dung %}<div class="small text-muted"><i class="fa-solid fa-location-dot me-1"></i>{{ it.vi_tri_su_dung }}</div>{% endif %}
                   {% if it.ghi_chu %}<div class="small text-muted">{{ it.ghi_chu }}</div>{% endif %}
                 </td>
                 <td>{{ it.don_vi_tinh }}</td>
@@ -76,21 +97,134 @@
             </tbody>
             <tfoot>
               <tr class="table-light">
-                <td colspan="5" class="text-end fw-bold">TỔNG CỘNG KINH PHÍ:</td>
-                <td class="text-end fw-bold fs-6 text-danger">{{ de_nghi.tong_du_toan | tien_vnd }}</td>
+                <td colspan="5" class="text-end fw-bold fs-6">TỔNG CỘNG KINH PHÍ:</td>
+                <td class="text-end fw-bold fs-5 text-danger">{{ de_nghi.tong_du_toan | tien_vnd }}</td>
               </tr>
             </tfoot>
           </table>
         </div>
       </div>
 
+      <!-- Khảo sát nhu cầu BM02 -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-clipboard-check me-2 text-info"></i> Khảo sát nhu cầu mua sắm thực tế (BM02)</h5>
+          {% if session.get('vai_tro') == 'mua_sam' and not de_nghi.khao_sat %}
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalKhaoSat">
+              <i class="fa-solid fa-plus me-1"></i> Lập biên bản khảo sát
+            </button>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if de_nghi.khao_sat %}
+            <div class="border rounded p-3 bg-light">
+              <div class="d-flex justify-content-between">
+                <strong>Mã khảo sát: {{ de_nghi.khao_sat.ma_khao_sat }}</strong>
+                <span class="badge bg-success">Đã hoàn thành</span>
+              </div>
+              <p class="mb-1 mt-2"><strong>Nội dung:</strong> {{ de_nghi.khao_sat.noi_dung }}</p>
+              <div class="small text-muted">
+                <div>• Cán bộ khảo sát: {{ de_nghi.khao_sat.can_bo_khao_sat or 'Phòng QTTB' }} | Đại diện đơn vị: {{ de_nghi.khao_sat.dai_dien_don_vi or 'Đơn vị đề nghị' }}</div>
+                <div>• Kiểm tra khả năng cấp từ kho: {{ de_nghi.khao_sat.kiem_tra_kho or 'Không có sẵn' }}</div>
+                <div>• Đối chiếu định mức: {{ de_nghi.khao_sat.doi_chieu_dinh_muc or 'Phù hợp' }}</div>
+                <div>• Kết luận: <strong class="text-success">{{ de_nghi.khao_sat.ket_luan }}</strong></div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 small"><i class="fa-solid fa-circle-info me-1"></i> Chưa có biên bản khảo sát nhu cầu BM02. Cán bộ Mua sắm có thể phối hợp lập biên bản khảo sát thực tế.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Báo giá cạnh tranh (tối thiểu 3 báo giá) -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tags me-2 text-warning"></i> Quản lý báo giá cạnh tranh (Quy trình 3 báo giá)</h5>
+          {% if session.get('vai_tro') == 'mua_sam' and de_nghi.trang_thai in ['cho_phe_duyet', 'cho_lanh_dao_duyet', 'da_phe_duyet', 'dang_mua'] %}
+            <button class="btn btn-sm btn-outline-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalBaoGia">
+              <i class="fa-solid fa-plus me-1"></i> Thêm báo giá
+            </button>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if de_nghi.bao_gia %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nhà cung cấp</th>
+                    <th>Mã số thuế</th>
+                    <th>Tổng giá (VNĐ)</th>
+                    <th>Hiệu lực</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bg in de_nghi.bao_gia %}
+                  <tr>
+                    <td><strong>{{ bg.nha_cung_cap }}</strong></td>
+                    <td>{{ bg.ma_so_thue or '-' }}</td>
+                    <td class="fw-bold text-danger">{{ bg.tong_gia | tien_vnd }}</td>
+                    <td>{{ bg.hieu_luc or '30 ngày' }}</td>
+                    <td>
+                      {% if bg.duoc_chon %}
+                        <span class="badge bg-success"><i class="fa-solid fa-trophy me-1"></i> Đã chọn</span>
+                      {% else %}
+                        <span class="badge bg-light text-muted border">Tham khảo</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if not bg.duoc_chon and session.get('vai_tro') == 'mua_sam' %}
+                        <form method="POST" action="{{ url_for('mua_sam.chon_bao_gia', id=de_nghi.id, bao_gia_id=bg.id) }}" class="d-inline">
+                          <button type="submit" class="btn btn-sm btn-outline-success">Chọn trúng thầu</button>
+                        </form>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="p-3 text-muted small"><i class="fa-solid fa-circle-info me-1"></i> Chưa có báo giá nào được nhập. Cán bộ mua sắm cập nhật ít nhất 3 báo giá cạnh tranh.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Biên bản kiểm tra & nghiệm thu -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-stamp me-2 text-success"></i> Biên bản kiểm tra & nghiệm thu hàng hóa</h5>
+          {% if session.get('vai_tro') == 'mua_sam' and not de_nghi.nghiem_thu and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalNghiemThu">
+              <i class="fa-solid fa-plus me-1"></i> Lập biên bản nghiệm thu
+            </button>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if de_nghi.nghiem_thu %}
+            <div class="border rounded p-3 bg-light">
+              <div class="d-flex justify-content-between">
+                <strong>Mã nghiệm thu: {{ de_nghi.nghiem_thu.ma_nghiem_thu }}</strong>
+                <span class="badge bg-success">Kết quả: Đạt</span>
+              </div>
+              <p class="mb-1 mt-2"><strong>Đại diện tham gia:</strong> Bên mua: {{ de_nghi.nghiem_thu.dai_dien_ben_mua or 'BP Mua sắm' }} | Nhà cung cấp: {{ de_nghi.nghiem_thu.dai_dien_nha_cung_cap or de_nghi.nha_cung_cap }} | Đơn vị sử dụng: {{ de_nghi.nghiem_thu.dai_dien_don_vi_su_dung or de_nghi.don_vi_de_nghi }}</p>
+              <div class="small text-muted">Ý kiến đánh giá: {{ de_nghi.nghiem_thu.y_kien_danh_gia or 'Hàng hóa đúng chủng loại, cấu hình kỹ thuật theo hợp đồng' }}</div>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 small"><i class="fa-solid fa-circle-info me-1"></i> Chưa lập biên bản nghiệm thu. Sau khi nhà cung cấp giao hàng, Bộ phận Mua sắm tiến hành nghiệm thu trước khi bàn giao cho Quản lý tài sản.</p>
+          {% endif %}
+        </div>
+      </div>
+
       <!-- Hồ sơ tiếp nhận hàng nếu có -->
       {% if de_nghi.tiep_nhan %}
-      <div class="neu-card">
-        <div class="neu-card-header bg-success text-white">
-          <span><i class="fa-solid fa-truck-ramp-box me-2"></i> Lịch sử tiếp nhận hàng hóa</span>
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white py-3">
+          <h5 class="mb-0 fw-bold"><i class="fa-solid fa-truck-ramp-box me-2"></i> Lịch sử tiếp nhận hàng hóa vào kho (M09)</h5>
         </div>
-        <div class="neu-card-body">
+        <div class="card-body">
           {% for tn in de_nghi.tiep_nhan %}
           <div class="border-bottom pb-2 mb-2">
             <div class="fw-bold text-success"><i class="fa-solid fa-check-circle me-1"></i> Đã tiếp nhận ngày {{ tn.ngay_tiep_nhan | dinh_dang_ngay }}</div>
@@ -107,11 +241,11 @@
     <div class="col-lg-4">
       
       <!-- Box Trạng thái & Phê duyệt -->
-      <div class="neu-card">
-        <div class="neu-card-header">
-          <span><i class="fa-solid fa-signature me-2"></i> Luồng xét duyệt</span>
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-signature me-2 text-primary"></i> Luồng xét duyệt</h5>
         </div>
-        <div class="neu-card-body">
+        <div class="card-body">
           <div class="mb-3 text-center">
             <div class="text-muted small mb-1">Trạng thái hiện tại:</div>
             <div class="fs-5"><span class="{{ de_nghi.trang_thai | badge_trang_thai }} px-3 py-2">{{ de_nghi.trang_thai | ten_trang_thai }}</span></div>
@@ -142,7 +276,7 @@
             
             <form method="POST" action="{{ url_for('mua_sam.phe_duyet', id=de_nghi.id) }}" class="mb-2">
               <div class="mb-2">
-                <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Ý kiến phê duyệt (tùy chọn)">
+                <input type="text" name="ghi_chu" class="form-control form-control-sm" placeholder="Ý kiến phê duyệt (tùy chọn)">
               </div>
               <button type="submit" class="btn btn-success w-100 fw-bold">
                 <i class="fa-solid fa-check me-1"></i> Phê duyệt đề nghị
@@ -151,7 +285,7 @@
 
             <form method="POST" action="{{ url_for('mua_sam.tu_choi', id=de_nghi.id) }}">
               <div class="mb-2">
-                <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Lý do từ chối" required>
+                <input type="text" name="ghi_chu" class="form-control form-control-sm" placeholder="Lý do từ chối" required>
               </div>
               <button type="submit" class="btn btn-outline-danger w-100">
                 <i class="fa-solid fa-xmark me-1"></i> Từ chối đề nghị
@@ -169,7 +303,7 @@
               
               <form method="POST" action="{{ url_for('mua_sam.phe_duyet', id=de_nghi.id) }}" class="mb-2">
                 <div class="mb-2">
-                  <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Ý kiến chỉ đạo phê duyệt">
+                  <input type="text" name="ghi_chu" class="form-control form-control-sm" placeholder="Ý kiến chỉ đạo phê duyệt">
                 </div>
                 <button type="submit" class="btn btn-danger w-100 fw-bold">
                   <i class="fa-solid fa-check-double me-1"></i> Lãnh đạo Phê duyệt
@@ -178,7 +312,7 @@
 
               <form method="POST" action="{{ url_for('mua_sam.tu_choi', id=de_nghi.id) }}">
                 <div class="mb-2">
-                  <input type="text" name="ghi_chu" class="form-control form-control-sm neu-form-control" placeholder="Lý do từ chối" required>
+                  <input type="text" name="ghi_chu" class="form-control form-control-sm" placeholder="Lý do từ chối" required>
                 </div>
                 <button type="submit" class="btn btn-outline-danger w-100">
                   <i class="fa-solid fa-xmark me-1"></i> Từ chối đề nghị
@@ -195,7 +329,7 @@
           <!-- Nếu là Bộ phận Quản lý tài sản: Tiếp nhận hàng khi đơn đã duyệt hoặc đang mua -->
           {% if session.get('vai_tro') == 'quan_ly_kho' and de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
           <div class="border-top pt-3 mt-3 text-center">
-            <a href="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}" class="btn btn-neu-primary w-100 fw-bold">
+            <a href="{{ url_for('mua_sam.tiep_nhan', id=de_nghi.id) }}" class="btn btn-primary w-100 fw-bold">
               <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận hàng hóa & Nhập kho (M09)
             </a>
           </div>
@@ -214,26 +348,30 @@
       </div>
 
       <!-- Box Tiến trình vòng đời đề nghị -->
-      <div class="neu-card">
-        <div class="neu-card-header">
-          <span><i class="fa-solid fa-timeline me-2"></i> Quy trình thực hiện</span>
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3">
+          <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-timeline me-2 text-primary"></i> Quy trình thực hiện</h5>
         </div>
-        <div class="neu-card-body small">
+        <div class="card-body small">
           <ul class="list-unstyled mb-0">
             <li class="mb-2 text-success">
-              <i class="fa-solid fa-circle-check me-2"></i> 1. Lập đề nghị mua sắm
+              <i class="fa-solid fa-circle-check me-2"></i> 1. Lập đề nghị mua sắm (BM01)
             </li>
             <li class="mb-2 {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}text-success{% elif de_nghi.trang_thai == 'tu_choi' %}text-danger{% else %}text-muted{% endif %}">
               <i class="fa-solid {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}fa-circle-check{% elif de_nghi.trang_thai == 'tu_choi' %}fa-circle-xmark{% else %}fa-circle{% endif %} me-2"></i> 
-              2. Phê duyệt đề nghị
+              2. Phê duyệt đề nghị (< 100tr: BP Mua sắm; $\ge$ 100tr: Lãnh đạo)
+            </li>
+            <li class="mb-2 {% if de_nghi.da_nghiem_thu %}text-success{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.da_nghiem_thu %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i> 
+              3. Nghiệm thu hàng hóa
             </li>
             <li class="mb-2 {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}text-success{% else %}text-muted{% endif %}">
               <i class="fa-solid {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i> 
-              3. Tiếp nhận hàng & Nhập kho (M09)
+              4. Quản lý tài sản tiếp nhận & Phân loại TSCĐ/CCDC (M09)
             </li>
             <li class="{% if de_nghi.trang_thai == 'hoan_tat' %}text-success{% else %}text-muted{% endif %}">
               <i class="fa-solid {% if de_nghi.trang_thai == 'hoan_tat' %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i> 
-              4. Kế toán thanh toán & Hoàn tất
+              5. Kế toán thanh toán & Hoàn tất
             </li>
           </ul>
         </div>
@@ -243,4 +381,158 @@
   </div>
 
 </div>
+
+<!-- Modal Khảo sát BM02 -->
+<div class="modal fade" id="modalKhaoSat" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('mua_sam.khao_sat', id=de_nghi.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Biên bản khảo sát nhu cầu mua sắm thực tế (BM02)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nội dung khảo sát <span class="text-danger">*</span></label>
+            <input type="text" name="noi_dung" class="form-control" placeholder="Khảo sát nhu cầu trang bị thiết bị..." required value="Khảo sát nhu cầu mua sắm thực tế theo đề nghị {{ de_nghi.ma_de_nghi }}">
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Địa điểm khảo sát</label>
+              <input type="text" name="dia_diem" class="form-control" value="{{ de_nghi.dia_diem_su_dung or de_nghi.don_vi_de_nghi }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Cán bộ QTTB khảo sát</label>
+              <input type="text" name="can_bo_khao_sat" class="form-control" value="{{ session.get('ho_ten') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Đại diện đơn vị đề nghị</label>
+              <input type="text" name="dai_dien_don_vi" class="form-control" value="{{ de_nghi.nguoi_de_nghi_ten }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Mức độ cần thiết</label>
+              <select name="muc_do_can_thiet" class="form-select">
+                <option value="thong_thuong">Thông thường</option>
+                <option value="can_thiet" selected>Cần thiết</option>
+                <option value="khan_cap">Khẩn cấp</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kiểm tra khả năng đáp ứng từ kho hiện có</label>
+            <input type="text" name="kiem_tra_kho" class="form-control" value="Hàng hóa, vật tư hiện có tại kho không đáp ứng đủ số lượng/kỹ thuật">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Đối chiếu tiêu chuẩn định mức</label>
+            <input type="text" name="doi_chieu_dinh_muc" class="form-control" value="Phù hợp tiêu chuẩn định mức trang thiết bị của Trường">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kết luận khảo sát</label>
+            <select name="ket_luan" class="form-select">
+              <option value="phu_hop" selected>Phù hợp và cần thiết để tổ chức thực hiện</option>
+              <option value="dieu_chinh">Cần điều chỉnh số lượng / quy cách</option>
+              <option value="chua_du">Chưa đủ cơ sở thực hiện</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-primary fw-bold">Lưu biên bản khảo sát</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thêm báo giá -->
+<div class="modal fade" id="modalBaoGia" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('mua_sam.them_bao_gia', id=de_nghi.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Thêm báo giá cạnh tranh</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+            <input type="text" name="nha_cung_cap" class="form-control" placeholder="Công ty TNHH..." required>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Mã số thuế</label>
+              <input type="text" name="ma_so_thue" class="form-control" placeholder="0101234567">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Tổng giá báo (VNĐ) <span class="text-danger">*</span></label>
+              <input type="number" name="tong_gia" class="form-control" required min="1000" step="1000">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Thời hạn hiệu lực</label>
+              <input type="text" name="hieu_luc" class="form-control" value="30 ngày">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Liên hệ / Điện thoại</label>
+              <input type="text" name="lien_he" class="form-control">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Ghi chú</label>
+            <textarea name="ghi_chu" class="form-control" rows="2" placeholder="Thời gian giao hàng, bảo hành..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-warning fw-bold text-dark">Lưu báo giá</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nghiệm thu -->
+<div class="modal fade" id="modalNghiemThu" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('mua_sam.lap_nghiem_thu', id=de_nghi.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Biên bản kiểm tra & nghiệm thu hàng hóa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Đại diện bên mua (Phòng QTTB)</label>
+            <input type="text" name="dai_dien_ben_mua" class="form-control" value="{{ session.get('ho_ten') }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Đại diện Nhà cung cấp</label>
+            <input type="text" name="dai_dien_nha_cung_cap" class="form-control" value="{{ de_nghi.nha_cung_cap or '' }}" placeholder="Người đại diện giao nhận của NCC">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Đại diện đơn vị sử dụng</label>
+            <input type="text" name="dai_dien_don_vi_su_dung" class="form-control" value="{{ de_nghi.nguoi_de_nghi_ten }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kết quả nghiệm thu</label>
+            <select name="ket_qua" class="form-select">
+              <option value="dat" selected>Đạt yêu cầu - Đủ điều kiện bàn giao nhập kho</option>
+              <option value="khong_dat">Không đạt yêu cầu</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Ý kiến đánh giá / Ghi chú</label>
+            <textarea name="y_kien_danh_gia" class="form-control" rows="2" placeholder="Hàng hóa mới 100%, đúng quy cách kỹ thuật..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-success fw-bold">Ký biên bản nghiệm thu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS nguoi_dung (
     ten_dang_nhap TEXT UNIQUE NOT NULL,
     mat_khau_hash TEXT NOT NULL,
     vai_tro TEXT NOT NULL DEFAULT 'nguoi_dung',
+    chuc_danh TEXT,
     ngay_tao TEXT NOT NULL,
     trang_thai TEXT NOT NULL DEFAULT 'hoat_dong'
 );
@@ -30,11 +31,25 @@ CREATE TABLE IF NOT EXISTS de_nghi_mua_sam (
     ngay_tao TEXT NOT NULL,
     ngay_phe_duyet TEXT,
     ngay_cap_nhat TEXT NOT NULL,
+    nguon_goc TEXT DEFAULT 'moi',
+    bao_cao_hu_hai_id INTEGER,
+    muc_do_uu_tien TEXT DEFAULT 'binh_thuong',
+    nguon_kinh_phi TEXT DEFAULT 'Nguồn thu hợp pháp của Trường',
+    thoi_gian_can_hang TEXT,
+    dia_diem_su_dung TEXT,
+    ly_do_su_can_thiet TEXT,
+    so_hop_dong TEXT,
+    nha_cung_cap TEXT,
+    gia_tri_hop_dong REAL DEFAULT 0,
+    da_nghiem_thu INTEGER DEFAULT 0,
+    ngay_nghiem_thu TEXT,
+    ghi_chu_nghiem_thu TEXT,
     FOREIGN KEY (nguoi_de_nghi_id) REFERENCES nguoi_dung(id),
-    FOREIGN KEY (nguoi_phe_duyet_id) REFERENCES nguoi_dung(id)
+    FOREIGN KEY (nguoi_phe_duyet_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (bao_cao_hu_hai_id) REFERENCES bao_cao_hu_hai(id)
 );
 
--- Bảng chi tiết đề nghị mua sắm
+-- Bảng chi tiết đề nghị mua sắm (hạng mục hàng hóa)
 CREATE TABLE IF NOT EXISTS chi_tiet_de_nghi (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     de_nghi_id INTEGER NOT NULL,
@@ -43,11 +58,48 @@ CREATE TABLE IF NOT EXISTS chi_tiet_de_nghi (
     so_luong INTEGER NOT NULL,
     don_gia_du_kien REAL NOT NULL DEFAULT 0,
     thanh_tien REAL NOT NULL DEFAULT 0,
+    vi_tri_su_dung TEXT,
+    ly_do_muc_dich TEXT,
     ghi_chu TEXT,
     FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id)
 );
 
--- Bảng hồ sơ mua sắm
+-- Bảng biên bản khảo sát nhu cầu mua sắm (BM02 / BM01C)
+CREATE TABLE IF NOT EXISTS khao_sat_nhu_cau (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ma_khao_sat TEXT UNIQUE NOT NULL,
+    de_nghi_id INTEGER NOT NULL,
+    noi_dung TEXT,
+    ngay_khao_sat TEXT NOT NULL,
+    dia_diem TEXT,
+    can_bo_khao_sat TEXT,
+    dai_dien_don_vi TEXT,
+    ket_qua_danh_gia TEXT,
+    kiem_tra_kho TEXT,
+    doi_chieu_dinh_muc TEXT,
+    muc_do_can_thiet TEXT DEFAULT 'can_thiet',
+    phuong_an_de_xuat TEXT DEFAULT 'mua_bo_sung',
+    ket_luan TEXT DEFAULT 'phu_hop',
+    ngay_tao TEXT NOT NULL,
+    FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id)
+);
+
+-- Bảng báo giá cạnh tranh (tối thiểu 3 báo giá)
+CREATE TABLE IF NOT EXISTS bao_gia (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    de_nghi_id INTEGER NOT NULL,
+    nha_cung_cap TEXT NOT NULL,
+    ma_so_thue TEXT,
+    lien_he TEXT,
+    tong_gia REAL NOT NULL DEFAULT 0,
+    ngay_bao_gia TEXT NOT NULL,
+    hieu_luc TEXT,
+    duoc_chon INTEGER DEFAULT 0,
+    ghi_chu TEXT,
+    FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id)
+);
+
+-- Bảng hồ sơ mua sắm & hợp đồng
 CREATE TABLE IF NOT EXISTS ho_so_mua_sam (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     de_nghi_id INTEGER NOT NULL,
@@ -55,11 +107,27 @@ CREATE TABLE IF NOT EXISTS ho_so_mua_sam (
     so_hop_dong TEXT,
     gia_tri_hop_dong REAL DEFAULT 0,
     ngay_tao TEXT NOT NULL,
+    dieu_khoan_thanh_toan TEXT,
     ghi_chu TEXT,
     FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id)
 );
 
--- Bảng tiếp nhận hàng
+-- Bảng biên bản kiểm tra & nghiệm thu mua sắm
+CREATE TABLE IF NOT EXISTS nghiem_thu_mua_sam (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ma_nghiem_thu TEXT UNIQUE NOT NULL,
+    de_nghi_id INTEGER NOT NULL,
+    ngay_nghiem_thu TEXT NOT NULL,
+    dai_dien_ben_mua TEXT,
+    dai_dien_nha_cung_cap TEXT,
+    dai_dien_don_vi_su_dung TEXT,
+    ket_qua TEXT DEFAULT 'dat',
+    y_kien_danh_gia TEXT,
+    ngay_tao TEXT NOT NULL,
+    FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id)
+);
+
+-- Bảng tiếp nhận hàng hóa vào kho
 CREATE TABLE IF NOT EXISTS tiep_nhan_hang (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     de_nghi_id INTEGER NOT NULL,
@@ -96,19 +164,26 @@ CREATE TABLE IF NOT EXISTS thanh_toan (
     FOREIGN KEY (nguoi_thanh_toan_id) REFERENCES nguoi_dung(id)
 );
 
--- Bảng tài sản (M09)
+-- Bảng tài sản (M09 - Quản lý tài sản)
 CREATE TABLE IF NOT EXISTS tai_san (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ma_tai_san TEXT UNIQUE NOT NULL,
     ten_tai_san TEXT NOT NULL,
     mo_ta TEXT,
     loai_tai_san TEXT,
+    phan_loai TEXT DEFAULT 'tai_san_co_dinh',
+    tinh_trang_ky_thuat TEXT DEFAULT 'binh_thuong',
     vi_tri TEXT,
     phong_ban TEXT,
+    don_vi_su_dung TEXT,
     gia_tri REAL DEFAULT 0,
     ngay_tiep_nhan TEXT NOT NULL,
     nguoi_su_dung_id INTEGER,
     trang_thai TEXT NOT NULL DEFAULT 'cho_ban_giao',
+    so_serial TEXT,
+    model TEXT,
+    hang_san_xuat TEXT,
+    thoi_han_bao_hanh TEXT,
     de_nghi_id INTEGER,
     ngay_tao TEXT NOT NULL,
     ngay_cap_nhat TEXT NOT NULL,
@@ -129,7 +204,30 @@ CREATE TABLE IF NOT EXISTS lich_su_ban_giao (
     FOREIGN KEY (nguoi_ban_giao_id) REFERENCES nguoi_dung(id)
 );
 
--- Bảng bảo trì / sửa chữa tài sản
+-- Bảng yêu cầu sửa chữa & bảo trì tài sản (M09 - Phần III)
+CREATE TABLE IF NOT EXISTS yeu_cau_sua_chua (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ma_yeu_cau TEXT UNIQUE NOT NULL,
+    tai_san_id INTEGER,
+    bao_cao_hu_hai_id INTEGER,
+    loai_sua_chua TEXT DEFAULT 'sua_chua_nho',
+    noi_dung TEXT NOT NULL,
+    hien_trang TEXT,
+    chi_phi_du_kien REAL DEFAULT 0,
+    chi_phi_thuc_te REAL DEFAULT 0,
+    don_vi_thuc_hien TEXT,
+    nguoi_phu_trach_id INTEGER,
+    ngay_tiep_nhan TEXT NOT NULL,
+    ngay_hoan_thanh TEXT,
+    ket_qua_nghiem_thu TEXT DEFAULT 'cho_nghiem_thu',
+    trang_thai TEXT DEFAULT 'dang_sua_chua',
+    ghi_chu TEXT,
+    FOREIGN KEY (tai_san_id) REFERENCES tai_san(id),
+    FOREIGN KEY (bao_cao_hu_hai_id) REFERENCES bao_cao_hu_hai(id),
+    FOREIGN KEY (nguoi_phu_trach_id) REFERENCES nguoi_dung(id)
+);
+
+-- Bảng lịch sử bảo trì tài sản
 CREATE TABLE IF NOT EXISTS bao_tri (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tai_san_id INTEGER NOT NULL,
@@ -161,6 +259,9 @@ CREATE TABLE IF NOT EXISTS chi_tiet_kiem_ke (
     phieu_kiem_ke_id INTEGER NOT NULL,
     tai_san_id INTEGER NOT NULL,
     tinh_trang_thuc_te TEXT NOT NULL,
+    so_luong_he_thong INTEGER DEFAULT 1,
+    so_luong_thuc_te INTEGER DEFAULT 1,
+    chenh_lech INTEGER DEFAULT 0,
     ghi_chu TEXT,
     FOREIGN KEY (phieu_kiem_ke_id) REFERENCES phieu_kiem_ke(id),
     FOREIGN KEY (tai_san_id) REFERENCES tai_san(id)
@@ -177,7 +278,16 @@ CREATE TABLE IF NOT EXISTS bao_cao_hu_hai (
     mo_ta_chi_tiet TEXT,
     thoi_gian_phat_hien TEXT,
     trang_thai TEXT DEFAULT 'chua_xu_ly',
-    ngay_tao TEXT NOT NULL
+    phuong_an_xu_ly TEXT,
+    nguoi_xu_ly_id INTEGER,
+    ngay_xu_ly TEXT,
+    ghi_chu_xu_ly TEXT,
+    de_nghi_mua_sam_id INTEGER,
+    tai_san_id INTEGER,
+    ngay_tao TEXT NOT NULL,
+    FOREIGN KEY (nguoi_xu_ly_id) REFERENCES nguoi_dung(id),
+    FOREIGN KEY (de_nghi_mua_sam_id) REFERENCES de_nghi_mua_sam(id),
+    FOREIGN KEY (tai_san_id) REFERENCES tai_san(id)
 );
 """
 
@@ -202,8 +312,108 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
+def _migrate_db(conn):
+    """Thêm các cột mới vào các bảng hiện có nếu chưa có (migration an toàn không làm mất dữ liệu)."""
+    cur = conn.cursor()
+    
+    # Bảng nguoi_dung
+    try:
+        cur.execute("PRAGMA table_info(nguoi_dung)")
+        cols = [r[1] for r in cur.fetchall()]
+        if "chuc_danh" not in cols:
+            cur.execute("ALTER TABLE nguoi_dung ADD COLUMN chuc_danh TEXT")
+    except Exception:
+        pass
+
+    # Bảng de_nghi_mua_sam
+    try:
+        cur.execute("PRAGMA table_info(de_nghi_mua_sam)")
+        cols = [r[1] for r in cur.fetchall()]
+        new_cols = [
+            ("nguon_goc", "TEXT DEFAULT 'moi'"),
+            ("bao_cao_hu_hai_id", "INTEGER"),
+            ("muc_do_uu_tien", "TEXT DEFAULT 'binh_thuong'"),
+            ("nguon_kinh_phi", "TEXT DEFAULT 'Nguồn thu hợp pháp của Trường'"),
+            ("thoi_gian_can_hang", "TEXT"),
+            ("dia_diem_su_dung", "TEXT"),
+            ("ly_do_su_can_thiet", "TEXT"),
+            ("so_hop_dong", "TEXT"),
+            ("nha_cung_cap", "TEXT"),
+            ("gia_tri_hop_dong", "REAL DEFAULT 0"),
+            ("da_nghiem_thu", "INTEGER DEFAULT 0"),
+            ("ngay_nghiem_thu", "TEXT"),
+            ("ghi_chu_nghiem_thu", "TEXT"),
+        ]
+        for col_name, col_def in new_cols:
+            if col_name not in cols:
+                cur.execute(f"ALTER TABLE de_nghi_mua_sam ADD COLUMN {col_name} {col_def}")
+    except Exception:
+        pass
+
+    # Bảng chi_tiet_de_nghi
+    try:
+        cur.execute("PRAGMA table_info(chi_tiet_de_nghi)")
+        cols = [r[1] for r in cur.fetchall()]
+        if "vi_tri_su_dung" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_de_nghi ADD COLUMN vi_tri_su_dung TEXT")
+        if "ly_do_muc_dich" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_de_nghi ADD COLUMN ly_do_muc_dich TEXT")
+    except Exception:
+        pass
+
+    # Bảng tai_san
+    try:
+        cur.execute("PRAGMA table_info(tai_san)")
+        cols = [r[1] for r in cur.fetchall()]
+        new_ts_cols = [
+            ("phan_loai", "TEXT DEFAULT 'tai_san_co_dinh'"),
+            ("tinh_trang_ky_thuat", "TEXT DEFAULT 'binh_thuong'"),
+            ("don_vi_su_dung", "TEXT"),
+            ("so_serial", "TEXT"),
+            ("model", "TEXT"),
+            ("hang_san_xuat", "TEXT"),
+            ("thoi_han_bao_hanh", "TEXT"),
+        ]
+        for col_name, col_def in new_ts_cols:
+            if col_name not in cols:
+                cur.execute(f"ALTER TABLE tai_san ADD COLUMN {col_name} {col_def}")
+    except Exception:
+        pass
+
+    # Bảng bao_cao_hu_hai
+    try:
+        cur.execute("PRAGMA table_info(bao_cao_hu_hai)")
+        cols = [r[1] for r in cur.fetchall()]
+        new_hh_cols = [
+            ("phuong_an_xu_ly", "TEXT"),
+            ("nguoi_xu_ly_id", "INTEGER"),
+            ("ngay_xu_ly", "TEXT"),
+            ("ghi_chu_xu_ly", "TEXT"),
+            ("de_nghi_mua_sam_id", "INTEGER"),
+            ("tai_san_id", "INTEGER"),
+        ]
+        for col_name, col_def in new_hh_cols:
+            if col_name not in cols:
+                cur.execute(f"ALTER TABLE bao_cao_hu_hai ADD COLUMN {col_name} {col_def}")
+    except Exception:
+        pass
+
+    # Bảng chi_tiet_kiem_ke
+    try:
+        cur.execute("PRAGMA table_info(chi_tiet_kiem_ke)")
+        cols = [r[1] for r in cur.fetchall()]
+        if "so_luong_he_thong" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN so_luong_he_thong INTEGER DEFAULT 1")
+        if "so_luong_thuc_te" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN so_luong_thuc_te INTEGER DEFAULT 1")
+        if "chenh_lech" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN chenh_lech INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
 def init_db(db_conn=None):
-    """Khởi tạo toàn bộ bảng nếu chưa tồn tại."""
+    """Khởi tạo toàn bộ bảng nếu chưa tồn tại và chạy migration cập nhật cấu trúc."""
     conn = db_conn or get_db()
     conn.executescript(SCHEMA_SQL)
+    _migrate_db(conn)
     conn.commit()
