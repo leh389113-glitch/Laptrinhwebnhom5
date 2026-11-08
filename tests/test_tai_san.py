@@ -59,3 +59,24 @@ def test_ghi_nhan_bao_tri_tai_san(client, auth, app):
     }, follow_redirects=True)
     assert res.status_code == 200
     assert "Ghi nhận bảo trì/sửa chữa tài sản thành công" in res.text
+
+def test_quan_ly_kho_khong_duoc_truy_cap_mua_sam(client, auth):
+    """Test RBAC: Cán bộ quản lý tài sản tuyệt đối không được truy cập phân hệ M08 mua sắm."""
+    auth.login(vai_tro="quan_ly_kho")
+    
+    # Không vào được danh sách đề nghị mua sắm M08
+    res_list = client.get("/mua-sam/")
+    assert res_list.status_code == 403
+
+    # Không vào được form tạo đề nghị mua sắm M08
+    res_create = client.get("/mua-sam/de-nghi/tao")
+    assert res_create.status_code == 403
+
+    # Không vào được chi tiết đề nghị mua sắm M08
+    res_detail = client.get("/mua-sam/de-nghi/1")
+    assert res_detail.status_code == 403
+
+    # Nhưng truy cập chức năng tiếp nhận trong phân hệ M09 thành công
+    res_tiep_nhan = client.get("/tai-san/tiep-nhan")
+    assert res_tiep_nhan.status_code == 200
+    assert "TIẾP NHẬN TÀI SẢN MỚI TỪ MUA SẮM" in res_tiep_nhan.text

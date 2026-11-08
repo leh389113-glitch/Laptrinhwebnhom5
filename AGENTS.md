@@ -26,7 +26,7 @@ Hệ thống được thiết kế chuyên biệt cho 4 vai trò nội bộ và 
 | Vai trò | Mã vai trò | Quyền hạn và phạm vi tác nghiệp |
 |---|---|---|
 | **Bộ phận Mua sắm** | `mua_sam` | - Lập đề nghị mua sắm mới (M08), khảo sát nhu cầu/hiện trạng (BM02), thu thập và chọn báo giá cạnh tranh (tối thiểu 3 báo giá), lập hồ sơ/hợp đồng mua sắm.<br>- **Phân cấp phê duyệt**: Trưởng bộ phận Mua sắm (`chuc_danh = 'truong_bo_phan'`) có thẩm quyền phê duyệt các đề nghị mua sắm có kinh phí **dưới 100 triệu đồng**.<br>- Cán bộ mua sắm thông thường không có quyền phê duyệt đề nghị. |
-| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | - Quản lý toàn bộ vòng đời tài sản (M09 - `/tai-san/`): cấp mã định danh TSCĐ / CCDC, quản lý bàn giao vị trí (BM03), kiểm kê định kỳ (BM05).<br>- **Chuyên trách tiếp nhận hàng hóa & nghiệm thu kỹ thuật** (BM04) từ các đề nghị mua sắm đã duyệt của M08 (`/mua-sam/de-nghi/<id>/tiep-nhan`).<br>- **Tiếp nhận & xử lý phản ánh hư hại công khai**: Trực tiếp xác minh hiện trường, quyết định phương án **Sửa chữa** (lập phiếu sửa chữa M09, nghiệm thu phục hồi) hoặc **Thay thế** (lập đề xuất mua sắm thay thế chuyển sang M08). |
+| **Bộ phận Quản lý tài sản** | `quan_ly_kho` | - Quản lý toàn bộ vòng đời tài sản (M09 - `/tai-san/`): cấp mã định danh TSCĐ / CCDC, quản lý bàn giao vị trí (BM03), kiểm kê định kỳ (BM05).<br>- **Chuyên trách tiếp nhận tài sản mới từ Mua sắm** ngay trong Phân hệ M09 (`/tai-san/tiep-nhan` & `/tai-san/tiep-nhan/<id>`): kiểm tra nghiệm thu kỹ thuật (BM04), cấp mã và nhập kho M09.<br>- **Tuyệt đối không truy cập Phân hệ Mua sắm (M08)**: Không có menu M08, không lập đề nghị mua sắm thủ công tại M08.<br>- **Tiếp nhận & xử lý phản ánh hư hại công khai**: Trực tiếp xác minh hiện trường, quyết định phương án **Sửa chữa** (lập phiếu sửa chữa M09, nghiệm thu phục hồi) hoặc **Thay thế** (lập đề xuất mua sắm thay thế chuyển sang M08). |
 | **Kế toán** | `ke_toan` | - Quản lý hồ sơ thanh toán, kiểm tra chứng từ (hợp đồng, biên bản nghiệm thu BM04, hóa đơn).<br>- Xác nhận giải ngân thanh toán hoàn tất cho các gói mua sắm đã được tiếp nhận hàng hóa đầy đủ (`/ke-toan/`). |
 | **Quản trị viên (Admin / Lãnh đạo)** | `quan_tri` | - **Chỉ có quyền Phê duyệt và Giám sát**: Phê duyệt/từ chối các đề nghị mua sắm (bắt buộc duyệt các gói kinh phí **từ 100 triệu đồng trở lên**), quản lý tài khoản người dùng (`/admin/tai-khoan`).<br>- **Nguyên tắc ranh giới quyền hạn**: Đối với các phân hệ tác nghiệp chuyên môn (nhập hàng, bàn giao tài sản, nghiệm thu kỹ thuật, sửa chữa, giải ngân thanh toán), Admin **chỉ có quyền xem (giám sát)**, không được thực hiện tác nghiệp thay các phòng ban. |
 | **Công chúng / Bất kỳ ai** | _(không có tài khoản)_ | - Truy cập trang chủ (`/`), gửi báo cáo sự cố hư hại vật chất công khai (`/bao-cao-hu-hai`) mà không cần đăng nhập hay tài khoản.<br>- Đăng nhập (`/dang-nhap`), đăng ký tài khoản cán bộ đơn vị (`/dang-ky`). |
@@ -38,8 +38,8 @@ Hệ thống được thiết kế chuyên biệt cho 4 vai trò nội bộ và 
    - Gói `< 100,000,000 VNĐ`: Trạng thái `cho_phe_duyet` → Trưởng BP Mua sắm hoặc Admin có thể duyệt.
    - Gói `≥ 100,000,000 VNĐ`: Trạng thái `cho_lanh_dao_duyet` → Bắt buộc Admin (Lãnh đạo) duyệt; Cán bộ hoặc Trưởng BP Mua sắm cố tình duyệt sẽ bị chặn mã HTTP 403 `KHONG_DU_QUYEN`.
 4. **Phân định rõ ràng Mua sắm và Quản lý tài sản**:
-   - `mua_sam`: Phụ trách thương thảo, báo giá, hợp đồng, theo dõi tiến độ cung ứng.
-   - `quan_ly_kho`: Phụ trách kỹ thuật, tiếp nhận hàng, nghiệm thu kỹ thuật, gắn mã tài sản, theo dõi hiện trường, bảo trì sửa chữa.
+   - `mua_sam`: Phụ trách lập đề nghị, thương thảo, khảo sát, báo giá, hợp đồng, theo dõi tiến độ cung ứng (M08).
+   - `quan_ly_kho`: Phụ trách toàn bộ vòng đời tài sản (M09), tiếp nhận tài sản mới từ Mua sắm tại `/tai-san/tiep-nhan`, cấp mã TSCĐ/CCDC, theo dõi hiện trường, bảo trì sửa chữa. Cán bộ QLTS tuyệt đối không vào phân hệ M08.
 
 ---
 
@@ -133,7 +133,7 @@ graph TD
 ├── GET/POST /dang-ky                   # Đăng ký tài khoản cán bộ đơn vị
 └── GET      /dang-xuat                 # Đăng xuất phiên làm việc
 
-/mua-sam (mua_sam) - Yêu cầu: mua_sam | quan_ly_kho (xem/tiếp nhận) | quan_tri (xem/duyệt)
+/mua-sam (mua_sam) - Yêu cầu: mua_sam | quan_tri (xem/duyệt)
 ├── GET       /mua-sam/                 # Danh sách đề nghị mua sắm
 ├── GET/POST  /mua-sam/de-nghi/tao      # Lập đề nghị mua sắm mới (BM01/Phụ lục 01)
 ├── GET       /mua-sam/de-nghi/<id>     # Chi tiết đề nghị, khảo sát, báo giá, nghiệm thu
@@ -143,7 +143,6 @@ graph TD
 ├── POST      /mua-sam/de-nghi/<id>/bao-gia   # Thêm báo giá nhà cung cấp
 ├── POST      /mua-sam/de-nghi/<id>/chon-bao-gia # Lựa chọn báo giá trúng thầu
 ├── POST      /mua-sam/de-nghi/<id>/nghiem-thu   # Lập biên bản nghiệm thu kỹ thuật (BM04)
-├── GET/POST  /mua-sam/de-nghi/<id>/tiep-nhan   # Tiếp nhận hàng hóa vào kho M09 (quan_ly_kho)
 └── GET       /mua-sam/ho-so            # Danh mục hợp đồng và hồ sơ mua sắm
 
 /ke-toan (ke_toan) - Yêu cầu: ke_toan | quan_tri (chỉ xem)
@@ -158,6 +157,8 @@ graph TD
 ├── GET/POST  /tai-san/<id>/chinh-sua   # Cập nhật thông tin thông số kỹ thuật
 ├── POST      /tai-san/<id>/ban-giao    # Bàn giao tài sản cho đơn vị/phòng học (BM03)
 ├── GET/POST  /tai-san/<id>/bao-tri     # Ghi nhận bảo trì trực tiếp trên tài sản
+├── GET       /tai-san/tiep-nhan        # Danh sách gói mua sắm chờ tiếp nhận vào kho M09
+├── GET/POST  /tai-san/tiep-nhan/<id>   # Xác nhận tiếp nhận hàng hóa & cấp mã tài sản vào kho M09
 ├── GET       /tai-san/sua-chua         # Quản lý toàn diện các ca sửa chữa M09
 ├── POST      /tai-san/sua-chua/<id>/nghiem-thu # Nghiệm thu sửa chữa phục hồi
 ├── GET       /tai-san/kiem-ke          # Danh sách phiếu kiểm kê tài sản (BM05)
@@ -255,4 +256,5 @@ Mỗi khi chỉnh sửa hoặc nâng cấp bất kỳ tính năng nào, AI Agent
 - [ ] **Phân loại tài sản**: Đơn giá $\ge$ 10tr tạo `TS-YYYY-XXXX` (`tai_san_co_dinh`); đơn giá < 10tr tạo `CCDC-YYYY-XXXX` (`cong_cu_dung_cu`).
 - [ ] **Chu trình sửa chữa M09**: Lập yêu cầu -> Nghiệm thu sửa chữa -> Khôi phục `dang_su_dung`, tình trạng `binh_thuong`, chuyển phản ánh sang `da_xu_ly`.
 - [ ] **Kiến trúc MVC nghiêm ngặt**: Route không chứa SQL, toàn bộ logic nghiệp vụ đặt trong `services/`, thời gian lấy qua `clock.now()`.
-- [ ] **Toàn bộ 23 test cases vượt qua thành công**: `pytest -v` phải đạt 100% Passed.
+- [ ] **Phân quyền tuyệt đối**: Cán bộ Quản lý tài sản không truy cập `/mua-sam/`; nghiệp vụ tiếp nhận tài sản mới từ Mua sắm được thực hiện ngay trong Phân hệ M09 (`/tai-san/tiep-nhan`).
+- [ ] **Toàn bộ 24 test cases vượt qua thành công**: `pytest -v` phải đạt 100% Passed.

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Tiếp nhận hàng hóa vào kho M09 - {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-boxes-packing text-success me-2"></i> TIẾP NHẬN HÀNG HÓA NHẬP KHO M09</h2>
+      <small class="text-muted">Theo đề nghị mua sắm: {{ de_nghi.ma_de_nghi }} - {{ de_nghi.tieu_de }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Danh sách chờ tiếp nhận
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <div class="alert alert-info border-info mb-4 shadow-sm">
+        <h6 class="alert-heading fw-bold"><i class="fa-solid fa-circle-info me-2"></i> Quy tắc tích hợp liên module tự động (M08 &rarr; M09):</h6>
+        <p class="mb-0 small">
+          Khi xác nhận tiếp nhận hàng hóa, hệ thống sẽ <strong>tự động cấp mã định danh tài sản thông minh</strong>:
+          <br>&bull; Thiết bị có đơn giá &ge; 10,000,000 VNĐ: Cấp mã Tài sản cố định <code>TS-YYYY-XXXX</code>.
+          <br>&bull; Thiết bị có đơn giá &lt; 10,000,000 VNĐ: Cấp mã Công cụ dụng cụ <code>CCDC-YYYY-XXXX</code>.
+          <br>Toàn bộ tài sản sẽ được ghi nhận vào phân hệ <strong>M09 - Quản lý Tài sản</strong> với trạng thái ban đầu <em>Chờ bàn giao</em>. Gói mua sắm sẽ được chuyển tiếp cho Kế toán giải ngân.
+        </p>
+      </div>
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-success text-white">
+          <span><i class="fa-solid fa-clipboard-check me-2"></i> Danh mục thiết bị bàn giao nghiệm thu kỹ thuật</span>
+        </div>
+        <div class="neu-card-body">
+          
+          <table class="neu-table mb-4">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên hàng hóa, thiết bị</th>
+                <th>ĐVT</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá dự toán</th>
+                <th class="text-end">Thành tiền</th>
+                <th>Phân loại dự kiến</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in de_nghi['items'] %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>{{ it.ten_hang_hoa }}</strong></td>
+                <td>{{ it.don_vi_tinh }}</td>
+                <td class="text-center fw-bold">{{ it.so_luong }}</td>
+                <td class="text-end">{{ it.don_gia_du_kien | tien_vnd }}</td>
+                <td class="text-end text-danger fw-bold">{{ it.thanh_tien | tien_vnd }}</td>
+                <td>
+                  {% if it.don_gia_du_kien >= 10000000 %}
+                    <span class="badge bg-primary">Tài sản cố định (TS-)</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Công cụ dụng cụ (CCDC-)</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <form method="POST" action="{{ url_for('tai_san.tiep_nhan_don_hang', id=de_nghi.id) }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="neu-form-label">Tên nhà cung cấp / Đơn vị giao hàng</label>
+                <input type="text" name="nha_cung_cap" class="form-control neu-form-control" value="{{ de_nghi.nha_cung_cap or '' }}" placeholder="Ví dụ: Công ty Thiết bị Giáo dục Hà Nội">
+              </div>
+              <div class="col-md-6">
+                <label class="neu-form-label">Số biên bản bàn giao / Hóa đơn đính kèm</label>
+                <input type="text" name="so_hop_dong" class="form-control neu-form-control" value="{{ de_nghi.so_hop_dong or '' }}" placeholder="Ví dụ: BBGN-2026/01">
+              </div>
+              <div class="col-12">
+                <label class="neu-form-label">Ghi chú tình trạng kiểm tra kỹ thuật khi nhận hàng</label>
+                <textarea name="ghi_chu" rows="3" class="form-control neu-form-control" placeholder="Ghi nhận ngoại quan thiết bị, quy cách kỹ thuật, tem niêm phong, phụ kiện đính kèm..."></textarea>
+              </div>
+              <div class="col-12 text-end mt-4">
+                <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-success px-4 fw-bold shadow">
+                  <i class="fa-solid fa-check-double me-1"></i> Xác nhận tiếp nhận & Cấp mã tài sản vào kho M09
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

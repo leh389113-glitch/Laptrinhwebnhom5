@@ -7,17 +7,17 @@ from app.errors import LoiNghiepVu
 mua_sam_bp = Blueprint("mua_sam", __name__, url_prefix="/mua-sam")
 
 @mua_sam_bp.route("/")
-@yeu_cau_vai_tro("mua_sam", "quan_ly_kho", "quan_tri")
+@yeu_cau_vai_tro("mua_sam", "quan_tri")
 def danh_sach():
-    """Danh sách các đề nghị mua sắm."""
+    """Danh sách các đề nghị mua sắm (Bộ phận Mua sắm tác nghiệp, Admin giám sát)."""
     trang_thai = request.args.get("trang_thai")
     de_nghi_list = ms_svc.lay_danh_sach_de_nghi(trang_thai=trang_thai)
     return render_template("mua_sam/danh_sach.html", de_nghi_list=de_nghi_list, trang_thai_chon=trang_thai)
 
 @mua_sam_bp.route("/de-nghi/tao", methods=["GET", "POST"])
-@yeu_cau_vai_tro("mua_sam", "quan_ly_kho")
+@yeu_cau_vai_tro("mua_sam")
 def tao_de_nghi():
-    """Lập đề nghị / Yêu cầu mua sắm cơ sở vật chất mới (BM01)."""
+    """Lập đề nghị / Yêu cầu mua sắm cơ sở vật chất mới (BM01) - Chỉ bộ phận Mua sắm."""
     if request.method == "POST":
         ten_hang_list = request.form.getlist("ten_hang_hoa[]")
         don_vi_list = request.form.getlist("don_vi_tinh[]")
@@ -64,7 +64,7 @@ def tao_de_nghi():
     return render_template("mua_sam/tao_de_nghi.html")
 
 @mua_sam_bp.route("/de-nghi/<int:id>")
-@yeu_cau_vai_tro("mua_sam", "quan_ly_kho", "quan_tri")
+@yeu_cau_vai_tro("mua_sam", "quan_tri")
 def chi_tiet(id):
     """Xem chi tiết đề nghị mua sắm và tiến trình các bước mua sắm M08."""
     try:
@@ -198,11 +198,11 @@ def tiep_nhan(id):
         try:
             ms_svc.tiep_nhan_hang_hoa(id, du_lieu, session["nguoi_dung_id"])
             flash(f"Tiếp nhận hàng hóa thành công! Các tài sản đã được tạo tự động và đưa vào kho (M09).", "success")
-            return redirect(url_for("mua_sam.chi_tiet", id=id))
+            return redirect(url_for("tai_san.danh_sach_tiep_nhan"))
         except LoiNghiepVu as e:
             flash(e.thong_bao, "danger")
 
-    return render_template("mua_sam/tiep_nhan.html", de_nghi=de_nghi)
+    return render_template("tai_san/tiep_nhan.html", de_nghi=de_nghi)
 
 @mua_sam_bp.route("/ho-so")
 @yeu_cau_vai_tro("mua_sam", "quan_tri")

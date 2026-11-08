@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from app.services import tai_san as ts_svc
 from app.services import auth as auth_svc
 from app.services import bao_cao_hu_hai as hh_svc
+from app.services import mua_sam as ms_svc
 from app.routes import yeu_cau_vai_tro, yeu_cau_dang_nhap
 from app import schemas
 from app.errors import LoiNghiepVu
@@ -231,11 +232,54 @@ def tao_mua_sam_thay_the(id):
     """
     Trường hợp cần thay thế:
     Lập biên bản đánh giá -> Tạo yêu cầu mua sắm thay thế chuyển M08 (theo Yêu cầu 1.docx).
+    Cán bộ QLTS sau khi chuyển đề xuất vẫn ở lại phân hệ M09 để theo dõi.
     """
     try:
         de_nghi = hh_svc.tao_yeu_cau_thay_the_sang_m08(id, session["nguoi_dung_id"])
         flash(f"Đã lập yêu cầu mua sắm thay thế mã {de_nghi['ma_de_nghi']} chuyển sang phân hệ M08 thành công!", "success")
-        return redirect(url_for("mua_sam.chi_tiet", id=de_nghi["id"]))
     except LoiNghiepVu as e:
         flash(e.thong_bao, "danger")
-        return redirect(url_for("tai_san.danh_sach_hu_hai"))
+    return redirect(url_for("tai_san.danh_sach_hu_hai"))
+
+# =========================================================================
+# TIẾP NHẬN TÀI SẢN MỚI TỪ MUA SẮM (QUY TRÌNH M08 -> M09)
+# =========================================================================
+
+@tai_san_bp.route("/tiep-nhan")
+@yeu_cau_vai_tro("quan_ly_kho", "quan_tri")
+def danh_sach_tiep_nhan():
+    """
+    Chức năng 'Tiếp nhận tài sản mới' (hoặc 'Nhập kho từ Mua sắm') trong Phân hệ M09 (Mục 3.3 Quy trình).
+    Hiển thị danh sách các gói mua sắm đã có Biên bản nghiệm thu đạt yêu cầu / đang chờ tiếp nhận.
+    """
+    trang_thai = request.args.get("trang_thai")
+    tat_ca_de_nghi = ms_svc.lay_danh_sach_de_nghi()
+    # Lọc các gói mua sắm liên quan đến nhập kho: đã duyệt, đang mua, hoặc đã tiếp nhận
+    if trang_thai:
+        ds_tiep_nhan = [d for d in tat_ca_de_nghi if d["trang_thai"] == trang_thai]
+    else:
+        # Mặc định ưu tiên hiển thị các gói chờ tiếp nhận (da_phe_duyet, dang_mua)
+        ds_tiep_nhan = [d for d in tat_ca_de_nghi if d["trang_thai"] in ["da_phe_duyet", "dang_mua", "da_nhan"]]
+    
+    return render_template("tai_san/tiep_nhan_danh_sach.html", de_nghi_list=ds_tiep_nhan, trang_thai_chon=trang_thai)
+
+@tai_san_bp.route("/tiep-nhan/<int:id>", methods=["GET", "POST"])
+@yeu_cau_vai_tro("quan_ly_kho")
+def tiep_nhan_don_hang(id):
+    """
+    Bộ phận Quản lý tài sản kiểm tra danh mục hàng hóa và bấm tiếp nhận vào kho M09.
+    Tự động sinh mã tài sản TSCĐ hoặc CCDC và cập nhật trạng thái gói mua sắm thành 'da_nhan'.
+    """
+    de_nghi = ms_svc.lay_chi_tiet_de_nghi(id)
+    if request.method == "POST":
+        du_lieu = {
+            "ghi_chu": request.form.get("ghi_chu", "")
+        }
+        try:
+            ms_svc.tiep_nhan_hang_hoa(id, du_lieu, session["nguoi_dung_id"])
+            flash(f"Tiếp nhận hàng hóa thành công! Các tài sản đã được cấp mã và lưu vào sổ tài sản M09.", "success")
+            return redirect(url_for("tai_san.danh_sach"))
+        except LoiNghiepVu as e:
+            flash(e.thong_bao, "danger")
+
+    return render_template("tai_san/tiep_nhan.html", de_nghi=de_nghi)
