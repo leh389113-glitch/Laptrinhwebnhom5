@@ -28,10 +28,21 @@
             <div class="mb-3">
               <label class="neu-form-label">Bộ phận chuyên môn / Vai trò công tác <span class="text-danger">*</span></label>
               <select name="vai_tro" class="form-select neu-form-control" required>
+                <option value="don_vi" {% if not du_lieu or du_lieu.vai_tro == 'don_vi' %}selected{% endif %}>Cán bộ Đơn vị sử dụng (Khoa / Viện / Phòng ban)</option>
                 <option value="mua_sam" {% if du_lieu and du_lieu.vai_tro == 'mua_sam' %}selected{% endif %}>Bộ phận Mua sắm (Truy cập Module M08)</option>
                 <option value="quan_ly_kho" {% if du_lieu and du_lieu.vai_tro == 'quan_ly_kho' %}selected{% endif %}>Bộ phận Quản lý tài sản (Truy cập Module M09)</option>
                 <option value="ke_toan" {% if du_lieu and du_lieu.vai_tro == 'ke_toan' %}selected{% endif %}>Kế toán thanh toán (Truy cập Module M08 Kế toán)</option>
               </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Tên Khoa / Viện / Đơn vị công tác <span class="text-danger">*</span></label>
+              <input type="text" name="don_vi" class="form-control neu-form-control" placeholder="Ví dụ: Khoa Công nghệ Thông tin, Viện Đào tạo Quốc tế..." value="{{ du_lieu.don_vi if du_lieu else '' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Số điện thoại liên lạc</label>
+              <input type="text" name="so_dien_thoai" class="form-control neu-form-control" placeholder="Ví dụ: 0912 345 678" value="{{ du_lieu.so_dien_thoai if du_lieu else '' }}">
             </div>
 
             <div class="mb-3">

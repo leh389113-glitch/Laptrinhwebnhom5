@@ -40,6 +40,13 @@
             <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
               <i class="fa-solid fa-file-invoice-dollar me-2"></i> Phân hệ Kế toán
             </a>
+          {% elif session.get('vai_tro') == 'don_vi' %}
+            <a href="{{ url_for('don_vi.dashboard') }}" class="btn btn-warning btn-lg px-4 text-dark fw-bold shadow">
+              <i class="fa-solid fa-gauge-high me-2"></i> Bảng điều khiển Đơn vị
+            </a>
+            <a href="{{ url_for('don_vi.tao_sua_chua') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
+              <i class="fa-solid fa-wrench me-2"></i> Gửi yêu cầu sửa chữa / Báo cáo hư hại
+            </a>
           {% elif session.get('vai_tro') == 'quan_tri' %}
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
               <i class="fa-solid fa-shield-halved me-2"></i> Quản trị hệ thống (Admin)

@@ -30,13 +30,15 @@ def dang_ky(du_lieu: dict) -> dict:
 
     mat_khau_hash = generate_password_hash(mat_khau)
     ngay_tao = clock.now().isoformat()
+    don_vi = du_lieu.get("don_vi", "")
+    so_dien_thoai = du_lieu.get("so_dien_thoai", "")
 
     cursor = db.execute(
         """
-        INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, ngay_tao, trang_thai)
-        VALUES (?, ?, ?, ?, ?, ?, 'hoat_dong')
+        INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, don_vi, so_dien_thoai, ngay_tao, trang_thai)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'hoat_dong')
         """,
-        (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, ngay_tao)
+        (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, don_vi, so_dien_thoai, ngay_tao)
     )
     db.commit()
 
@@ -46,7 +48,9 @@ def dang_ky(du_lieu: dict) -> dict:
         "ho_ten": ho_ten,
         "email": email,
         "ten_dang_nhap": ten_dang_nhap,
-        "vai_tro": vai_tro
+        "vai_tro": vai_tro,
+        "don_vi": don_vi,
+        "so_dien_thoai": so_dien_thoai
     }
 
 def dang_nhap(ten_dang_nhap: str, mat_khau: str) -> dict:
@@ -55,7 +59,7 @@ def dang_nhap(ten_dang_nhap: str, mat_khau: str) -> dict:
     """
     db = get_db()
     user = db.execute(
-        "SELECT id, ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, trang_thai FROM nguoi_dung WHERE ten_dang_nhap = ?",
+        "SELECT id, ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, chuc_danh, don_vi, so_dien_thoai, trang_thai FROM nguoi_dung WHERE ten_dang_nhap = ?",
         (ten_dang_nhap,)
     ).fetchone()
 
@@ -73,7 +77,10 @@ def dang_nhap(ten_dang_nhap: str, mat_khau: str) -> dict:
         "ho_ten": user["ho_ten"],
         "email": user["email"],
         "ten_dang_nhap": user["ten_dang_nhap"],
-        "vai_tro": user["vai_tro"]
+        "vai_tro": user["vai_tro"],
+        "chuc_danh": user["chuc_danh"] if "chuc_danh" in user.keys() else "",
+        "don_vi": user["don_vi"] if "don_vi" in user.keys() else "",
+        "so_dien_thoai": user["so_dien_thoai"] if "so_dien_thoai" in user.keys() else ""
     }
 
 def lay_nguoi_dung(nguoi_dung_id: int) -> dict:

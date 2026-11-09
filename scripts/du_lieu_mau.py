@@ -45,29 +45,33 @@ def nap_du_lieu():
         print("-> Đang khởi tạo các tài khoản theo đúng 4 nhóm phân quyền:")
         hien_tai = clock.now().isoformat()
 
-        # 5 tài khoản thuận tiện kiểm thử:
+        # Danh sách tài khoản mẫu thuận tiện kiểm thử theo quy chuẩn phân quyền:
         # 1. Admin: quan_tri
         # 2. Trưởng BP Mua sắm: mua_sam (duyệt gói < 100tr)
         # 3. Cán bộ Mua sắm: mua_sam (lập đề xuất, khảo sát, báo giá)
-        # 4. Quản lý tài sản: quan_ly_kho
-        # 5. Kế toán: ke_toan
+        # 4. Quản lý tài sản: quan_ly_kho (tiếp nhận kho M09, sửa chữa, kiểm kê)
+        # 5. Kế toán: ke_toan (thanh toán giải ngân M08)
+        # 6. Đơn vị sử dụng 1: don_vi (Khoa Công nghệ Thông tin)
+        # 7. Đơn vị sử dụng 2: don_vi (Khoa Quản trị Kinh doanh)
         users = [
-            ("Lãnh đạo Trường (Admin)", "admin@neu.edu.vn", "admin", "admin123", "quan_tri", "Lãnh đạo"),
-            ("Trưởng BP Mua sắm", "truongmuasam@neu.edu.vn", "truongmuasam", "muasam1234", "mua_sam", "Trưởng bộ phận"),
-            ("Cán bộ Bộ phận Mua sắm", "muasam@neu.edu.vn", "cb_muasam", "password123", "mua_sam", "Chuyên viên"),
-            ("Cán bộ Quản lý tài sản", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho", "Chuyên viên QLTS"),
-            ("Cán bộ Kế toán Thanh toán", "ketoan@neu.edu.vn", "cb_ketoan", "password123", "ke_toan", "Kế toán viên"),
+            ("Lãnh đạo Trường (Admin)", "admin@neu.edu.vn", "admin", "admin123", "quan_tri", "Lãnh đạo", "Ban Giám hiệu", "02436280280"),
+            ("Trưởng BP Mua sắm", "truongmuasam@neu.edu.vn", "truongmuasam", "muasam1234", "mua_sam", "Trưởng bộ phận", "Bộ phận Mua sắm", "02436280281"),
+            ("Cán bộ Bộ phận Mua sắm", "muasam@neu.edu.vn", "cb_muasam", "password123", "mua_sam", "Chuyên viên", "Bộ phận Mua sắm", "0912111222"),
+            ("Cán bộ Quản lý tài sản", "kho@neu.edu.vn", "cb_kho", "password123", "quan_ly_kho", "Chuyên viên QLTS", "Bộ phận Quản lý tài sản", "0913222333"),
+            ("Cán bộ Kế toán Thanh toán", "ketoan@neu.edu.vn", "cb_ketoan", "password123", "ke_toan", "Kế toán viên", "Phòng Tài chính - Kế toán", "0914333444"),
+            ("TS. Nguyễn Văn Khoa", "khoa.nv@neu.edu.vn", "gv_khoacntt", "password123", "don_vi", "Phó Trưởng Khoa", "Khoa Công nghệ Thông tin", "0912345678"),
+            ("ThS. Lê Minh Tú", "tu.lm@neu.edu.vn", "gv_khoaqtkd", "password123", "don_vi", "Giảng viên", "Khoa Quản trị Kinh doanh", "0987654321"),
         ]
 
         user_ids = {}
-        for ho_ten, email, username, password, vai_tro, chuc_danh in users:
+        for ho_ten, email, username, password, vai_tro, chuc_danh, don_vi, sdt in users:
             pw_hash = generate_password_hash(password)
             cursor = db.execute(
                 """
-                INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, chuc_danh, ngay_tao, trang_thai)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'hoat_dong')
+                INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, chuc_danh, don_vi, so_dien_thoai, ngay_tao, trang_thai)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'hoat_dong')
                 """,
-                (ho_ten, email, username, pw_hash, vai_tro, chuc_danh, hien_tai)
+                (ho_ten, email, username, pw_hash, vai_tro, chuc_danh, don_vi, sdt, hien_tai)
             )
             user_ids[username] = cursor.lastrowid
 
@@ -215,27 +219,142 @@ def nap_du_lieu():
             "thoi_gian_phat_hien": hien_tai
         })
 
-        # 5. Đợt kiểm kê tài sản
-        ts_cur = db.execute("SELECT id FROM tai_san LIMIT 3").fetchall()
-        if ts_cur:
-            tao_phieu_kiem_ke({
-                "ghi_chu": "Kiểm kê định kỳ trang thiết bị giảng đường và phòng máy đầu năm 2026",
-                "chi_tiet": [
-                    {"tai_san_id": ts["id"], "tinh_trang": "tot", "so_luong_he_thong": 1, "so_luong_thuc_te": 1, "ghi_chu": "Khớp số lượng hiện vật"}
-                    for ts in ts_cur
-                ]
-            }, user_ids["cb_kho"])
+        # 5. Khởi tạo tài sản phân bổ cho Đơn vị sử dụng (Khoa Công nghệ Thông tin)
+        cur_ts1 = db.execute(
+            """
+            INSERT INTO tai_san (
+                ma_tai_san, ten_tai_san, mo_ta, loai_tai_san, phan_loai,
+                tinh_trang_ky_thuat, vi_tri, phong_ban, don_vi_su_dung,
+                gia_tri, ngay_tiep_nhan, trang_thai, so_serial, model, hang_san_xuat,
+                thoi_han_bao_hanh, xac_nhan_ban_giao_don_vi, ngay_tao, ngay_cap_nhat
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "TS-2026-0101", "Máy chiếu Laser EPSON EB-L520U", "Máy chiếu độ sáng cao 5200 ANSI Lumens", "Máy chiếu",
+                "tai_san_co_dinh", "co_hu_hong", "Phòng Lab 502, Nhà D2", "Khoa Công nghệ Thông tin", "Khoa Công nghệ Thông tin",
+                38500000, hien_tai[:10], "dang_su_dung", "EPSON-L520-8899", "EB-L520U", "EPSON", "24 tháng", 1, hien_tai, hien_tai
+            )
+        )
+        ts_cntt_1_id = cur_ts1.lastrowid
+
+        cur_ts2 = db.execute(
+            """
+            INSERT INTO tai_san (
+                ma_tai_san, ten_tai_san, mo_ta, loai_tai_san, phan_loai,
+                tinh_trang_ky_thuat, vi_tri, phong_ban, don_vi_su_dung,
+                gia_tri, ngay_tiep_nhan, trang_thai, so_serial, model, hang_san_xuat,
+                thoi_han_bao_hanh, xac_nhan_ban_giao_don_vi, ngay_tao, ngay_cap_nhat
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "TS-2026-0102", "Bộ máy tính All-in-One Dell OptiPlex 7400", "Máy tính để bàn cán bộ VP Khoa", "Máy tính",
+                "tai_san_co_dinh", "binh_thuong", "Văn phòng Khoa CNTT, Nhà A1", "Khoa Công nghệ Thông tin", "Khoa Công nghệ Thông tin",
+                26000000, hien_tai[:10], "dang_su_dung", "DELL-AIO-7400-01", "OptiPlex 7400", "DELL", "36 tháng", 1, hien_tai, hien_tai
+            )
+        )
+        ts_cntt_2_id = cur_ts2.lastrowid
+
+        # Tài sản mới cấp phát đang chờ Khoa CNTT xác nhận bàn giao (BM03)
+        db.execute(
+            """
+            INSERT INTO tai_san (
+                ma_tai_san, ten_tai_san, mo_ta, loai_tai_san, phan_loai,
+                tinh_trang_ky_thuat, vi_tri, phong_ban, don_vi_su_dung,
+                gia_tri, ngay_tiep_nhan, trang_thai, so_serial, model, hang_san_xuat,
+                thoi_han_bao_hanh, xac_nhan_ban_giao_don_vi, ngay_tao, ngay_cap_nhat
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "CCDC-2026-0103", "Bộ chuyển mạch Switch Cisco Catalyst 24 Port Gigabit", "Switch mạng phòng Lab mạng máy tính", "Thiết bị mạng",
+                "cong_cu_dung_cu", "binh_thuong", "Phòng Lab 501, Nhà D2", "Khoa Công nghệ Thông tin", "Khoa Công nghệ Thông tin",
+                8500000, hien_tai[:10], "cho_ban_giao", "CS-C1000-24T", "Catalyst 1000", "Cisco", "12 tháng", 0, hien_tai, hien_tai
+            )
+        )
+
+        # 6. Yêu cầu sửa chữa thiết bị của Cán bộ Khoa CNTT (TS. Nguyễn Văn Khoa)
+        db.execute(
+            """
+            INSERT INTO bao_cao_hu_hai (
+                ma_bao_cao, nguoi_gui_id, ho_ten, lien_he, don_vi,
+                ten_vat_chat, vi_tri, loai_yeu_cau, do_khan_cap, muc_do,
+                mo_ta_chi_tiet, tai_san_id, trang_thai, thoi_gian_phat_hien,
+                xac_nhan_khao_sat_don_vi, xac_nhan_nghiem_thu_don_vi, ngay_tao
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "YC-20261109-001", user_ids["gv_khoacntt"], "TS. Nguyễn Văn Khoa", "0912345678", "Khoa Công nghệ Thông tin",
+                "Máy chiếu Laser EPSON EB-L520U", "Phòng Lab 502, Nhà D2", "sua_chua_thiet_bi", "can_som", "trung_binh",
+                "Máy chiếu mờ bóng, quạt tản nhiệt kêu to và tự tắt sau 30 phút hoạt động trong giờ giảng.",
+                ts_cntt_1_id, "dang_xu_ly", hien_tai, 1, 0, hien_tai
+            )
+        )
+
+        # 7. Đề xuất mua sắm mới từ Đơn vị Khoa CNTT (BM01)
+        dn_cntt = tao_de_nghi({
+            "tieu_de": "Đề xuất nâng cấp 30 bộ máy tính thực hành Lab 501 Khoa CNTT",
+            "don_vi_de_nghi": "Khoa Công nghệ Thông tin",
+            "mo_ta": "Trang bị dàn máy tính cấu hình cao phục vụ các học phần Trí tuệ nhân tạo và Khoa học dữ liệu.",
+            "muc_do_uu_tien": "can_som",
+            "nguon_kinh_phi": "Kinh phí tự chủ của Trường",
+            "dia_diem_su_dung": "Phòng Lab 501, Nhà D2",
+            "ly_do_su_can_thiet": "Dàn máy tính cũ đã sử dụng 6 năm, không chạy được các mô hình Deep Learning trong chương trình mới.",
+            "items": [
+                {
+                    "ten_hang_hoa": "Máy tính Dell OptiPlex Tower (Intel Core i7, 32GB RAM, 1TB SSD, RTX 4060)",
+                    "don_vi_tinh": "Bộ",
+                    "so_luong": 30,
+                    "don_gia_du_kien": 24500000,
+                    "vi_tri_su_dung": "Phòng Lab 501, Nhà D2",
+                    "ly_do_muc_dich": "Thực hành AI & Data Science",
+                    "ghi_chu": "Bảo hành 36 tháng tận nơi"
+                }
+            ]
+        }, user_ids["gv_khoacntt"])
+
+        # 8. Đợt kiểm kê tài sản có tài sản của Khoa CNTT
+        cur_kk = db.execute(
+            """
+            INSERT INTO phieu_kiem_ke (ma_phieu, ngay_kiem_ke, nguoi_kiem_ke_id, ghi_chu, ngay_tao)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                "KK-2026-Q1", hien_tai[:10], user_ids["cb_kho"],
+                "Kiểm kê toàn diện cơ sở vật chất các Khoa và Phòng thí nghiệm đầu năm học 2026 (Quý I/2026).", hien_tai
+            )
+        )
+        kk_id = cur_kk.lastrowid
+
+        db.execute(
+            """
+            INSERT INTO chi_tiet_kiem_ke (phieu_kiem_ke_id, tai_san_id, tinh_trang_thuc_te, so_luong_he_thong, so_luong_thuc_te, chenh_lech, ghi_chu)
+            VALUES (?, ?, ?, 1, 1, 0, ?)
+            """,
+            (kk_id, ts_cntt_1_id, "Có hư hỏng (quạt kêu)", "Máy chiếu có hiện tượng mờ bóng, đã lập YC sửa chữa")
+        )
+        db.execute(
+            """
+            INSERT INTO chi_tiet_kiem_ke (phieu_kiem_ke_id, tai_san_id, tinh_trang_thuc_te, so_luong_he_thong, so_luong_thuc_te, chenh_lech, ghi_chu)
+            VALUES (?, ?, ?, 1, 1, 0, ?)
+            """,
+            (kk_id, ts_cntt_2_id, "Lệch vị trí phòng", "Máy tính AIO ghi nhận tại VP Khoa A1 nhưng thực tế đang mượn tại Lab 501")
+        )
 
         db.commit()
         print("-> Nạp dữ liệu mẫu hoàn tất thành công!")
-        print("="*68)
+        print("="*75)
         print("DANH SÁCH TÀI KHOẢN ĐĂNG NHẬP THEO QUY CHUẨN NGHIỆP VỤ:")
         print("1. Quản trị viên (Admin):    admin          / admin123  (Duyệt >= 100tr, Giám sát M17)")
         print("2. Trưởng BP Mua sắm:        truongmuasam   / muasam1234 (Duyệt < 100tr, Quản lý M08)")
         print("3. Cán bộ Mua sắm:           cb_muasam      / password123 (Lập đề xuất, Khảo sát, Báo giá)")
         print("4. Quản lý tài sản:          cb_kho         / password123 (Tiếp nhận kho M09, Sửa chữa, Kiểm kê)")
         print("5. Kế toán:                  cb_ketoan      / password123 (Thanh toán giải ngân M08)")
-        print("="*68)
+        print("6. Đơn vị sử dụng (Khoa CNTT): gv_khoacntt    / password123 (Theo dõi sửa chữa, đề xuất, tài sản)")
+        print("7. Đơn vị sử dụng (Khoa QTKD): gv_khoaqtkd    / password123 (Đơn vị sử dụng 2)")
+        print("="*75)
 
 if __name__ == "__main__":
     nap_du_lieu()

@@ -15,12 +15,14 @@
     </div>
   </div>
 
-  <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4">
-    <i class="fa-solid fa-circle-info fa-2x me-3 text-primary"></i>
+  <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4" id="alertPhanCapDuyet">
+    <i class="fa-solid fa-scale-balanced fa-2x me-3 text-primary"></i>
     <div>
-      <strong>Thẩm quyền phê duyệt kinh phí mua sắm:</strong><br>
-      • Đề nghị có tổng kinh phí <strong>dưới 100 triệu đồng</strong>: Trưởng BP Mua sắm có thẩm quyền phê duyệt.<br>
-      • Đề nghị có tổng kinh phí <strong>từ 100 triệu đồng trở lên</strong>: Hệ thống sẽ tự động chuyển trình <strong>Lãnh đạo Trường (Admin)</strong> phê duyệt.
+      <strong class="d-block mb-1"><i class="fa-solid fa-gavel me-1"></i> Quy chế mua sắm theo PHỤ LỤC 01 & Phân cấp thẩm quyền:</strong>
+      <span id="textPhanCapDuyet">
+        • <strong>Gói kinh phí &le; 100 triệu đồng:</strong> Áp dụng hình thức mua sắm rút gọn theo <em>Phụ lục 01</em> (Không bắt buộc ký hợp đồng bằng văn bản riêng; sử dụng Báo giá + Hóa đơn + Biên bản nghiệm thu/giao nhận; <strong>Trưởng BP Mua sắm</strong> có thẩm quyền phê duyệt).<br>
+        • <strong>Gói kinh phí &gt; 100 triệu đồng:</strong> Bắt buộc ký Hợp đồng kinh tế bằng văn bản riêng và trình <strong>Lãnh đạo Trường (Admin)</strong> phê duyệt.
+      </span>
     </div>
   </div>
 
@@ -149,6 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnThem = document.getElementById('btnThemHang');
   const tongEl = document.getElementById('tongKinhPhi');
 
+  const alertBox = document.getElementById('alertPhanCapDuyet');
+  const alertText = document.getElementById('textPhanCapDuyet');
+
   function tinhTong() {
     let tong = 0;
     const rows = tbody.querySelectorAll('tr');
@@ -160,6 +165,14 @@ document.addEventListener('DOMContentLoaded', function() {
       tong += tt;
     });
     tongEl.textContent = tong.toLocaleString('vi-VN') + ' đ';
+
+    if (tong >= 100000000) {
+      alertBox.className = 'alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4';
+      alertText.innerHTML = `• <strong>Tổng dự toán ${tong.toLocaleString('vi-VN')} đ (&ge; 100 triệu VNĐ):</strong> Bắt buộc ký Hợp đồng kinh tế bằng văn bản riêng và trình <strong>Lãnh đạo Trường (Admin)</strong> phê duyệt theo quy định.`;
+    } else {
+      alertBox.className = 'alert alert-info border-0 shadow-sm d-flex align-items-center mb-4';
+      alertText.innerHTML = `• <strong>Tổng dự toán ${tong.toLocaleString('vi-VN')} đ (&lt; 100 triệu VNĐ):</strong> Thuộc danh mục mua sắm rút gọn theo <em>Phụ lục 01</em> (Không bắt buộc ký hợp đồng bằng văn bản riêng; <strong>Trưởng BP Mua sắm</strong> có thẩm quyền phê duyệt).`;
+    }
   }
 
   tbody.addEventListener('input', tinhTong);

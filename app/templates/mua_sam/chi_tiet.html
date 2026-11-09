@@ -55,9 +55,17 @@
             {% if de_nghi.nha_cung_cap %}
               <div class="col-12 mt-2 pt-2 border-top">
                 <strong>Nhà cung cấp đã chọn:</strong> <span class="badge bg-success">{{ de_nghi.nha_cung_cap }}</span>
-                {% if de_nghi.so_hop_dong %} | <strong>Hợp đồng:</strong> {{ de_nghi.so_hop_dong }}{% endif %}
+                {% if de_nghi.so_hop_dong %} | <strong>Số HĐ / Đơn hàng:</strong> {{ de_nghi.so_hop_dong }}{% endif %}
               </div>
             {% endif %}
+
+            <div class="col-12 mt-2 pt-2 border-top">
+              {% if (de_nghi.tong_du_toan or 0) >= 100000000 %}
+                <span class="badge bg-danger"><i class="fa-solid fa-file-contract me-1"></i> Bắt buộc ký hợp đồng văn bản riêng (&ge; 100 triệu VNĐ) - Thẩm quyền Lãnh đạo</span>
+              {% else %}
+                <span class="badge bg-info text-dark"><i class="fa-solid fa-scroll me-1"></i> Áp dụng Phụ lục 01: Không bắt buộc ký hợp đồng văn bản riêng (&lt; 100 triệu VNĐ)</span>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>

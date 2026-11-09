@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS nguoi_dung (
     mat_khau_hash TEXT NOT NULL,
     vai_tro TEXT NOT NULL DEFAULT 'nguoi_dung',
     chuc_danh TEXT,
+    don_vi TEXT,
+    so_dien_thoai TEXT,
     ngay_tao TEXT NOT NULL,
     trang_thai TEXT NOT NULL DEFAULT 'hoat_dong'
 );
@@ -322,6 +324,10 @@ def _migrate_db(conn):
         cols = [r[1] for r in cur.fetchall()]
         if "chuc_danh" not in cols:
             cur.execute("ALTER TABLE nguoi_dung ADD COLUMN chuc_danh TEXT")
+        if "don_vi" not in cols:
+            cur.execute("ALTER TABLE nguoi_dung ADD COLUMN don_vi TEXT")
+        if "so_dien_thoai" not in cols:
+            cur.execute("ALTER TABLE nguoi_dung ADD COLUMN so_dien_thoai TEXT")
     except Exception:
         pass
 
@@ -373,6 +379,7 @@ def _migrate_db(conn):
             ("model", "TEXT"),
             ("hang_san_xuat", "TEXT"),
             ("thoi_han_bao_hanh", "TEXT"),
+            ("xac_nhan_ban_giao_don_vi", "INTEGER DEFAULT 1"),
         ]
         for col_name, col_def in new_ts_cols:
             if col_name not in cols:
@@ -385,6 +392,14 @@ def _migrate_db(conn):
         cur.execute("PRAGMA table_info(bao_cao_hu_hai)")
         cols = [r[1] for r in cur.fetchall()]
         new_hh_cols = [
+            ("ma_bao_cao", "TEXT"),
+            ("nguoi_gui_id", "INTEGER"),
+            ("loai_yeu_cau", "TEXT DEFAULT 'sua_chua_thiet_bi'"),
+            ("do_khan_cap", "TEXT DEFAULT 'binh_thuong'"),
+            ("don_vi", "TEXT"),
+            ("hinh_anh", "TEXT"),
+            ("xac_nhan_khao_sat_don_vi", "INTEGER DEFAULT 0"),
+            ("xac_nhan_nghiem_thu_don_vi", "INTEGER DEFAULT 0"),
             ("phuong_an_xu_ly", "TEXT"),
             ("nguoi_xu_ly_id", "INTEGER"),
             ("ngay_xu_ly", "TEXT"),
@@ -398,6 +413,17 @@ def _migrate_db(conn):
     except Exception:
         pass
 
+    # Bảng de_nghi_mua_sam
+    try:
+        cur.execute("PRAGMA table_info(de_nghi_mua_sam)")
+        cols = [r[1] for r in cur.fetchall()]
+        if "xac_nhan_khao_sat_don_vi" not in cols:
+            cur.execute("ALTER TABLE de_nghi_mua_sam ADD COLUMN xac_nhan_khao_sat_don_vi INTEGER DEFAULT 0")
+        if "xac_nhan_nghiem_thu_don_vi" not in cols:
+            cur.execute("ALTER TABLE de_nghi_mua_sam ADD COLUMN xac_nhan_nghiem_thu_don_vi INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
     # Bảng chi_tiet_kiem_ke
     try:
         cur.execute("PRAGMA table_info(chi_tiet_kiem_ke)")
@@ -408,6 +434,10 @@ def _migrate_db(conn):
             cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN so_luong_thuc_te INTEGER DEFAULT 1")
         if "chenh_lech" not in cols:
             cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN chenh_lech INTEGER DEFAULT 0")
+        if "giai_trinh_don_vi" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN giai_trinh_don_vi TEXT")
+        if "trang_thai_giai_trinh" not in cols:
+            cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN trang_thai_giai_trinh TEXT")
     except Exception:
         pass
 

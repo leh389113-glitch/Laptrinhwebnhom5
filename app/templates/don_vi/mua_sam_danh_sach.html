@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Đề xuất mua sắm & Dịch vụ mới - {{ user.don_vi }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-4">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-cart-shopping text-primary me-2"></i> ĐỀ XUẤT MUA SẮM & DỊCH VỤ MỚI</h2>
+      <p class="text-muted mb-0">Theo dõi luồng phê duyệt và tiến độ cung ứng hàng hóa, vật tư của <strong>{{ user.don_vi }}</strong></p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.tao_de_xuat_mua_sam') }}" class="btn btn-primary fw-bold shadow-sm">
+        <i class="fa-solid fa-plus-circle me-1"></i> Lập phiếu đề xuất mua sắm (BM01)
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="neu-filter-bar mb-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="fw-bold me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-neu-dark text-white{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam', trang_thai='cho_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_phe_duyet' %}btn-neu-dark text-white{% else %}btn-outline-warning{% endif %}">Chờ phê duyệt</a>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam', trang_thai='da_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'da_phe_duyet' %}btn-neu-dark text-white{% else %}btn-outline-info{% endif %}">Đã phê duyệt</a>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam', trang_thai='dang_mua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_mua' %}btn-neu-dark text-white{% else %}btn-outline-primary{% endif %}">Đang mua sắm</a>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam', trang_thai='da_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'da_nhan' %}btn-neu-dark text-white{% else %}btn-outline-success{% endif %}">Đã tiếp nhận hàng</a>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam', trang_thai='hoan_tat') }}" class="btn btn-sm {% if trang_thai_chon == 'hoan_tat' %}btn-neu-dark text-white{% else %}btn-outline-secondary{% endif %}">Hoàn tất</a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-list me-2"></i> Danh sách đề xuất mua sắm (Tổng: {{ de_nghi_list|length }})</span>
+    </div>
+    <div class="neu-card-body p-0">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Tiêu đề đề xuất</th>
+            <th>Người đề nghị</th>
+            <th class="text-end">Dự toán ước tính</th>
+            <th class="text-center">Luồng phê duyệt</th>
+            <th class="text-center">Khảo sát BM02</th>
+            <th class="text-center">Nghiệm thu hàng</th>
+            <th>Ngày tạo</th>
+            <th class="text-end">Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if de_nghi_list %}
+            {% for dn in de_nghi_list %}
+            <tr>
+              <td><strong class="text-primary">{{ dn.ma_de_nghi }}</strong></td>
+              <td>
+                <div class="fw-bold text-dark">{{ dn.tieu_de }}</div>
+                {% if dn.nguon_goc == 'thay_the_hu_hai' %}
+                  <span class="badge bg-warning text-dark"><i class="fa-solid fa-recycle me-1"></i> Thay thế hư hại</span>
+                {% endif %}
+              </td>
+              <td>{{ dn.nguoi_de_nghi_ten or user.ho_ten }}</td>
+              <td class="text-end fw-bold text-danger">{{ "{:,.0f}".format(dn.tong_du_toan or dn.tong_tien_uoc_tinh or 0) }} đ</td>
+              <td class="text-center">
+                <span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span>
+              </td>
+              <td class="text-center">
+                {% if dn.xac_nhan_khao_sat_don_vi %}
+                  <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Đã ký BM02</span>
+                {% else %}
+                  <span class="badge bg-light text-muted border">Chờ khảo sát</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if dn.xac_nhan_nghiem_thu_don_vi %}
+                  <span class="badge bg-success"><i class="fa-solid fa-check-double me-1"></i> Đã nghiệm thu</span>
+                {% elif dn.trang_thai in ['da_nhan', 'hoan_tat'] %}
+                  <span class="badge bg-warning text-dark">Chờ ký</span>
+                {% else %}
+                  <span class="badge bg-light text-muted border">—</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ dn.ngay_tao[:10] }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('don_vi.chi_tiet_mua_sam', id=dn.id) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fa-solid fa-eye me-1"></i> Theo dõi
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-box-open fa-2x mb-2 d-block text-secondary"></i>
+                Đơn vị chưa có đề xuất mua sắm nào.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

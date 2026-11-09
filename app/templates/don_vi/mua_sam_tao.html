@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Lập Đề xuất Mua sắm mới (BM01) - {{ user.don_vi }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.dashboard') }}">Đơn vị sử dụng</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.danh_sach_mua_sam') }}">Đề xuất mua sắm</a></li>
+          <li class="breadcrumb-item active">Lập đề xuất mới</li>
+        </ol>
+      </nav>
+      <h2 class="neu-page-title"><i class="fa-solid fa-cart-plus text-primary me-2"></i> LẬP PHIẾU ĐỀ XUẤT MUA SẮM (BM01)</h2>
+      <p class="text-muted mb-0">Hệ thống tự động liên kết danh tính cán bộ và đơn vị công tác theo chuẩn quy chế Trường</p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <form method="POST" id="form-de-xuat" action="{{ url_for('don_vi.tao_de_xuat_mua_sam') }}">
+    
+    <!-- 1. Thông tin định danh tự động của Cán bộ & Đơn vị -->
+    <div class="neu-card mb-4 border-primary">
+      <div class="neu-card-header bg-primary text-white">
+        <span><i class="fa-solid fa-id-card me-2"></i> 1. Thông tin đơn vị đề nghị (Hệ thống tự động xác thực)</span>
+        <span class="badge bg-light text-primary"><i class="fa-solid fa-check-circle me-1"></i> Đã xác thực</span>
+      </div>
+      <div class="neu-card-body bg-light">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Cán bộ đề xuất:</label>
+            <input type="text" class="form-control fw-bold" value="{{ user.ho_ten }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Đơn vị / Phòng ban:</label>
+            <input type="text" class="form-control fw-bold text-primary" value="{{ user.don_vi }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Số điện thoại liên hệ:</label>
+            <input type="text" class="form-control" value="{{ user.so_dien_thoai or 'Chưa cập nhật' }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Email công vụ:</label>
+            <input type="text" class="form-control" value="{{ user.email }}" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Thông tin chung về nhu cầu mua sắm -->
+    <div class="neu-card mb-4">
+      <div class="neu-card-header">
+        <span><i class="fa-solid fa-file-lines me-2"></i> 2. Thông tin chung về đề xuất</span>
+      </div>
+      <div class="neu-card-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-bold">Tiêu đề đề xuất mua sắm: <span class="text-danger">*</span></label>
+            <input type="text" name="tieu_de" class="form-control" placeholder="Ví dụ: Đề xuất trang bị máy chiếu và điều hòa cho Giảng đường A2..." required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Mức độ ưu tiên:</label>
+            <select name="muc_do_uu_tien" class="form-select">
+              <option value="binh_thuong">Bình thường</option>
+              <option value="can_gap">Cần gấp / Cấp thiết</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Địa điểm / Phòng bố trí sử dụng:</label>
+            <input type="text" name="dia_diem_su_dung" class="form-control" placeholder="Ví dụ: Phòng thực hành Lab 501, Nhà A1" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Thời gian cần đưa vào sử dụng:</label>
+            <input type="date" name="thoi_gian_can_hang" class="form-control">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold">Lý do sự cần thiết & Mục đích sử dụng: <span class="text-danger">*</span></label>
+            <textarea name="ly_do_su_can_thiet" class="form-control" rows="3" placeholder="Giải trình rõ căn cứ đề xuất, hiện trạng thiếu hụt hoặc phục vụ công tác giảng dạy, nghiên cứu, quản lý..." required></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Danh mục hàng hóa / dịch vụ cần mua sắm -->
+    <div class="neu-card mb-4">
+      <div class="neu-card-header d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-table-list me-2"></i> 3. Danh mục hàng hóa, trang thiết bị chi tiết</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-them-dong">
+          <i class="fa-solid fa-plus me-1"></i> Thêm mặt hàng
+        </button>
+      </div>
+      <div class="neu-card-body p-0">
+        <div class="table-responsive">
+          <table class="neu-table mb-0" id="bang-hang-hoa">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Tên hàng hóa / Quy cách kỹ thuật <span class="text-danger">*</span></th>
+                <th style="width: 10%;">ĐVT <span class="text-danger">*</span></th>
+                <th style="width: 10%;">Số lượng <span class="text-danger">*</span></th>
+                <th style="width: 15%;">Đơn giá dự kiến (đ)</th>
+                <th style="width: 15%;">Thành tiền (đ)</th>
+                <th style="width: 20%;">Vị trí sử dụng & Ghi chú</th>
+                <th style="width: 5%;" class="text-center">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="ds-hang-hoa-body">
+              <tr class="hang-hoa-item">
+                <td>
+                  <input type="text" name="ten_hang_hoa[]" class="form-control form-control-sm" placeholder="VD: Máy chiếu Laser EPSON..." required>
+                </td>
+                <td>
+                  <input type="text" name="don_vi_tinh[]" class="form-control form-control-sm" value="Bộ" required>
+                </td>
+                <td>
+                  <input type="number" name="so_luong[]" class="form-control form-control-sm inp-sl" value="1" min="1" required>
+                </td>
+                <td>
+                  <input type="number" name="don_gia_du_kien[]" class="form-control form-control-sm inp-gia" value="15000000" min="0" step="10000">
+                </td>
+                <td>
+                  <input type="text" class="form-control form-control-sm fw-bold text-end inp-tt" value="15,000,000" readonly>
+                </td>
+                <td>
+                  <input type="text" name="vi_tri_su_dung[]" class="form-control form-control-sm" placeholder="Vị trí lắp đặt...">
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-sm btn-link text-danger btn-xoa-dong" title="Xóa dòng"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="neu-card-footer bg-light p-3">
+        <div class="row align-items-center">
+          <div class="col-md-7">
+            <div id="canh-bao-nguong" class="small alert alert-info py-2 px-3 mb-0">
+              <i class="fa-solid fa-circle-info me-1"></i> Gói kinh phí &lt; 100.000.000 đ: Áp dụng <strong>Phụ lục 01</strong> (Không bắt buộc ký hợp đồng bằng văn bản riêng, Trưởng BP Mua sắm duyệt).
+            </div>
+          </div>
+          <div class="col-md-5 text-end">
+            <span class="fs-6 fw-bold me-2">Tổng kinh phí dự toán:</span>
+            <span class="fs-4 fw-bold text-danger" id="tong-kinh-phi-hien-thi">15.000.000 đ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nút hành động -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-xmark me-1"></i> Hủy bỏ
+      </a>
+      <button type="submit" class="btn btn-primary btn-lg fw-bold px-4 shadow">
+        <i class="fa-solid fa-paper-plane me-2"></i> GỬI ĐỀ XUẤT MUA SẮM (BM01)
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tableBody = document.getElementById('ds-hang-hoa-body');
+  const btnThem = document.getElementById('btn-them-dong');
+  const tongHienThi = document.getElementById('tong-kinh-phi-hien-thi');
+  const alertNguong = document.getElementById('canh-bao-nguong');
+
+  function tinhTong() {
+    let tong = 0;
+    const rows = tableBody.querySelectorAll('.hang-hoa-item');
+    rows.forEach(row => {
+      const sl = parseFloat(row.querySelector('.inp-sl').value) || 0;
+      const gia = parseFloat(row.querySelector('.inp-gia').value) || 0;
+      const tt = sl * gia;
+      row.querySelector('.inp-tt').value = tt.toLocaleString('vi-VN');
+      tong += tt;
+    });
+
+    tongHienThi.textContent = tong.toLocaleString('vi-VN') + ' đ';
+
+    if (tong >= 100000000) {
+      alertNguong.className = 'small alert alert-warning py-2 px-3 mb-0';
+      alertNguong.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Gói kinh phí &ge; 100.000.000 đ: Bắt buộc ký <strong>Hợp đồng kinh tế bằng văn bản riêng</strong> & <strong>Lãnh đạo Trường (Admin)</strong> phê duyệt!';
+    } else {
+      alertNguong.className = 'small alert alert-info py-2 px-3 mb-0';
+      alertNguong.innerHTML = '<i class="fa-solid fa-circle-info me-1"></i> Gói kinh phí &lt; 100.000.000 đ: Áp dụng <strong>Phụ lục 01</strong> (Không bắt buộc ký hợp đồng bằng văn bản riêng, Trưởng BP Mua sắm duyệt).';
+    }
+  }
+
+  tableBody.addEventListener('input', function(e) {
+    if (e.target.classList.contains('inp-sl') || e.target.classList.contains('inp-gia')) {
+      tinhTong();
+    }
+  });
+
+  tableBody.addEventListener('click', function(e) {
+    const btnXoa = e.target.closest('.btn-xoa-dong');
+    if (btnXoa) {
+      const rows = tableBody.querySelectorAll('.hang-hoa-item');
+      if (rows.length > 1) {
+        btnXoa.closest('.hang-hoa-item').remove();
+        tinhTong();
+      } else {
+        alert('Đề xuất mua sắm phải có ít nhất 1 mặt hàng.');
+      }
+    }
+  });
+
+  btnThem.addEventListener('click', function() {
+    const newRow = document.createElement('tr');
+    newRow.className = 'hang-hoa-item';
+    newRow.innerHTML = `
+      <td><input type="text" name="ten_hang_hoa[]" class="form-control form-control-sm" placeholder="Tên hàng hóa / quy cách..." required></td>
+      <td><input type="text" name="don_vi_tinh[]" class="form-control form-control-sm" value="Chiếc" required></td>
+      <td><input type="number" name="so_luong[]" class="form-control form-control-sm inp-sl" value="1" min="1" required></td>
+      <td><input type="number" name="don_gia_du_kien[]" class="form-control form-control-sm inp-gia" value="0" min="0" step="10000"></td>
+      <td><input type="text" class="form-control form-control-sm fw-bold text-end inp-tt" value="0" readonly></td>
+      <td><input type="text" name="vi_tri_su_dung[]" class="form-control form-control-sm" placeholder="Vị trí lắp đặt..."></td>
+      <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger btn-xoa-dong" title="Xóa dòng"><i class="fa-solid fa-trash"></i></button></td>
+    `;
+    tableBody.appendChild(newRow);
+  });
+
+  tinhTong();
+});
+</script>
+{% endblock %}
+

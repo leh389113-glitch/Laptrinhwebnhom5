@@ -66,7 +66,8 @@ def tao_app(cau_hinh=None):
             'mua_sam': 'Bộ phận Mua sắm',
             'quan_ly_kho': 'Bộ phận Quản lý tài sản',
             'ke_toan': 'Kế toán',
-            'quan_tri': 'Quản trị viên (Admin)'
+            'quan_tri': 'Quản trị viên (Admin)',
+            'don_vi': 'Đơn vị sử dụng'
         }
         return tu_dien.get(ma, ma)
 
@@ -95,7 +96,8 @@ def tao_app(cau_hinh=None):
             'mua_sam': 'badge-primary',
             'quan_ly_kho': 'badge-info',
             'ke_toan': 'badge-warning',
-            'quan_tri': 'badge-danger'
+            'quan_tri': 'badge-danger',
+            'don_vi': 'badge-info'
         }
         return tu_dien.get(ma, 'badge-secondary')
 
@@ -105,6 +107,7 @@ def tao_app(cau_hinh=None):
     from app.routes.ke_toan import ke_toan_bp
     from app.routes.tai_san import tai_san_bp
     from app.routes.admin import admin_bp
+    from app.routes.don_vi import don_vi_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -112,6 +115,7 @@ def tao_app(cau_hinh=None):
     app.register_blueprint(ke_toan_bp)
     app.register_blueprint(tai_san_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(don_vi_bp)
 
     @app.errorhandler(LoiNghiepVu)
     def handle_loi_nghiep_vu(e):

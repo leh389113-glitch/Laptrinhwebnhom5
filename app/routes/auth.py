@@ -15,6 +15,8 @@ def dieu_huong_theo_vai_tro(vai_tro: str):
         return redirect(url_for("ke_toan.danh_sach"))
     elif vai_tro == "quan_tri":
         return redirect(url_for("admin.dashboard"))
+    elif vai_tro == "don_vi":
+        return redirect(url_for("don_vi.dashboard"))
     return redirect(url_for("main.trang_chu"))
 
 @auth_bp.route("/dang-nhap", methods=["GET", "POST"])
@@ -37,6 +39,10 @@ def dang_nhap():
             session["vai_tro"] = user["vai_tro"]
             session["ho_ten"] = user["ho_ten"]
             session["ten_dang_nhap"] = user["ten_dang_nhap"]
+            session["don_vi"] = user.get("don_vi") or ""
+            session["chuc_danh"] = user.get("chuc_danh") or ""
+            session["email"] = user.get("email") or ""
+            session["so_dien_thoai"] = user.get("so_dien_thoai") or ""
 
             flash(f"Xin chào {user['ho_ten']}, bạn đã đăng nhập thành công!", "success")
 

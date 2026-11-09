@@ -26,14 +26,15 @@ def app():
         pw_hash = generate_password_hash("password123")
         db.execute(
             """
-            INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, ngay_tao, trang_thai)
+            INSERT INTO nguoi_dung (ho_ten, email, ten_dang_nhap, mat_khau_hash, vai_tro, don_vi, so_dien_thoai, ngay_tao, trang_thai)
             VALUES 
-            ('Admin Test', 'admin@neu.test', 'user_admin', ?, 'quan_tri', '2026-01-01T00:00:00', 'hoat_dong'),
-            ('Mua Sam Test', 'muasam@neu.test', 'user_mua_sam', ?, 'mua_sam', '2026-01-01T00:00:00', 'hoat_dong'),
-            ('Quan Ly Kho Test', 'kho@neu.test', 'user_kho', ?, 'quan_ly_kho', '2026-01-01T00:00:00', 'hoat_dong'),
-            ('Ke Toan Test', 'ketoan@neu.test', 'user_ke_toan', ?, 'ke_toan', '2026-01-01T00:00:00', 'hoat_dong')
+            ('Admin Test', 'admin@neu.test', 'user_admin', ?, 'quan_tri', 'Ban Giám hiệu', '02436280280', '2026-01-01T00:00:00', 'hoat_dong'),
+            ('Mua Sam Test', 'muasam@neu.test', 'user_mua_sam', ?, 'mua_sam', 'Bộ phận Mua sắm', '0912111222', '2026-01-01T00:00:00', 'hoat_dong'),
+            ('Quan Ly Kho Test', 'kho@neu.test', 'user_kho', ?, 'quan_ly_kho', 'Bộ phận Quản lý tài sản', '0913222333', '2026-01-01T00:00:00', 'hoat_dong'),
+            ('Ke Toan Test', 'ketoan@neu.test', 'user_ke_toan', ?, 'ke_toan', 'Phòng Kế toán', '0914333444', '2026-01-01T00:00:00', 'hoat_dong'),
+            ('Don Vi Test', 'donvi@neu.test', 'user_don_vi', ?, 'don_vi', 'Khoa Công nghệ Thông tin', '0912345678', '2026-01-01T00:00:00', 'hoat_dong')
             """,
-            (pw_hash, pw_hash, pw_hash, pw_hash)
+            (pw_hash, pw_hash, pw_hash, pw_hash, pw_hash)
         )
         db.commit()
 
@@ -58,7 +59,8 @@ class AuthActions:
                 "quan_tri": "user_admin",
                 "mua_sam": "user_mua_sam",
                 "quan_ly_kho": "user_kho",
-                "ke_toan": "user_ke_toan"
+                "ke_toan": "user_ke_toan",
+                "don_vi": "user_don_vi"
             }
             username = mapping.get(vai_tro, username)
 

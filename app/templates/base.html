@@ -28,7 +28,7 @@
       </div>
       <div>
         {% if session.get('nguoi_dung_id') %}
-          <span class="me-3"><i class="fa-solid fa-user-circle me-1"></i> Xin chào: <strong>{{ session.get('ho_ten') }}</strong> ({{ session.get('vai_tro') | ten_trang_thai }})</span>
+          <span class="me-3"><i class="fa-solid fa-user-circle me-1"></i> Xin chào: <strong>{{ session.get('ho_ten') }}</strong> ({% if session.get('don_vi') %}{{ session.get('don_vi') }} - {% endif %}{{ session.get('vai_tro') | ten_trang_thai }})</span>
           <a href="{{ url_for('auth.dang_xuat') }}" class="text-warning"><i class="fa-solid fa-right-from-bracket me-1"></i> Đăng xuất</a>
         {% else %}
           <a href="{{ url_for('auth.dang_nhap') }}" class="me-3"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng nhập</a>
@@ -56,6 +56,42 @@
       <div class="collapse navbar-collapse" id="neuNavbarContent">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.trang_chu') }}"><i class="fa-solid fa-house me-1"></i> Trang chủ</a></li>
+
+          {% if session.get('vai_tro') == 'don_vi' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('don_vi.dashboard') }}"><i class="fa-solid fa-gauge-high me-1"></i> Bảng điều khiển</a></li>
+            
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Sửa chữa & Hư hại
+              </a>
+              <ul class="dropdown-menu shadow border-0">
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.tao_sua_chua') }}"><i class="fa-solid fa-plus-circle me-2 text-danger"></i> Gửi yêu cầu sửa chữa mới</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.danh_sach_sua_chua') }}"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Tiến độ xử lý sửa chữa</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-cart-shopping me-1"></i> Đề xuất mua sắm
+              </a>
+              <ul class="dropdown-menu shadow border-0">
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.tao_de_xuat_mua_sam') }}"><i class="fa-solid fa-file-circle-plus me-2 text-success"></i> Lập đề xuất mua sắm mới (BM01)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.danh_sach_mua_sam') }}"><i class="fa-solid fa-list-check me-2 text-primary"></i> Theo dõi phê duyệt mua sắm</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-boxes-stacked me-1"></i> Tài sản đơn vị
+              </a>
+              <ul class="dropdown-menu shadow border-0">
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.danh_sach_tai_san') }}"><i class="fa-solid fa-list-ul me-2 text-info"></i> Danh mục tài sản đang quản lý</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('don_vi.danh_sach_tai_san', cho_xac_nhan=1) }}"><i class="fa-solid fa-handshake me-2 text-warning"></i> Tiếp nhận bàn giao tài sản mới</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('don_vi.kiem_ke') }}"><i class="fa-solid fa-clipboard-check me-1"></i> Kiểm kê & Nghiệm thu</a></li>
+          {% endif %}
           
           {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
             <li class="nav-item"><a class="nav-link" href="{{ url_for('mua_sam.danh_sach') }}"><i class="fa-solid fa-cart-shopping me-1"></i> M08 - Mua sắm</a></li>

@@ -17,27 +17,19 @@ def trang_chu():
 
 @main_bp.route("/bao-cao-hu-hai", methods=["GET", "POST"])
 def bao_cao_hu_hai():
-    """Form báo cáo sự cố hư hại cơ sở vật chất (công khai cho tất cả mọi người)."""
-    if request.method == "POST":
-        du_lieu_form = {
-            "ho_ten": request.form.get("ho_ten"),
-            "lien_he": request.form.get("lien_he"),
-            "ten_vat_chat": request.form.get("ten_vat_chat"),
-            "vi_tri": request.form.get("vi_tri"),
-            "muc_do": request.form.get("muc_do"),
-            "mo_ta_chi_tiet": request.form.get("mo_ta_chi_tiet"),
-            "thoi_gian_phat_hien": request.form.get("thoi_gian_phat_hien")
-        }
-        try:
-            cleaned_data = schemas.xac_thuc_bao_cao_hu_hai(du_lieu_form)
-            bc_svc.gui_bao_cao(cleaned_data)
-            flash("Báo cáo hư hại đã được gửi thành công. Bộ phận quản lý sẽ kiểm tra và xử lý sớm nhất!", "success")
-            return redirect(url_for("main.cam_on"))
-        except LoiNghiepVu as e:
-            flash(e.thong_bao, "danger")
-            return render_template("main/bao_cao_hu_hai.html", du_lieu=du_lieu_form)
-
-    return render_template("main/bao_cao_hu_hai.html")
+    """Form báo cáo sự cố hư hại cơ sở vật chất (yêu cầu đăng nhập tài khoản cán bộ đơn vị)."""
+    from flask import session
+    if "nguoi_dung_id" not in session:
+        flash("Vui lòng đăng nhập bằng tài khoản cán bộ đơn vị để gửi báo cáo hư hại / yêu cầu sửa chữa.", "info")
+        return redirect(url_for("auth.dang_nhap", next=url_for("don_vi.tao_sua_chua")))
+    
+    if session.get("vai_tro") == "don_vi":
+        return redirect(url_for("don_vi.tao_sua_chua"))
+    elif session.get("vai_tro") == "quan_ly_kho":
+        return redirect(url_for("tai_san.danh_sach_hu_hai"))
+    elif session.get("vai_tro") == "quan_tri":
+        return redirect(url_for("admin.bao_cao_hu_hai"))
+    return redirect(url_for("don_vi.tao_sua_chua"))
 
 @main_bp.route("/bao-cao-hu-hai/cam-on")
 def cam_on():

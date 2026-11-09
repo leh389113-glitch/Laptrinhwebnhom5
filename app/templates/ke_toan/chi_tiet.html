@@ -64,6 +64,27 @@
         <div class="neu-card-body">
           
           {% if session.get('vai_tro') == 'ke_toan' %}
+          <!-- Checklist Hồ sơ tối thiểu theo Phụ lục 01 (Mục IV) -->
+          <div class="alert alert-light border shadow-sm p-3 mb-3 small">
+            <strong class="d-block text-primary mb-2"><i class="fa-solid fa-folder-check me-1"></i> Hồ sơ tối thiểu theo Phụ lục 01 (Mục IV):</strong>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" checked disabled id="chkDeNghi">
+              <label class="form-check-label text-dark" for="chkDeNghi">1. Đề nghị mua sắm đã được phê duyệt ({{ de_nghi.ma_de_nghi }})</label>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" checked disabled id="chkBaoGia">
+              <label class="form-check-label text-dark" for="chkBaoGia">2. Báo giá cạnh tranh / Căn cứ xác định giá (NCC: {{ de_nghi.nha_cung_cap or 'Đã chọn' }})</label>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" checked disabled id="chkNghiemThu">
+              <label class="form-check-label text-dark" for="chkNghiemThu">3. Biên bản kiểm tra nghiệm thu & bàn giao hàng hóa vào kho</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkHoaDon" checked>
+              <label class="form-check-label text-danger fw-bold" for="chkHoaDon">4. Hóa đơn điện tử hợp lệ & Chứng từ giải ngân</label>
+            </div>
+          </div>
+
           <form method="POST" action="{{ url_for('ke_toan.thanh_toan', id=de_nghi.id) }}">
             <div class="mb-3">
               <label class="neu-form-label">Số tiền thực thanh toán (VNĐ) <span class="text-danger">*</span></label>

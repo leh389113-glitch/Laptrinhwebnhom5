@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Tạo phiếu báo cáo hư hại / Yêu cầu sửa chữa - NEU Facility Hub{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-4">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-file-circle-exclamation text-danger me-2"></i> LẬP PHIẾU BÁO CÁO HƯ HẠI / YÊU CẦU SỬA CHỮA</h2>
+      <p class="text-muted mb-0">Hệ thống tự động xác thực danh tính cán bộ và đơn vị công tác</p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <!-- Box tự động xác thực danh tính người dùng -->
+      <div class="alert alert-light border border-primary shadow-sm mb-4 p-3">
+        <div class="d-flex align-items-center mb-2">
+          <i class="fa-solid fa-id-card fa-2x text-primary me-3"></i>
+          <div>
+            <strong class="text-primary fs-6"><i class="fa-solid fa-circle-check text-success me-1"></i> Cơ chế xác thực tài khoản tự động khi lập phiếu:</strong>
+            <div class="small text-muted">Hệ thống đã tự động định danh cán bộ và đơn vị chịu trách nhiệm đề xuất.</div>
+          </div>
+        </div>
+        <div class="row g-2 pt-2 border-top small">
+          <div class="col-md-4">
+            <span class="text-muted">Cán bộ đề xuất:</span> <strong>{{ user.ho_ten }}</strong>
+          </div>
+          <div class="col-md-4">
+            <span class="text-muted">Đơn vị công tác:</span> <strong class="text-primary">{{ user.don_vi }}</strong>
+          </div>
+          <div class="col-md-4">
+            <span class="text-muted">Thông tin liên hệ:</span> <strong>{{ user.so_dien_thoai or user.email }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-danger text-white">
+          <span><i class="fa-solid fa-wrench me-2"></i> Thông tin chi tiết về sự cố / Yêu cầu sửa chữa</span>
+        </div>
+        <div class="neu-card-body p-4">
+
+          <form method="POST" action="{{ url_for('don_vi.tao_sua_chua') }}">
+            <div class="row g-3">
+
+              <!-- 1. Loại yêu cầu -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Loại yêu cầu sửa chữa <span class="text-danger">*</span></label>
+                <select name="loai_yeu_cau" class="form-select neu-form-control" required>
+                  <option value="sua_chua_thiet_bi" selected>Sửa chữa thiết bị (Máy chiếu, điều hòa, máy tính, âm thanh...)</option>
+                  <option value="sua_chua_nho">Sửa chữa nhỏ (Điện, nước, khóa cửa, bóng đèn, van vòi...)</option>
+                  <option value="sua_chua_cong_trinh">Sửa chữa công trình (Trần, tường, sàn, cửa kính, thấm dột...)</option>
+                </select>
+              </div>
+
+              <!-- 2. Độ khẩn cấp -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ khẩn cấp <span class="text-danger">*</span></label>
+                <select name="do_khan_cap" class="form-select neu-form-control" required>
+                  <option value="binh_thuong" selected>Bình thường (Xử lý theo kế hoạch tuần)</option>
+                  <option value="can_som">Cần sớm (Ảnh hưởng đến công việc / giảng dạy ngày mai)</option>
+                  <option value="khan_cap">Khẩn cấp (Sự cố mất điện, rò rỉ nước, ảnh hưởng an toàn)</option>
+                </select>
+              </div>
+
+              <!-- 3. Chọn tài sản nếu có -->
+              <div class="col-md-12">
+                <label class="neu-form-label">Chọn tài sản trong danh mục của đơn vị (nếu có)</label>
+                <select name="tai_san_id" class="form-select neu-form-control" id="selectTaiSan">
+                  <option value="">-- Không gắn mã tài sản / Sự cố chung tại khu vực --</option>
+                  {% for ts in tai_san_list %}
+                  <option value="{{ ts.id }}" data-ten="{{ ts.ten_tai_san }}" data-vitri="{{ ts.vi_tri }}" {% if tai_san_id_chon and tai_san_id_chon|int == ts.id %}selected{% endif %}>
+                    [{{ ts.ma_tai_san }}] {{ ts.ten_tai_san }} - Vị trí: {{ ts.vi_tri or 'Chưa rõ' }}
+                  </option>
+                  {% endfor %}
+                </select>
+                <small class="text-muted">Nếu thiết bị có tem mã tài sản (TS- hoặc CCDC-), vui lòng chọn đúng để hệ thống tự động lưu lịch sử bảo trì.</small>
+              </div>
+
+              <!-- 4. Tên thiết bị / Hạng mục hư hại -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Tên thiết bị / Hạng mục hư hại <span class="text-danger">*</span></label>
+                <input type="text" name="ten_vat_chat" id="tenVatChat" class="form-control neu-form-control" placeholder="Ví dụ: Máy chiếu Sony, Điều hòa Daikin 18000BTU, Vòi nước bồn rửa..." required>
+              </div>
+
+              <!-- 5. Vị trí sự cố -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Vị trí sự cố cụ thể (Tòa nhà / Phòng) <span class="text-danger">*</span></label>
+                <input type="text" name="vi_tri" id="viTri" class="form-control neu-form-control" placeholder="Ví dụ: Phòng học A1-305, Giảng đường D2, Nhà vệ sinh tầng 4..." required>
+              </div>
+
+              <!-- 6. Thời điểm phát hiện -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Thời điểm phát hiện sự cố</label>
+                <input type="datetime-local" name="thoi_gian_phat_hien" class="form-control neu-form-control">
+              </div>
+
+              <!-- 7. Mức độ ảnh hưởng -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ ảnh hưởng</label>
+                <select name="muc_do" class="form-select neu-form-control">
+                  <option value="nhe">Nhẹ (Vẫn sử dụng tạm được, chưa gián đoạn)</option>
+                  <option value="trung_binh" selected>Trung bình (Gián đoạn một phần hoạt động)</option>
+                  <option value="nghiem_trong">Nghiêm trọng (Không thể sử dụng được, dừng hoàn toàn)</option>
+                </select>
+              </div>
+
+              <!-- 8. Mô tả chi tiết hiện trạng hư hỏng -->
+              <div class="col-12">
+                <label class="neu-form-label">Mô tả chi tiết tình trạng hư hỏng <span class="text-danger">*</span></label>
+                <textarea name="mo_ta_chi_tiet" rows="4" class="form-control neu-form-control" placeholder="Mô tả cụ thể hiện tượng: Bật không lên nguồn, kêu to, chập chờn, chảy nước, gãy bản lề, màn hình mờ..." required></textarea>
+              </div>
+
+              <!-- 9. Hình ảnh / Tài liệu đính kèm -->
+              <div class="col-12">
+                <label class="neu-form-label">Ảnh chụp hiện trạng hư hại (hoặc link ảnh minh chứng)</label>
+                <input type="text" name="hinh_anh" class="form-control neu-form-control" placeholder="Dán link ảnh hiện trường hoặc ghi chú vị trí chụp ảnh...">
+              </div>
+
+              <div class="col-12 text-end mt-4 pt-3 border-top">
+                <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-danger px-4 py-2 fw-bold shadow">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Gửi phiếu báo hỏng & Cấp mã yêu cầu
+                </button>
+              </div>
+
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const sel = document.getElementById('selectTaiSan');
+  const txtTen = document.getElementById('tenVatChat');
+  const txtViTri = document.getElementById('viTri');
+
+  if (sel) {
+    sel.addEventListener('change', function() {
+      const opt = sel.options[sel.selectedIndex];
+      if (opt.value) {
+        if (opt.dataset.ten && !txtTen.value) txtTen.value = opt.dataset.ten;
+        if (opt.dataset.vitri && !txtViTri.value) txtViTri.value = opt.dataset.vitri;
+      }
+    });
+
+    // Kích hoạt khi có sẵn
+    if (sel.value) {
+      const opt = sel.options[sel.selectedIndex];
+      if (opt.dataset.ten) txtTen.value = opt.dataset.ten;
+      if (opt.dataset.vitri) txtViTri.value = opt.dataset.vitri;
+    }
+  }
+});
+</script>
+{% endblock %}
+

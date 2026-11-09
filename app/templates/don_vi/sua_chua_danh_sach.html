@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu sửa chữa & Báo cáo hư hại - {{ user.don_vi }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-4">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i> YÊU CẦU SỬA CHỮA & BÁO CÁO HƯ HẠI</h2>
+      <p class="text-muted mb-0">Theo dõi tiến độ xử lý sửa chữa thiết bị, cơ sở vật chất của <strong>{{ user.don_vi }}</strong></p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.tao_sua_chua') }}" class="btn btn-danger fw-bold shadow-sm">
+        <i class="fa-solid fa-plus-circle me-1"></i> Gửi yêu cầu sửa chữa mới
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="neu-filter-bar mb-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="fw-bold me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-neu-dark text-white{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua', trang_thai='cho_tiep_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_tiep_nhan' %}btn-neu-dark text-white{% else %}btn-outline-warning{% endif %}">Mới gửi / Chờ tiếp nhận</a>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua', trang_thai='dang_xu_ly') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_xu_ly' %}btn-neu-dark text-white{% else %}btn-outline-primary{% endif %}">Đang khảo sát & Sửa chữa</a>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua', trang_thai='da_xu_ly') }}" class="btn btn-sm {% if trang_thai_chon == 'da_xu_ly' %}btn-neu-dark text-white{% else %}btn-outline-success{% endif %}">Đã hoàn thành</a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header">
+      <span><i class="fa-solid fa-list me-2"></i> Danh sách sự cố / yêu cầu sửa chữa (Tổng: {{ sua_chua_list|length }})</span>
+    </div>
+    <div class="neu-card-body p-0">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã yêu cầu</th>
+            <th>Loại yêu cầu</th>
+            <th>Thiết bị / Hạng mục hư hỏng</th>
+            <th>Vị trí phòng/khu vực</th>
+            <th class="text-center">Độ khẩn cấp</th>
+            <th class="text-center">Trạng thái xử lý</th>
+            <th>Thời điểm phát hiện</th>
+            <th class="text-end">Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if sua_chua_list %}
+            {% for sc in sua_chua_list %}
+            <tr>
+              <td><strong class="text-primary">{{ sc.ma_bao_cao or ('YC-#' ~ sc.id) }}</strong></td>
+              <td>
+                {% if sc.loai_yeu_cau == 'sua_chua_nho' %}
+                  <span class="badge bg-secondary">Sửa chữa nhỏ</span>
+                {% elif sc.loai_yeu_cau == 'sua_chua_cong_trinh' %}
+                  <span class="badge bg-warning text-dark">Công trình</span>
+                {% else %}
+                  <span class="badge bg-info text-dark">Thiết bị</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="fw-bold text-dark">{{ sc.ten_vat_chat }}</div>
+                {% if sc.ma_tai_san %}
+                  <small class="text-muted"><i class="fa-solid fa-barcode me-1"></i> {{ sc.ma_tai_san }}</small>
+                {% endif %}
+              </td>
+              <td><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ sc.vi_tri }}</td>
+              <td class="text-center">
+                {% if sc.do_khan_cap == 'khan_cap' %}
+                  <span class="badge bg-danger"><i class="fa-solid fa-fire me-1"></i> Khẩn cấp</span>
+                {% elif sc.do_khan_cap == 'can_som' %}
+                  <span class="badge bg-warning text-dark">Cần sớm</span>
+                {% else %}
+                  <span class="badge bg-light text-dark border">Bình thường</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <span class="{{ sc.trang_thai | badge_trang_thai }}">{{ sc.trang_thai | ten_trang_thai }}</span>
+              </td>
+              <td class="small text-muted">{{ sc.thoi_gian_phat_hien or sc.ngay_tao[:16] }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('don_vi.chi_tiet_sua_chua', id=sc.id) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="fa-solid fa-eye me-1"></i> Xem tiến độ
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <i class="fa-solid fa-circle-check fa-2x mb-2 d-block text-success"></i>
+                Không có sự cố hư hỏng nào cần xử lý.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

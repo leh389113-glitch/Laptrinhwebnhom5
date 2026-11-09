@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết Yêu cầu Sửa chữa {{ yc.ma_bao_cao or ('YC-#' ~ yc.id) }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.dashboard') }}">Đơn vị sử dụng</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.danh_sach_sua_chua') }}">Sửa chữa & Hư hại</a></li>
+          <li class="breadcrumb-item active">{{ yc.ma_bao_cao or ('YC-#' ~ yc.id) }}</li>
+        </ol>
+      </nav>
+      <h2 class="neu-page-title">
+        <i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i> 
+        TIẾN ĐỘ XỬ LÝ SỬA CHỮA: {{ yc.ma_bao_cao or ('YC-#' ~ yc.id) }}
+      </h2>
+      <p class="text-muted mb-0">Hạng mục: <strong>{{ yc.ten_vat_chat }}</strong> — Vị trí: <strong>{{ yc.vi_tri }}</strong></p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <!-- Tiến trình xử lý theo thời gian thực (Step Progress) -->
+  <div class="neu-card mb-4">
+    <div class="neu-card-header bg-light">
+      <span class="fw-bold text-dark"><i class="fa-solid fa-timeline me-2 text-primary"></i> Tiến trình xử lý theo thời gian thực</span>
+      <span class="{{ yc.trang_thai | badge_trang_thai }}">{{ yc.trang_thai | ten_trang_thai }}</span>
+    </div>
+    <div class="neu-card-body p-4">
+      <div class="row text-center g-3">
+        <!-- Bước 1: Tiếp nhận -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if yc.trang_thai in ['cho_tiep_nhan', 'dang_xu_ly', 'da_xu_ly'] %}bg-light border-primary text-primary{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-paper-plane"></i></div>
+            <div class="fw-bold small">1. Mới gửi</div>
+            <small class="text-muted d-block">{{ yc.ngay_tao[:10] }}</small>
+            <span class="badge bg-success mt-1">Đã gửi</span>
+          </div>
+        </div>
+        <!-- Bước 2: Khảo sát thực tế -->
+        <div class="col-md-3 col-6">
+          <div class="p-3 rounded border {% if yc.xac_nhan_khao_sat_don_vi %}bg-light border-success text-success{% elif yc.trang_thai in ['dang_xu_ly', 'da_xu_ly'] %}bg-light border-warning text-warning{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="fw-bold small">2. Khảo sát hiện trường (BM03)</div>
+            {% if yc.xac_nhan_khao_sat_don_vi %}
+              <span class="badge bg-success mt-1"><i class="fa-solid fa-check me-1"></i> Đơn vị đã ký</span>
+            {% elif yc.trang_thai in ['dang_xu_ly', 'da_xu_ly'] %}
+              <span class="badge bg-warning text-dark mt-1">Đang khảo sát</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ tiếp nhận</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 3: Phê duyệt & Sửa chữa -->
+        <div class="col-md-3 col-6">
+          <div class="p-3 rounded border {% if yc.ca_sua_chua and yc.ca_sua_chua.trang_thai in ['dang_sua_chua', 'hoan_thanh'] %}bg-light border-primary text-primary{% elif yc.trang_thai == 'da_xu_ly' %}bg-light border-success text-success{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-tools"></i></div>
+            <div class="fw-bold small">3. Thi công sửa chữa</div>
+            {% if yc.ca_sua_chua and yc.ca_sua_chua.trang_thai == 'hoan_thanh' %}
+              <span class="badge bg-success mt-1">Sửa xong</span>
+            {% elif yc.ca_sua_chua and yc.ca_sua_chua.trang_thai == 'dang_sua_chua' %}
+              <span class="badge bg-primary mt-1">Đang sửa chữa</span>
+            {% elif yc.trang_thai == 'da_xu_ly' %}
+              <span class="badge bg-success mt-1">Đã sửa xong</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ thi công</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 4: Nghiệm thu hoàn thành -->
+        <div class="col-md-4 col-12">
+          <div class="p-3 rounded border {% if yc.xac_nhan_nghiem_thu_don_vi or yc.trang_thai == 'da_xu_ly' %}bg-light border-success text-success{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-award"></i></div>
+            <div class="fw-bold small">4. Nghiệm thu & Khôi phục sử dụng</div>
+            {% if yc.xac_nhan_nghiem_thu_don_vi %}
+              <span class="badge bg-success mt-1"><i class="fa-solid fa-check-double me-1"></i> Nghiệm thu hoàn tất</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ nghiệm thu</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Thông tin phiếu & Hạng mục sự cố -->
+    <div class="col-lg-7">
+      <div class="neu-card mb-4">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-circle-info me-2"></i> Thông tin phiếu yêu cầu & Hiện trạng sự cố</span>
+        </div>
+        <div class="neu-card-body">
+          <table class="table table-bordered mb-0">
+            <tbody>
+              <tr>
+                <th class="bg-light" style="width: 35%;">Mã yêu cầu</th>
+                <td><strong class="text-primary">{{ yc.ma_bao_cao or ('YC-#' ~ yc.id) }}</strong></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Người đề nghị</th>
+                <td>{{ yc.ho_ten }} ({{ yc.nguoi_gui_email or 'Cán bộ đơn vị' }})</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Đơn vị công tác</th>
+                <td><span class="badge bg-primary">{{ yc.don_vi }}</span></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Thông tin liên hệ</th>
+                <td>{{ yc.lien_he }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Loại yêu cầu</th>
+                <td>
+                  {% if yc.loai_yeu_cau == 'sua_chua_nho' %}
+                    <span class="badge bg-secondary">Sửa chữa nhỏ</span>
+                  {% elif yc.loai_yeu_cau == 'sua_chua_cong_trinh' %}
+                    <span class="badge bg-warning text-dark">Sửa chữa công trình</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark">Sửa chữa thiết bị</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Hạng mục / Thiết bị</th>
+                <td>
+                  <strong>{{ yc.ten_vat_chat }}</strong>
+                  {% if yc.ma_tai_san %}
+                    <div class="small text-muted"><i class="fa-solid fa-barcode me-1"></i> Mã TS: {{ yc.ma_tai_san }}</div>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Vị trí phòng / Khu vực</th>
+                <td><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ yc.vi_tri }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Độ khẩn cấp</th>
+                <td>
+                  {% if yc.do_khan_cap == 'khan_cap' %}
+                    <span class="badge bg-danger"><i class="fa-solid fa-fire me-1"></i> Khẩn cấp</span>
+                  {% elif yc.do_khan_cap == 'can_som' %}
+                    <span class="badge bg-warning text-dark">Cần sớm</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark border">Bình thường</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Thời điểm phát hiện</th>
+                <td>{{ yc.thoi_gian_phat_hien or yc.ngay_tao }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Mô tả chi tiết hư hỏng</th>
+                <td class="text-pre-wrap">{{ yc.mo_ta_chi_tiet or 'Chưa có mô tả chi tiết.' }}</td>
+              </tr>
+              {% if yc.hinh_anh %}
+              <tr>
+                <th class="bg-light">Hình ảnh hiện trạng</th>
+                <td>
+                  <img src="{{ yc.hinh_anh }}" alt="Ảnh hư hại" class="img-fluid rounded border" style="max-height: 250px;">
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Thông tin ca sửa chữa M09 nếu có -->
+      {% if yc.ca_sua_chua %}
+      <div class="neu-card mb-4">
+        <div class="neu-card-header bg-neu-dark text-white">
+          <span><i class="fa-solid fa-wrench me-2"></i> Hồ sơ kỹ thuật sửa chữa (Phòng QTTB)</span>
+        </div>
+        <div class="neu-card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-muted small">Mã ca sửa chữa:</label>
+              <div class="fw-bold">{{ yc.ca_sua_chua.ma_sua_chua }}</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Đơn vị sửa chữa:</label>
+              <div class="fw-bold">{{ yc.ca_sua_chua.don_vi_sua_chua or 'Bộ phận kỹ thuật nội bộ' }}</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Dự toán kinh phí:</label>
+              <div class="text-danger fw-bold">{{ "{:,.0f}".format(yc.ca_sua_chua.du_toan_kinh_phi or 0) }} đ</div>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small">Trạng thái thi công:</label>
+              <div><span class="badge bg-primary">{{ yc.ca_sua_chua.trang_thai }}</span></div>
+            </div>
+            <div class="col-12">
+              <label class="text-muted small">Phương án khắc phục:</label>
+              <div>{{ yc.ca_sua_chua.phuong_an_sua_chua or 'Đang tiến hành thay thế linh kiện và sửa chữa tại chỗ.' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Cột phải: KHỐI PHỐI HỢP & KÝ XÁC NHẬN CỦA ĐƠN VỊ -->
+    <div class="col-lg-5">
+      
+      <!-- 1. Ký xác nhận khảo sát hiện trường (BM03) -->
+      <div class="neu-card mb-4 border-primary">
+        <div class="neu-card-header bg-primary text-white">
+          <span><i class="fa-solid fa-signature me-2"></i> 1. Xác nhận khảo sát thực tế (BM03)</span>
+        </div>
+        <div class="neu-card-body">
+          <p class="small text-muted mb-3">
+            Sau khi cán bộ Phòng QTTB đến khảo sát hiện trường hư hỏng tại đơn vị, đại diện đơn vị sử dụng kiểm tra và ký xác nhận biên bản khảo sát hiện trạng.
+          </p>
+
+          {% if yc.xac_nhan_khao_sat_don_vi %}
+            <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+              <i class="fa-solid fa-circle-check fs-3 me-3 text-success"></i>
+              <div>
+                <strong>Đơn vị đã ký xác nhận khảo sát!</strong>
+                <div class="small">Biên bản BM03 đã được lưu và chuyển sang bước duyệt phương án sửa chữa.</div>
+              </div>
+            </div>
+          {% else %}
+            <form action="{{ url_for('don_vi.xac_nhan_khao_sat', id=yc.id) }}" method="POST">
+              <div class="mb-3">
+                <label class="form-label fw-bold small">Ý kiến / Ghi chú của đơn vị khi khảo sát:</label>
+                <textarea name="ghi_chu" class="form-control form-control-sm" rows="3" placeholder="Đồng ý với hiện trạng khảo sát của kỹ thuật viên / bổ sung ý kiến..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 fw-bold">
+                <i class="fa-solid fa-check me-1"></i> Ký xác nhận biên bản khảo sát (BM03)
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 2. Nghiệm thu sửa chữa hoàn thành -->
+      <div class="neu-card mb-4 border-success">
+        <div class="neu-card-header bg-success text-white">
+          <span><i class="fa-solid fa-clipboard-check me-2"></i> 2. Nghiệm thu sửa chữa hoàn thành</span>
+        </div>
+        <div class="neu-card-body">
+          <p class="small text-muted mb-3">
+            Sau khi thiết bị/công trình được sửa chữa hoàn thành, đơn vị chạy thử/kiểm tra chức năng hoạt động và ký Biên bản nghiệm thu để khép hồ sơ và đưa vào sử dụng bình thường.
+          </p>
+
+          {% if yc.xac_nhan_nghiem_thu_don_vi or yc.trang_thai == 'da_xu_ly' %}
+            <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+              <i class="fa-solid fa-award fs-3 me-3 text-success"></i>
+              <div>
+                <strong>Nghiệm thu hoàn tất!</strong>
+                <div class="small">Thiết bị đã được bàn giao lại cho đơn vị và hoạt động bình thường.</div>
+              </div>
+            </div>
+          {% else %}
+            <form action="{{ url_for('don_vi.nghiem_thu_sua_chua', id=yc.id) }}" method="POST">
+              <div class="mb-3">
+                <label class="form-label fw-bold small">Nhận xét nghiệm thu thực tế:</label>
+                <textarea name="ghi_chu" class="form-control form-control-sm" rows="3" placeholder="Thiết bị đã vận hành ổn định, đúng yêu cầu kỹ thuật..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-success w-100 fw-bold" onclick="return confirm('Bạn có chắc chắn đã kiểm tra thiết bị hoạt động tốt và đồng ý nghiệm thu hoàn tất?');">
+                <i class="fa-solid fa-award me-1"></i> Ký nghiệm thu hoàn thành sửa chữa
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Lịch sử xử lý / Ghi chú -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-clock-rotate-left me-2"></i> Nhật ký xử lý & Ghi chú</span>
+        </div>
+        <div class="neu-card-body">
+          {% if yc.ghi_chu_xu_ly %}
+            <div class="p-2 bg-light rounded text-dark small">{{ yc.ghi_chu_xu_ly }}</div>
+          {% else %}
+            <span class="text-muted small">Chưa có ghi chú bổ sung nào từ bộ phận chuyên trách.</span>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

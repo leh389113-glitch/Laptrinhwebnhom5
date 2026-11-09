@@ -8,7 +8,9 @@ def xac_thuc_dang_ky(data: Dict[str, Any]) -> Dict[str, Any]:
     ten_dang_nhap = (data.get("ten_dang_nhap") or "").strip()
     mat_khau = data.get("mat_khau") or ""
     xac_nhan_mat_khau = data.get("xac_nhan_mat_khau") or ""
-    vai_tro = (data.get("vai_tro") or "mua_sam").strip()
+    vai_tro = (data.get("vai_tro") or "don_vi").strip()
+    don_vi = (data.get("don_vi") or "Đơn vị đào tạo").strip()
+    so_dien_thoai = (data.get("so_dien_thoai") or "").strip()
 
     if not ho_ten or len(ho_ten) < 2:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Họ tên phải từ 2 ký tự trở lên.")
@@ -21,15 +23,17 @@ def xac_thuc_dang_ky(data: Dict[str, Any]) -> Dict[str, Any]:
     if mat_khau != xac_nhan_mat_khau:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Mật khẩu xác nhận không khớp.")
 
-    if vai_tro not in ["mua_sam", "quan_ly_kho", "ke_toan", "quan_tri"]:
-        vai_tro = "mua_sam"
+    if vai_tro not in ["don_vi", "mua_sam", "quan_ly_kho", "ke_toan", "quan_tri"]:
+        vai_tro = "don_vi"
 
     return {
         "ho_ten": ho_ten,
         "email": email,
         "ten_dang_nhap": ten_dang_nhap,
         "mat_khau": mat_khau,
-        "vai_tro": vai_tro
+        "vai_tro": vai_tro,
+        "don_vi": don_vi,
+        "so_dien_thoai": so_dien_thoai
     }
 
 def xac_thuc_dang_nhap(data: Dict[str, Any]) -> Dict[str, Any]:

@@ -1,39 +1,30 @@
-def test_bao_cao_hu_hai_khong_can_dang_nhap(client):
-    """Test form báo cáo hư hại truy cập được mà không cần đăng nhập."""
-    res = client.get("/bao-cao-hu-hai")
-    assert res.status_code == 200
-    assert "BÁO CÁO SỰ CỐ HƯ HẠI CƠ SỞ VẬT CHẤT" in res.text
-
-def test_gui_bao_cao_hu_hai_thanh_cong(client):
-    """Test gửi thành công báo cáo hư hại hợp lệ và chuyển hướng đến trang cảm ơn."""
-    res = client.post("/bao-cao-hu-hai", data={
-        "ho_ten": "Nguyễn Văn Sinh Viên",
-        "lien_he": "sv@neu.edu.vn",
-        "vi_tri": "Phòng A1-401",
-        "muc_do": "trung_binh",
-        "ten_vat_chat": "Đèn tuýp LED nhấp nháy",
-        "mo_ta_chi_tiet": "Đèn ở dãy bàn đầu bị chớp liên tục gây mỏi mắt"
-    }, follow_redirects=False)
-
+def test_bao_cao_hu_hai_chua_dang_nhap_chuyen_huong(client):
+    """Test truy cập form báo cáo khi chưa đăng nhập sẽ chuyển hướng sang đăng nhập."""
+    res = client.get("/bao-cao-hu-hai", follow_redirects=False)
     assert res.status_code == 302
-    assert "/bao-cao-hu-hai/cam-on" in res.location
+    assert "/dang-nhap" in res.headers["Location"]
+    assert "next=" in res.headers["Location"]
 
-    # Kiểm tra trang cảm ơn
-    res_cam_on = client.get("/bao-cao-hu-hai/cam-on")
-    assert res_cam_on.status_code == 200
-    assert "CẢM ƠN BẠN ĐÃ GỬI BÁO CÁO" in res_cam_on.text
+def test_bao_cao_hu_hai_da_dang_nhap_don_vi_chuyen_huong(client, auth):
+    """Test cán bộ đơn vị khi vào /bao-cao-hu-hai được chuyển thẳng tới trang tạo yêu cầu sửa chữa nội bộ."""
+    auth.login(vai_tro="don_vi")
+    res = client.get("/bao-cao-hu-hai", follow_redirects=False)
+    assert res.status_code == 302
+    assert "/don-vi/sua-chua/tao" in res.headers["Location"]
 
 def test_quan_ly_tai_san_xu_ly_bao_cao_hu_hai(client, auth):
-    """Test Bộ phận Quản lý tài sản tiếp nhận, xác minh hiện trường và xử lý sự cố hư hại."""
-    # 1. Công chúng / sinh viên gửi 1 báo cáo sự cố hư hại
-    client.post("/bao-cao-hu-hai", data={
-        "ho_ten": "Giảng viên phản ánh",
-        "lien_he": "0912345678",
-        "vi_tri": "Hội trường A",
-        "muc_do": "nghiem_trong",
+    """Test Bộ phận Quản lý tài sản tiếp nhận, xác minh hiện trường và xử lý sự cố hư hại từ đơn vị."""
+    # 1. Cán bộ đơn vị gửi báo cáo sự cố qua /don-vi/sua-chua/tao
+    auth.login(vai_tro="don_vi")
+    res_post = client.post("/don-vi/sua-chua/tao", data={
         "ten_vat_chat": "Micro không dây mất tiếng",
+        "vi_tri": "Hội trường A",
+        "do_khan_cap": "khan_cap",
+        "muc_do": "nghiem_trong",
+        "loai_yeu_cau": "sua_chua_thiet_bi",
         "mo_ta_chi_tiet": "Micro bị rè và không lên nguồn"
-    })
+    }, follow_redirects=True)
+    assert res_post.status_code == 200
 
     # 2. Admin vào xem / giám sát danh sách báo cáo
     auth.login(vai_tro="quan_tri")
@@ -58,13 +49,14 @@ def test_quan_ly_tai_san_xu_ly_bao_cao_hu_hai(client, auth):
 
 def test_chuyen_hu_hai_khong_the_sua_sang_mua_sam(client, auth):
     """Test hư hại không thể sửa chữa -> Quản lý tài sản chuyển sang đề xuất mua sắm M08."""
-    # 1. Báo cáo sự cố
-    client.post("/bao-cao-hu-hai", data={
-        "ho_ten": "Ban quản lý giảng đường",
-        "lien_he": "0987654321",
-        "vi_tri": "Phòng D2-501",
-        "muc_do": "nghiem_trong",
+    # 1. Cán bộ đơn vị gửi báo cáo sự cố
+    auth.login(vai_tro="don_vi")
+    client.post("/don-vi/sua-chua/tao", data={
         "ten_vat_chat": "Máy chiếu hỏng bo mạch chính",
+        "vi_tri": "Phòng D2-501",
+        "do_khan_cap": "khan_cap",
+        "muc_do": "nghiem_trong",
+        "loai_yeu_cau": "sua_chua_thiet_bi",
         "mo_ta_chi_tiet": "Thiết bị cũ, chập cháy bo mạch chính không thể sửa"
     })
 
@@ -107,4 +99,3 @@ def test_nut_bao_cao_hu_hai_hien_thi_dung(client, auth):
     # Các trang nội bộ cũng không có nút báo cáo hư hại
     res_muasam = client.get("/mua-sam/")
     assert "/bao-cao-hu-hai" not in res_muasam.text
-
