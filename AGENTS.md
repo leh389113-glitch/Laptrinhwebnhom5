@@ -38,7 +38,7 @@ Hệ thống được thiết kế chuyên biệt cho 4 vai trò nội bộ và 
    - **Thông tin đơn vị đề nghị**: Hệ thống tự động gán Đơn vị tương ứng với phòng/ban/khoa mà tài khoản đại diện (`session['don_vi']`).
    - **Tự động sinh mã phiếu**: Tự động cấp mã chuẩn công vụ ngay khi bấm gửi (`YC-YYYYMMDD-XXX` cho sửa chữa, `DN-YYYYMMDD-XXX` cho đề xuất mua sắm).
 2. **Loại bỏ việc gửi phản ánh ẩn danh ngoài luồng**: Cán bộ, giảng viên có danh tính đăng nhập theo phòng ban công tác riêng để theo dõi tiến độ xử lý và ký biên bản điện tử liên thông.
-3. **Ẩn nút báo cáo hư hại khi đã đăng nhập**: Nút "Báo cáo hư hại vật chất" chỉ hiển thị tại Trang chủ (`/`) khi **chưa đăng nhập**. Khi đã đăng nhập, người dùng tác nghiệp qua menu phân hệ tương ứng.
+3. **Xóa hoàn toàn nút báo cáo hư hại ở Trang chủ**: Do nghiệp vụ hiện tại đã có tài khoản Đơn vị sử dụng (`don_vi`) đại diện phòng ban công tác để báo hỏng và theo dõi tiến độ sửa chữa thời gian thực, nút báo cáo hư hại vật chất công khai ở Trang chủ đã được xóa bỏ hoàn toàn để chuẩn hóa luồng tiếp nhận chính quy.
 4. **Ngưỡng thẩm quyền 100 triệu đồng**:
    - Gói `< 100,000,000 VNĐ`: Trạng thái `cho_phe_duyet` → Trưởng BP Mua sắm hoặc Admin có thể duyệt.
    - Gói `≥ 100,000,000 VNĐ`: Trạng thái `cho_lanh_dao_duyet` → Bắt buộc Admin (Lãnh đạo) duyệt; Cán bộ hoặc Trưởng BP Mua sắm cố tình duyệt sẽ bị chặn mã HTTP 403 `KHONG_DU_QUYEN`.
@@ -319,7 +319,7 @@ Mỗi khi chỉnh sửa hoặc nâng cấp bất kỳ tính năng nào, AI Agent
 - [ ] **Tuân thủ quy chế Phụ lục 01**: Gói kinh phí $\le$ 100 triệu không bắt buộc ký hợp đồng bằng văn bản riêng; Trưởng BP Mua sắm có thẩm quyền duyệt.
 - [ ] **Phân cấp duyệt 100 triệu**: Đề nghị $\ge$ 100 triệu VNĐ chỉ có `quan_tri` duyệt được và bắt buộc ký hợp đồng bằng văn bản riêng; Trưởng BP Mua sắm chỉ duyệt được gói < 100 triệu.
 - [ ] **Ranh giới quyền hạn nghiêm ngặt**: Admin chỉ duyệt đề nghị và quản lý tài khoản; Đơn vị sử dụng chỉ xem, gửi yêu cầu và ký xác nhận phối hợp, bị chặn HTTP 403 ở các phân hệ tác nghiệp chuyên môn.
-- [ ] **Nút báo cáo hư hại**: Chỉ hiển thị ở Trang chủ khi chưa đăng nhập; biến mất hoàn toàn khi người dùng đã đăng nhập.
+- [ ] **Nút báo cáo hư hại**: Đã xóa hoàn toàn khỏi Trang chủ; mọi yêu cầu báo hỏng được thực hiện chuẩn quy qua tài khoản Đơn vị sử dụng (`don_vi`).
 - [ ] **Phân loại tài sản**: Đơn giá $\ge$ 10tr tạo `TS-YYYY-XXXX` (`tai_san_co_dinh`); đơn giá < 10tr tạo `CCDC-YYYY-XXXX` (`cong_cu_dung_cu`).
 - [ ] **Chu trình sửa chữa M09**: Lập yêu cầu -> Khảo sát BM03 -> Thi công -> Nghiệm thu sửa chữa -> Khôi phục `dang_su_dung`, tình trạng `binh_thuong`, chuyển phản ánh sang `da_xu_ly`.
 - [ ] **Kiến trúc MVC nghiêm ngặt**: Route không chứa SQL, toàn bộ logic nghiệp vụ đặt trong `services/`, thời gian lấy qua `clock.now()`.

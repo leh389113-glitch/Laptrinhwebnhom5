@@ -77,14 +77,15 @@ def test_chuyen_hu_hai_khong_the_sua_sang_mua_sam(client, auth):
     assert "Máy chiếu hỏng bo mạch chính" in res_m08.text
 
 
-def test_nut_bao_cao_hu_hai_hien_thi_dung(client, auth):
-    """Test nút báo cáo hư hại chỉ hiển thị trên trang chủ khi chưa đăng nhập, sau khi đăng nhập bị xóa hoàn toàn."""
+def test_nut_bao_cao_hu_hai_da_xoa_khoi_trang_chu(client, auth):
+    """Test nút báo cáo hư hại công khai đã bị xóa hoàn toàn khỏi trang chủ cả khi chưa đăng nhập và sau khi đăng nhập."""
     # 1. Khi chưa đăng nhập:
     res_home = client.get("/")
     assert res_home.status_code == 200
-    # Trang chủ có nút Báo cáo hư hại vật chất
-    assert "Báo cáo hư hại vật chất" in res_home.text
-    # Trên trang đăng nhập không có nút báo cáo hư hại
+    # Trang chủ không còn nút Báo cáo hư hại vật chất công khai
+    assert "Báo cáo hư hại vật chất" not in res_home.text
+
+    # Trên trang đăng nhập cũng không có
     res_login = client.get("/dang-nhap")
     assert "/bao-cao-hu-hai" not in res_login.text
 
@@ -92,10 +93,10 @@ def test_nut_bao_cao_hu_hai_hien_thi_dung(client, auth):
     auth.login(vai_tro="mua_sam")
     res_home_auth = client.get("/")
     assert res_home_auth.status_code == 200
-    # Nút báo cáo hư hại đã bị xóa hoàn toàn khỏi trang chủ
     assert "Báo cáo hư hại vật chất" not in res_home_auth.text
     assert "/bao-cao-hu-hai" not in res_home_auth.text
 
-    # Các trang nội bộ cũng không có nút báo cáo hư hại
+    # Các trang nội bộ cũng không có nút báo cáo hư hại ngoài luồng
     res_muasam = client.get("/mua-sam/")
+    assert "/bao-cao-hu-hai" not in res_muasam.text
     assert "/bao-cao-hu-hai" not in res_muasam.text

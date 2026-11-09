@@ -18,10 +18,7 @@
       </p>
       <div class="d-flex flex-wrap gap-3">
         {% if not session.get('nguoi_dung_id') %}
-          <a href="{{ url_for('main.bao_cao_hu_hai') }}" class="btn btn-danger btn-lg px-4 fw-bold shadow">
-            <i class="fa-solid fa-triangle-exclamation me-2"></i> Báo cáo hư hại vật chất
-          </a>
-          <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold">
+          <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-light btn-lg px-4 text-primary fw-bold shadow">
             <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập hệ thống
           </a>
           <a href="{{ url_for('auth.dang_ky') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">
