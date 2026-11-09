@@ -255,7 +255,7 @@ def xac_thuc_thanh_toan(data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def xac_thuc_de_nghi_thanh_toan(data: Dict[str, Any]) -> Dict[str, Any]:
-    noi_dung = (data.get("noi_dung_thanh_toan") or "").strip()
+    noi_dung = (data.get("noi_dung_thanh_toan") or data.get("ve_khoan") or "").strip()
     if not noi_dung:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung đề nghị thanh toán không được để trống.")
     try:
@@ -267,7 +267,17 @@ def xac_thuc_de_nghi_thanh_toan(data: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "noi_dung_thanh_toan": noi_dung,
+        "ve_khoan": noi_dung,
         "gia_tri_de_nghi": gia_tri,
+        "nguoi_de_nghi_ten": (data.get("nguoi_de_nghi_ten") or "").strip(),
+        "don_vi": (data.get("don_vi") or "").strip(),
+        "hop_dong_so": (data.get("hop_dong_so") or "").strip(),
+        "hop_dong_ngay": (data.get("hop_dong_ngay") or "").strip(),
+        "so_tien_bang_chu": (data.get("so_tien_bang_chu") or "").strip(),
+        "don_vi_thu_huong": (data.get("don_vi_thu_huong") or "").strip(),
+        "so_tai_khoan": (data.get("so_tai_khoan") or "").strip(),
+        "ngan_hang": (data.get("ngan_hang") or "").strip(),
+        "ho_so_kem_theo": (data.get("ho_so_kem_theo") or "").strip(),
         "ghi_chu": (data.get("ghi_chu") or "").strip()
     }
 

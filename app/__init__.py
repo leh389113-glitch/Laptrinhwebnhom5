@@ -26,6 +26,70 @@ def tao_app(cau_hinh=None):
         except (ValueError, TypeError):
             return str(so_tien)
 
+    @app.template_filter('doc_so_thanh_chu')
+    def doc_so_thanh_chu(so_tien):
+        if so_tien is None:
+            return ''
+        try:
+            n = int(round(float(so_tien)))
+        except (ValueError, TypeError):
+            return str(so_tien)
+        if n == 0:
+            return "Không đồng chẵn"
+
+        chu_so = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"]
+        tien = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"]
+
+        def doc_ba_so(baso, day_du=False):
+            tram = baso // 100
+            chuc = (baso % 100) // 10
+            donvi = baso % 10
+            kq = []
+            if tram > 0 or day_du:
+                kq.append(chu_so[tram] + " trăm")
+            if chuc > 1:
+                kq.append(chu_so[chuc] + " mươi")
+                if donvi == 1:
+                    kq.append("mốt")
+                elif donvi == 5:
+                    kq.append("lăm")
+                elif donvi > 0:
+                    kq.append(chu_so[donvi])
+            elif chuc == 1:
+                kq.append("mười")
+                if donvi == 1:
+                    kq.append("một")
+                elif donvi == 5:
+                    kq.append("lăm")
+                elif donvi > 0:
+                    kq.append(chu_so[donvi])
+            elif chuc == 0:
+                if (tram > 0 or day_du) and donvi > 0:
+                    kq.append("lẻ")
+                if donvi > 0:
+                    kq.append(chu_so[donvi])
+            return " ".join(kq)
+
+        chuoi_so = str(n)
+        doan = []
+        while len(chuoi_so) > 0:
+            doan.append(int(chuoi_so[-3:]))
+            chuoi_so = chuoi_so[:-3]
+
+        ket_qua = []
+        for i in range(len(doan) - 1, -1, -1):
+            if doan[i] > 0:
+                doc = doc_ba_so(doan[i], day_du=(i < len(doan) - 1))
+                if doc:
+                    ket_qua.append(doc)
+                    if i > 0:
+                        ket_qua.append(tien[i])
+
+        res = " ".join(ket_qua).strip()
+        if res:
+            res = res[0].upper() + res[1:] + " đồng chẵn"
+        return res
+
     @app.template_filter('dinh_dang_ngay')
     def dinh_dang_ngay(iso_str):
         if not iso_str:
@@ -49,7 +113,9 @@ def tao_app(cau_hinh=None):
             'da_phe_duyet': 'Đã phê duyệt',
             'tu_choi': 'Từ chối',
             'dang_mua': 'Đang mua sắm',
-            'da_nhan': 'Đã tiếp nhận hàng',
+            'da_nhan': 'Đang nghiệm thu',
+            'dang_nghiem_thu': 'Đang nghiệm thu',
+            'cho_thanh_toan': 'Chờ thanh toán',
             'hoan_tat': 'Hoàn tất',
             'cho_ban_giao': 'Trong kho (Chờ bàn giao)',
             'dang_su_dung': 'Đang sử dụng',
@@ -88,7 +154,9 @@ def tao_app(cau_hinh=None):
             'da_phe_duyet': 'badge-info',
             'tu_choi': 'badge-danger',
             'dang_mua': 'badge-primary',
-            'da_nhan': 'badge-secondary',
+            'da_nhan': 'badge-info',
+            'dang_nghiem_thu': 'badge-info',
+            'cho_thanh_toan': 'badge-warning',
             'hoan_tat': 'badge-success',
             'cho_ban_giao': 'badge-warning',
             'dang_su_dung': 'badge-success',

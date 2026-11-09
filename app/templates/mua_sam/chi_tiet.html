@@ -54,39 +54,147 @@
               </div>
             {% endif %}
 
-            <!-- Hồ sơ đề nghị thanh toán M08 sau khi M09 tiếp nhận -->
-            {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}
+            <!-- Hồ sơ đề nghị thanh toán M08 (Đang nghiệm thu -> Chờ thanh toán -> Hoàn tất) -->
+            {% if de_nghi.trang_thai in ['da_nhan', 'dang_nghiem_thu', 'cho_thanh_toan', 'hoan_tat'] %}
             <div class="card shadow-sm border-0 mb-4">
-              <div class="card-header bg-warning-subtle py-3">
-                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-file-invoice-dollar me-2 text-warning"></i> Hồ sơ đề nghị thanh toán</h5>
+              <div class="card-header bg-warning-subtle py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-file-invoice-dollar me-2 text-warning"></i> Giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp</h5>
+                {% if de_nghi.de_nghi_thanh_toan %}
+                  <span class="badge {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                    {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}Đã thanh toán (Hoàn tất){% else %}Chờ kế toán kiểm tra & giải ngân{% endif %}
+                  </span>
+                {% endif %}
               </div>
               <div class="card-body">
                 {% if de_nghi.de_nghi_thanh_toan %}
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong>{{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }}</strong>
-                    <span class="badge {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                      {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}Đã thanh toán{% else %}Chờ kế toán kiểm tra{% endif %}
-                    </span>
-                  </div>
-                  <div class="small mb-1"><strong>Nhà cung cấp:</strong> {{ de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</div>
-                  <div class="small mb-1"><strong>Nội dung:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan }}</div>
-                  <div class="small mb-1"><strong>Giá trị đề nghị:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</div>
-                  <div class="small mb-1"><strong>Đã thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_da_thanh_toan | tien_vnd }}</div>
-                  <div class="small"><strong>Còn phải thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.so_tien_con_lai | tien_vnd }}</div>
-                {% elif session.get('vai_tro') == 'mua_sam' %}
-                  <p class="small text-muted">M09 đã tiếp nhận hàng. Bộ phận Mua sắm lập phiếu đề nghị thanh toán để chuyển hồ sơ sang Kế toán.</p>
-                  <form method="POST" action="{{ url_for('mua_sam.de_nghi_thanh_toan', id=de_nghi.id) }}">
-                    <div class="mb-3">
-                      <label class="form-label fw-bold">Nội dung thanh toán</label>
-                      <textarea name="noi_dung_thanh_toan" class="form-control" rows="3" required>Thanh toán tiền mua {% for it in de_nghi.items %}{{ it.so_luong }} {{ it.ten_hang_hoa }}{% if not loop.last %}, {% endif %}{% endfor %} phục vụ {{ de_nghi.don_vi_de_nghi }}.</textarea>
+                  <!-- Biểu mẫu Giấy đề nghị thanh toán công vụ NEU chuẩn hóa -->
+                  <div class="border rounded p-4 bg-light shadow-sm" style="font-family: 'Times New Roman', Times, serif; font-size: 15px; line-height: 1.6;">
+                    <div class="row text-center mb-3">
+                      <div class="col-6 text-start">
+                        <div class="fw-bold">ĐẠI HỌC KINH TẾ QUỐC DÂN</div>
+                        <div>Đơn vị: <strong>{{ de_nghi.de_nghi_thanh_toan.don_vi or de_nghi.don_vi_de_nghi }}</strong></div>
+                        <div class="small text-muted">Mã thanh toán: {{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }}</div>
+                      </div>
+                      <div class="col-6 text-center">
+                        <div class="fw-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                        <div class="fw-bold">Độc lập – Tự do – Hạnh phúc</div>
+                        <div style="letter-spacing: 2px;">---------***---------</div>
+                      </div>
                     </div>
-                    <div class="small text-muted mb-3">Giá trị lấy theo báo giá nhà cung cấp đã được chốt. Phiếu sẽ đính kèm danh mục hồ sơ để Kế toán đối chiếu.</div>
-                    <button type="submit" class="btn btn-warning fw-bold">
-                      <i class="fa-solid fa-paper-plane me-1"></i> Gửi đề nghị thanh toán cho Kế toán
-                    </button>
+
+                    <div class="text-center my-4">
+                      <h4 class="fw-bold text-uppercase mb-1" style="font-family: inherit;">GIẤY ĐỀ NGHỊ THANH TOÁN</h4>
+                      <div class="fw-bold text-uppercase">CHUYỂN KHOẢN CHO NHÀ CUNG CẤP</div>
+                      <div class="fst-italic small mt-1">Kính gửi: Ban Giám đốc Đại học Kinh tế Quốc dân<br>(qua Phòng Tài chính – Kế toán)</div>
+                    </div>
+
+                    <div class="mb-2"><strong>Người đề nghị thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.nguoi_de_nghi_ten or de_nghi.nguoi_de_nghi_ten }}</div>
+                    <div class="mb-2"><strong>Đơn vị (hoặc địa chỉ):</strong> {{ de_nghi.de_nghi_thanh_toan.don_vi or de_nghi.don_vi_de_nghi }}</div>
+                    <div class="mb-2"><strong>Về khoản:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan or de_nghi.de_nghi_thanh_toan.ve_khoan }}</div>
+                    <div class="mb-2"><strong>Căn cứ hợp đồng số:</strong> <u>{{ de_nghi.de_nghi_thanh_toan.hop_dong_so or de_nghi.so_hop_dong or ('HĐ-' ~ de_nghi.ma_de_nghi) }}</u> ngày {{ de_nghi.de_nghi_thanh_toan.hop_dong_ngay or de_nghi.ngay_phe_duyet | dinh_dang_ngay }} và biên bản nghiệm thu, thanh lý hợp đồng (nếu có) số <u>{{ de_nghi.de_nghi_thanh_toan.ma_nghiem_thu or (de_nghi.nghiem_thu.ma_nghiem_thu if de_nghi.nghiem_thu else 'BM04') }}</u></div>
+                    <div class="mb-2"><strong>Số tiền đề nghị thanh toán:</strong> <span class="fs-5 fw-bold text-danger">{{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</span></div>
+                    <div class="mb-2"><strong>Viết bằng chữ:</strong> <em>{{ de_nghi.de_nghi_thanh_toan.so_tien_bang_chu or (de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | doc_so_thanh_chu) }}</em></div>
+                    <div class="mb-2"><strong>Đơn vị thụ hưởng:</strong> <strong>{{ de_nghi.de_nghi_thanh_toan.don_vi_thu_huong or de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</strong></div>
+                    <div class="mb-2"><strong>Số tài khoản:</strong> <code>{{ de_nghi.de_nghi_thanh_toan.so_tai_khoan or '0241000688999' }}</code></div>
+                    <div class="mb-2"><strong>Tại ngân hàng:</strong> {{ de_nghi.de_nghi_thanh_toan.ngan_hang or 'Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - Chi nhánh Hà Nội' }}</div>
+                    <div class="mb-3">
+                      <strong>Hồ sơ kèm theo:</strong>
+                      <span class="ms-2">☑ Hợp đồng</span>
+                      <span class="ms-3">☑ Biên bản nghiệm thu</span>
+                      <span class="ms-3">☑ Bảng xác định giá trị khối lượng công việc hoàn thành</span>
+                      <span class="ms-3">☑ Hóa đơn</span>
+                      <span class="ms-3">☐ Khác</span>
+                    </div>
+
+                    <div class="fst-italic mb-3">Kính đề nghị Ban Giám đốc và Phòng Tài chính – Kế toán xem xét, giải quyết.</div>
+
+                    <div class="text-end fst-italic mb-3">Hà Nội, ngày {{ de_nghi.de_nghi_thanh_toan.ngay_de_nghi | dinh_dang_ngay }}</div>
+
+                    <div class="row text-center fw-bold pt-2">
+                      <div class="col-3">
+                        BAN GIÁM ĐỐC<br><span class="fw-normal fst-italic small">(Ký, họ tên)</span>
+                        <div style="height: 60px;"></div>
+                        {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}
+                          <span class="badge bg-success">Đã phê duyệt chi</span>
+                        {% endif %}
+                      </div>
+                      <div class="col-3">
+                        KẾ TOÁN TRƯỞNG<br><span class="fw-normal fst-italic small">(Ký, họ tên)</span>
+                        <div style="height: 60px;"></div>
+                        {% if de_nghi.de_nghi_thanh_toan.trang_thai == 'da_thanh_toan' %}
+                          <span class="badge bg-success">Đã kiểm tra & giải ngân</span>
+                        {% endif %}
+                      </div>
+                      <div class="col-3">
+                        XÁC NHẬN ĐƠN VỊ<br><span class="fw-normal fst-italic small">(Ký, họ tên)</span>
+                        <div style="height: 60px;"></div>
+                        <span class="badge bg-primary">Đã xác nhận</span>
+                      </div>
+                      <div class="col-3">
+                        NGƯỜI ĐỀ NGHỊ THANH TOÁN<br><span class="fw-normal fst-italic small">(Ký, họ tên)</span>
+                        <div style="height: 60px;"></div>
+                        <span class="text-dark">{{ de_nghi.de_nghi_thanh_toan.nguoi_de_nghi_ten or de_nghi.nguoi_de_nghi_ten }}</span>
+                      </div>
+                    </div>
+                  </div>
+                {% elif session.get('vai_tro') == 'mua_sam' and de_nghi.tiep_nhan %}
+                  <p class="small text-muted mb-3"><i class="fa-solid fa-circle-info me-1 text-primary"></i> M09 đã tiếp nhận và đang nghiệm thu hàng hóa. Bộ phận Mua sắm lập <strong>Giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp</strong> để gửi cho Kế toán và chuyển trạng thái sang <strong>Chờ thanh toán</strong>.</p>
+                  
+                  <form method="POST" action="{{ url_for('mua_sam.de_nghi_thanh_toan', id=de_nghi.id) }}" class="border rounded p-3 bg-light">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Người đề nghị thanh toán</label>
+                        <input type="text" name="nguoi_de_nghi_ten" class="form-control" value="{{ session.get('ho_ten') }}" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Đơn vị đề nghị</label>
+                        <input type="text" name="don_vi" class="form-control" value="{{ de_nghi.don_vi_de_nghi }}" required>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label fw-bold">Về khoản (Nội dung thanh toán) <span class="text-danger">*</span></label>
+                        <textarea name="ve_khoan" class="form-control" rows="2" required>Thanh toán tiền mua {% for it in de_nghi['items'] %}{{ it.so_luong }} {{ it.ten_hang_hoa }}{% if not loop.last %}, {% endif %}{% endfor %} phục vụ {{ de_nghi.don_vi_de_nghi }}.</textarea>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Căn cứ hợp đồng số</label>
+                        <input type="text" name="hop_dong_so" class="form-control" value="{{ de_nghi.so_hop_dong or ('HĐ-' ~ de_nghi.ma_de_nghi) }}">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Ngày hợp đồng</label>
+                        <input type="text" name="hop_dong_ngay" class="form-control" value="{{ de_nghi.ngay_phe_duyet | dinh_dang_ngay }}">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Đơn vị thụ hưởng (Nhà cung cấp)</label>
+                        <input type="text" name="don_vi_thu_huong" class="form-control" value="{{ de_nghi.bao_gia_da_chon.nha_cung_cap if de_nghi.bao_gia_da_chon else de_nghi.nha_cung_cap }}" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Số tiền đề nghị (VNĐ)</label>
+                        <input type="text" class="form-control fw-bold text-danger" value="{{ (de_nghi.bao_gia_da_chon.tong_gia if de_nghi.bao_gia_da_chon else de_nghi.tong_du_toan) | tien_vnd }}" readonly>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label fw-bold">Viết bằng chữ</label>
+                        <input type="text" name="so_tien_bang_chu" class="form-control fst-italic" value="{{ (de_nghi.bao_gia_da_chon.tong_gia if de_nghi.bao_gia_da_chon else de_nghi.tong_du_toan) | doc_so_thanh_chu }}">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Số tài khoản thụ hưởng</label>
+                        <input type="text" name="so_tai_khoan" class="form-control" value="0241000688999" placeholder="Số TK ngân hàng nhà cung cấp...">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-bold">Tại ngân hàng</label>
+                        <input type="text" name="ngan_hang" class="form-control" value="Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - CN Hà Nội">
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label fw-bold">Hồ sơ kèm theo</label>
+                        <input type="text" name="ho_so_kem_theo" class="form-control" value="Hợp đồng kinh tế, Biên bản kiểm tra nghiệm thu BM04, Hóa đơn điện tử">
+                      </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                      <button type="submit" class="btn btn-warning fw-bold px-4">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Gửi hồ sơ thanh toán cho Kế toán (Chuyển Chờ thanh toán)
+                      </button>
+                    </div>
                   </form>
                 {% else %}
-                  <div class="small text-muted">Chưa có phiếu đề nghị thanh toán từ Bộ phận Mua sắm.</div>
+                  <div class="small text-muted"><i class="fa-solid fa-clock me-1"></i> Đang chờ M09 kiểm tra tiếp nhận hàng hóa trước khi lập hồ sơ đề nghị thanh toán.</div>
                 {% endif %}
               </div>
             </div>
@@ -423,21 +531,21 @@
               <i class="fa-solid {% if de_nghi.bao_gia_da_chon %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>
               3. Thu thập tối thiểu 3 báo giá và chốt nhà cung cấp
             </li>
-            <li class="mb-2 {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}text-success{% elif de_nghi.trang_thai == 'tu_choi' %}text-danger{% else %}text-muted{% endif %}">
-              <i class="fa-solid {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'hoan_tat'] %}fa-circle-check{% elif de_nghi.trang_thai == 'tu_choi' %}fa-circle-xmark{% else %}fa-circle{% endif %} me-2"></i>
+            <li class="mb-2 {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'dang_nghiem_thu', 'cho_thanh_toan', 'hoan_tat'] %}text-success{% elif de_nghi.trang_thai == 'tu_choi' %}text-danger{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua', 'da_nhan', 'dang_nghiem_thu', 'cho_thanh_toan', 'hoan_tat'] %}fa-circle-check{% elif de_nghi.trang_thai == 'tu_choi' %}fa-circle-xmark{% else %}fa-circle{% endif %} me-2"></i>
               4. Phê duyệt đề nghị (< 100 triệu: Trưởng BP Mua sắm/Admin; từ 100 triệu: Admin)
             </li>
             <li class="mb-2 {% if de_nghi.da_nghiem_thu %}text-success{% elif de_nghi.nghiem_thu %}text-danger{% else %}text-muted{% endif %}">
               <i class="fa-solid {% if de_nghi.da_nghiem_thu %}fa-circle-check{% elif de_nghi.nghiem_thu %}fa-circle-xmark{% else %}fa-circle{% endif %} me-2"></i>
-              5. Lập biên bản nghiệm thu BM04 sau khi đã chọn nhà cung cấp
+              5. Lập biên bản kiểm tra & nghiệm thu BM04 (Đang nghiệm thu)
             </li>
-            <li class="mb-2 {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}text-success{% else %}text-muted{% endif %}">
-              <i class="fa-solid {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>
+            <li class="mb-2 {% if de_nghi.tiep_nhan %}text-success{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.tiep_nhan %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>
               6. Gửi M09 tiếp nhận hàng và nhập kho
             </li>
-            <li class="mb-2 {% if de_nghi.de_nghi_thanh_toan %}text-success{% else %}text-muted{% endif %}">
-              <i class="fa-solid {% if de_nghi.de_nghi_thanh_toan %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>
-              7. M08 lập phiếu đề nghị thanh toán gửi Kế toán
+            <li class="mb-2 {% if de_nghi.de_nghi_thanh_toan or de_nghi.trang_thai in ['cho_thanh_toan', 'hoan_tat'] %}text-success{% else %}text-muted{% endif %}">
+              <i class="fa-solid {% if de_nghi.de_nghi_thanh_toan or de_nghi.trang_thai in ['cho_thanh_toan', 'hoan_tat'] %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>
+              7. M08 lập Giấy đề nghị thanh toán gửi Kế toán (Chờ thanh toán)
             </li>
             <li class="{% if de_nghi.trang_thai == 'hoan_tat' %}text-success{% else %}text-muted{% endif %}">
               <i class="fa-solid {% if de_nghi.trang_thai == 'hoan_tat' %}fa-circle-check{% else %}fa-circle{% endif %} me-2"></i>

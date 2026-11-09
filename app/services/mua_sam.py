@@ -14,6 +14,70 @@ def _khao_sat_phu_hop(ket_luan: str) -> bool:
         "phù hợp và cần thiết để tổ chức thực hiện".casefold()
     }
 
+def doc_so_thanh_chu(so_tien: float) -> str:
+    """Chuyển đổi số tiền VNĐ thành văn bản chữ chuẩn hành chính Việt Nam."""
+    if so_tien is None:
+        return ""
+    try:
+        n = int(round(float(so_tien)))
+    except (ValueError, TypeError):
+        return str(so_tien)
+    if n == 0:
+        return "Không đồng chẵn"
+
+    chu_so = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"]
+    tien = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"]
+
+    def doc_ba_so(baso, day_du=False):
+        tram = baso // 100
+        chuc = (baso % 100) // 10
+        donvi = baso % 10
+        kq = []
+        if tram > 0 or day_du:
+            kq.append(chu_so[tram] + " trăm")
+        if chuc > 1:
+            kq.append(chu_so[chuc] + " mươi")
+            if donvi == 1:
+                kq.append("mốt")
+            elif donvi == 5:
+                kq.append("lăm")
+            elif donvi > 0:
+                kq.append(chu_so[donvi])
+        elif chuc == 1:
+            kq.append("mười")
+            if donvi == 1:
+                kq.append("một")
+            elif donvi == 5:
+                kq.append("lăm")
+            elif donvi > 0:
+                kq.append(chu_so[donvi])
+        elif chuc == 0:
+            if (tram > 0 or day_du) and donvi > 0:
+                kq.append("lẻ")
+            if donvi > 0:
+                kq.append(chu_so[donvi])
+        return " ".join(kq)
+
+    chuoi_so = str(n)
+    doan = []
+    while len(chuoi_so) > 0:
+        doan.append(int(chuoi_so[-3:]))
+        chuoi_so = chuoi_so[:-3]
+
+    ket_qua = []
+    for i in range(len(doan) - 1, -1, -1):
+        if doan[i] > 0:
+            doc = doc_ba_so(doan[i], day_du=(i < len(doan) - 1))
+            if doc:
+                ket_qua.append(doc)
+                if i > 0:
+                    ket_qua.append(tien[i])
+
+    res = " ".join(ket_qua).strip()
+    if res:
+        res = res[0].upper() + res[1:] + " đồng chẵn"
+    return res
+
 def sinh_ma_de_nghi() -> str:
     """Sinh mã đề nghị mua sắm tự động theo dạng DN-YYYYMMDD-XXX."""
     db = get_db()
@@ -190,8 +254,11 @@ def lay_danh_sach_de_nghi(trang_thai: str = None) -> list:
     """
     params = []
     if trang_thai:
-        query += " WHERE d.trang_thai = ?"
-        params.append(trang_thai)
+        if trang_thai in ['da_nhan', 'dang_nghiem_thu']:
+            query += " WHERE d.trang_thai IN ('da_nhan', 'dang_nghiem_thu')"
+        else:
+            query += " WHERE d.trang_thai = ?"
+            params.append(trang_thai)
 
     query += " ORDER BY d.id DESC"
     rows = db.execute(query, params).fetchall()
@@ -751,26 +818,26 @@ def tiep_nhan_hang_hoa(de_nghi_id: int, du_lieu: dict, nguoi_tiep_nhan_id: int) 
     return lay_chi_tiet_de_nghi(de_nghi_id)
 
 def tao_de_nghi_thanh_toan(de_nghi_id: int, du_lieu: dict, nguoi_de_nghi_id: int) -> dict:
-    """Lập phiếu đề nghị thanh toán sau khi M09 đã tiếp nhận hàng."""
+    """Lập phiếu đề nghị thanh toán chuẩn công vụ NEU chuyển sang trạng thái chờ thanh toán."""
     db = get_db()
     de_nghi = db.execute(
-        "SELECT id, ma_de_nghi, tieu_de, trang_thai FROM de_nghi_mua_sam WHERE id = ?",
+        "SELECT id, ma_de_nghi, tieu_de, don_vi_de_nghi, trang_thai, so_hop_dong FROM de_nghi_mua_sam WHERE id = ?",
         (de_nghi_id,)
     ).fetchone()
     if not de_nghi:
         raise LoiNghiepVu("DE_NGHI_KHONG_TON_TAI", "Đề nghị mua sắm không tồn tại trong hệ thống.")
-    if de_nghi["trang_thai"] != "da_nhan":
-        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chỉ được lập hồ sơ thanh toán sau khi M09 đã tiếp nhận hàng hóa.")
-    if db.execute(
-        "SELECT 1 FROM tiep_nhan_hang WHERE de_nghi_id = ? LIMIT 1",
-        (de_nghi_id,)
-    ).fetchone() is None:
-        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chưa có phiếu tiếp nhận hàng hóa vào kho M09.")
     if db.execute(
         "SELECT 1 FROM thanh_toan WHERE de_nghi_id = ? AND ma_thanh_toan IS NOT NULL LIMIT 1",
         (de_nghi_id,)
     ).fetchone():
         raise LoiNghiepVu("DA_CO_DE_NGHI_THANH_TOAN", "Đề nghị này đã có hồ sơ thanh toán.")
+    if de_nghi["trang_thai"] not in ["da_nhan", "dang_nghiem_thu"]:
+        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chỉ được lập hồ sơ thanh toán sau khi M09 đã tiếp nhận / đang nghiệm thu hàng hóa.")
+    if db.execute(
+        "SELECT 1 FROM tiep_nhan_hang WHERE de_nghi_id = ? LIMIT 1",
+        (de_nghi_id,)
+    ).fetchone() is None:
+        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chưa có phiếu tiếp nhận hàng hóa vào kho M09.")
 
     bao_gia = db.execute(
         """
@@ -796,13 +863,25 @@ def tao_de_nghi_thanh_toan(de_nghi_id: int, du_lieu: dict, nguoi_de_nghi_id: int
     if gia_tri_de_nghi <= 0:
         raise LoiNghiepVu("THIEU_HO_SO_THANH_TOAN", "Giá trị báo giá đã chọn không hợp lệ để lập thanh toán.")
 
+    u = db.execute("SELECT ho_ten, don_vi FROM nguoi_dung WHERE id = ?", (nguoi_de_nghi_id,)).fetchone()
+    nguoi_de_nghi_ten = du_lieu.get("nguoi_de_nghi_ten") or (u["ho_ten"] if u else "")
+    don_vi = du_lieu.get("don_vi") or (u["don_vi"] if u and u["don_vi"] else de_nghi["don_vi_de_nghi"])
+    ve_khoan = du_lieu.get("ve_khoan") or du_lieu.get("noi_dung_thanh_toan") or f"Thanh toán kinh phí mua sắm {de_nghi['tieu_de']}"
+    hop_dong_so = du_lieu.get("hop_dong_so") or de_nghi["so_hop_dong"] or f"HĐ-{de_nghi['ma_de_nghi']}"
+    hop_dong_ngay = du_lieu.get("hop_dong_ngay") or clock.now().strftime("%d/%m/%Y")
+    so_tien_bang_chu = du_lieu.get("so_tien_bang_chu") or doc_so_thanh_chu(gia_tri_de_nghi)
+    don_vi_thu_huong = du_lieu.get("don_vi_thu_huong") or bao_gia["nha_cung_cap"]
+    so_tai_khoan = du_lieu.get("so_tai_khoan") or "0241000688999"
+    ngan_hang = du_lieu.get("ngan_hang") or "Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - CN Hà Nội"
+    ho_so_kem_theo = du_lieu.get("ho_so_kem_theo") or "Hợp đồng kinh tế, Biên bản nghiệm thu BM04, Hóa đơn tài chính điện tử"
+
     ngay_de_nghi = clock.now().isoformat()
     ma_thanh_toan = sinh_ma_thanh_toan()
     ho_so_dinh_kem = "\n".join([
         f"Đề nghị mua sắm đã được phê duyệt: {de_nghi['ma_de_nghi']}",
         f"Báo giá và căn cứ xác định giá: {bao_gia['nha_cung_cap']}",
         "Hồ sơ lựa chọn nhà cung cấp (nếu áp dụng)",
-        "Hợp đồng hoặc hồ sơ giao dịch tương ứng",
+        f"Hợp đồng kinh tế số: {hop_dong_so}",
         f"Biên bản giao nhận, nghiệm thu: {nghiem_thu['ma_nghiem_thu']}",
         "Phiếu tiếp nhận hàng hóa vào kho M09",
         "Hóa đơn điện tử và chứng từ liên quan (Kế toán đối chiếu)"
@@ -813,23 +892,40 @@ def tao_de_nghi_thanh_toan(de_nghi_id: int, du_lieu: dict, nguoi_de_nghi_id: int
             ma_thanh_toan, de_nghi_id, nha_cung_cap, noi_dung_thanh_toan,
             gia_tri_de_nghi, gia_tri_da_thanh_toan, so_tien_con_lai,
             ma_nghiem_thu, ho_so_dinh_kem, trang_thai, so_tien,
-            ngay_de_nghi, nguoi_de_nghi_id, ghi_chu
+            ngay_de_nghi, nguoi_de_nghi_id, ghi_chu,
+            so_tien_bang_chu, don_vi_thu_huong, so_tai_khoan, ngan_hang,
+            hop_dong_so, hop_dong_ngay, nguoi_de_nghi_ten, don_vi, ve_khoan, ho_so_kem_theo
         )
-        VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 'cho_kiem_tra', 0, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 'cho_kiem_tra', 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             ma_thanh_toan,
             de_nghi_id,
             bao_gia["nha_cung_cap"],
-            du_lieu["noi_dung_thanh_toan"],
+            ve_khoan,
             gia_tri_de_nghi,
             gia_tri_de_nghi,
             nghiem_thu["ma_nghiem_thu"],
             ho_so_dinh_kem,
             ngay_de_nghi,
             nguoi_de_nghi_id,
-            du_lieu.get("ghi_chu", "")
+            du_lieu.get("ghi_chu", ""),
+            so_tien_bang_chu,
+            don_vi_thu_huong,
+            so_tai_khoan,
+            ngan_hang,
+            hop_dong_so,
+            hop_dong_ngay,
+            nguoi_de_nghi_ten,
+            don_vi,
+            ve_khoan,
+            ho_so_kem_theo
         )
+    )
+    # Cập nhật đề nghị mua sắm sang trạng thái 'cho_thanh_toan'
+    db.execute(
+        "UPDATE de_nghi_mua_sam SET trang_thai = 'cho_thanh_toan', ngay_cap_nhat = ? WHERE id = ?",
+        (ngay_de_nghi, de_nghi_id)
     )
     db.commit()
     return {

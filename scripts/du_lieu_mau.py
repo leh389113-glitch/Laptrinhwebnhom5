@@ -220,7 +220,7 @@ def nap_du_lieu():
         logico_id = [bg["id"] for bg in bg_res2["bao_gia"] if "LOGICO" in bg["nha_cung_cap"]][0]
         chon_bao_gia(dn2["id"], logico_id)
 
-        # Lập Biên bản nghiệm thu kỹ thuật BM04 (kết quả ĐẠT) -> Đủ điều kiện tiếp nhận vào kho M09
+        # Lập Biên bản nghiệm thu kỹ thuật BM04 (kết quả ĐẠT)
         lap_bien_ban_nghiem_thu(dn2["id"], {
             "dai_dien_ben_mua": "Cán bộ Bộ phận Mua sắm",
             "dai_dien_nha_cung_cap": "Công ty TNHH Thương mại LOGICO",
@@ -228,6 +228,22 @@ def nap_du_lieu():
             "ket_qua": "dat",
             "y_kien_danh_gia": "02 máy chiếu Sony Laser nguyên đai nguyên kiện, chạy thử hình ảnh sắc nét, đúng cấu hình hợp đồng."
         })
+
+        # M09 tiếp nhận hàng hóa vào kho (Trạng thái: Đang nghiệm thu)
+        tiep_nhan_hang_hoa(dn2["id"], {"ghi_chu": "Đã tiếp nhận 02 máy chiếu Sony Laser vào kho M09."}, user_ids["cb_kho"])
+
+        # M08 lập Giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp (Trạng thái chuyển: Chờ thanh toán)
+        tao_de_nghi_thanh_toan(dn2["id"], {
+            "noi_dung_thanh_toan": "Thanh toán tiền mua 02 máy chiếu Sony Laser VPL-CWZ10 phục vụ giảng đường D2",
+            "ve_khoan": "Thanh toán tiền mua 02 máy chiếu Sony Laser VPL-CWZ10 phục vụ giảng đường D2",
+            "hop_dong_so": "HĐ-2026-SONY-02",
+            "hop_dong_ngay": "10/11/2026",
+            "don_vi_thu_huong": "Công ty TNHH Thương mại LOGICO",
+            "so_tai_khoan": "0241000688999",
+            "ngan_hang": "Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - CN Hà Nội",
+            "ho_so_kem_theo": "Hợp đồng kinh tế, Biên bản nghiệm thu BM04, Bảng xác định giá trị, Hóa đơn điện tử",
+            "ghi_chu": "Chuyển Kế toán kiểm tra và giải ngân chuyển khoản"
+        }, user_ids["cb_muasam"])
 
         # 3. Đề nghị 3: Gói >= 100 triệu đang chờ Lãnh đạo Trường duyệt
         tao_de_nghi({

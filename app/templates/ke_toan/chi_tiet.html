@@ -18,22 +18,22 @@
   <div class="row g-4">
     <div class="col-12">
       <div class="neu-card">
-        <div class="neu-card-header bg-warning-subtle">
-          <span><i class="fa-solid fa-file-invoice-dollar me-2"></i> Phiếu đề nghị thanh toán</span>
+        <div class="neu-card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-file-invoice-dollar me-2"></i> Giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp</span>
           <span class="badge bg-warning text-dark">Chờ kế toán kiểm tra</span>
         </div>
         <div class="neu-card-body">
           <div class="row g-3">
-            <div class="col-md-6"><strong>Hồ sơ mua sắm:</strong> {{ de_nghi.ma_de_nghi }}</div>
-            <div class="col-md-6"><strong>Nhà cung cấp:</strong> {{ de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</div>
-            <div class="col-12"><strong>Nội dung thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan }}</div>
-            <div class="col-md-4"><strong>Giá trị đề nghị:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</div>
-            <div class="col-md-4"><strong>Giá trị đã thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_da_thanh_toan | tien_vnd }}</div>
-            <div class="col-md-4"><strong>Còn phải thanh toán:</strong> <span class="text-danger fw-bold">{{ de_nghi.de_nghi_thanh_toan.so_tien_con_lai | tien_vnd }}</span></div>
-            <div class="col-md-6"><strong>Biên bản nghiệm thu:</strong> {{ de_nghi.de_nghi_thanh_toan.ma_nghiem_thu }}</div>
-            <div class="col-md-6"><strong>Ngày lập phiếu:</strong> {{ de_nghi.de_nghi_thanh_toan.ngay_de_nghi | dinh_dang_ngay }}</div>
+            <div class="col-md-6"><strong>Hồ sơ mua sắm:</strong> {{ de_nghi.ma_de_nghi }} (Mã thanh toán: <code>{{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }}</code>)</div>
+            <div class="col-md-6"><strong>Người đề nghị:</strong> {{ de_nghi.de_nghi_thanh_toan.nguoi_de_nghi_ten or de_nghi.nguoi_de_nghi_ten }} ({{ de_nghi.de_nghi_thanh_toan.don_vi or de_nghi.don_vi_de_nghi }})</div>
+            <div class="col-12"><strong>Về khoản:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan or de_nghi.de_nghi_thanh_toan.ve_khoan }}</div>
+            <div class="col-md-6"><strong>Căn cứ:</strong> HĐ số <u>{{ de_nghi.de_nghi_thanh_toan.hop_dong_so or de_nghi.so_hop_dong or ('HĐ-' ~ de_nghi.ma_de_nghi) }}</u> ngày {{ de_nghi.de_nghi_thanh_toan.hop_dong_ngay or de_nghi.ngay_phe_duyet | dinh_dang_ngay }} & Biên bản nghiệm thu số <u>{{ de_nghi.de_nghi_thanh_toan.ma_nghiem_thu }}</u></div>
+            <div class="col-md-6"><strong>Nhà cung cấp (Đơn vị thụ hưởng):</strong> <span class="badge bg-success fs-6">{{ de_nghi.de_nghi_thanh_toan.don_vi_thu_huong or de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</span></div>
+            <div class="col-md-6"><strong>Số tài khoản:</strong> <code>{{ de_nghi.de_nghi_thanh_toan.so_tai_khoan or '0241000688999' }}</code> tại {{ de_nghi.de_nghi_thanh_toan.ngan_hang or 'Vietcombank - CN Hà Nội' }}</div>
+            <div class="col-md-6"><strong>Số tiền đề nghị:</strong> <span class="text-danger fw-bold fs-5">{{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</span></div>
+            <div class="col-12"><strong>Viết bằng chữ:</strong> <em>{{ de_nghi.de_nghi_thanh_toan.so_tien_bang_chu or (de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | doc_so_thanh_chu) }}</em></div>
             <div class="col-12">
-              <strong>Danh mục hồ sơ cần đối chiếu:</strong>
+              <strong>Danh mục hồ sơ kèm theo đối chiếu:</strong>
               <ul class="mb-0 mt-2">
                 {% for muc in de_nghi.de_nghi_thanh_toan.ho_so_dinh_kem.split('\n') %}
                 <li>{{ muc }}</li>

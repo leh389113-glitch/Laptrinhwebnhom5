@@ -177,3 +177,99 @@ def test_migration_thanh_toan_giu_lich_su_va_cho_phep_phieu_chua_giai_ngan():
     assert payment["gia_tri_da_thanh_toan"] == 1200
     assert payment["so_tien_con_lai"] == 0
     conn.close()
+
+
+def test_trang_thai_dang_nghiem_thu_va_cho_thanh_toan(client, auth):
+    """
+    Test yêu cầu:
+    1. Đổi 'Đã tiếp nhận' thành 'Đang nghiệm thu'.
+    2. Thêm trạng thái 'Chờ thanh toán' khi lập Giấy đề nghị thanh toán gửi cho M08/Kế toán.
+    3. Kiểm tra nội dung văn bản nộp:
+       - 'ĐẠI HỌC KINH TẾ QUỐC DÂN'
+       - 'GIẤY ĐỀ NGHỊ THANH TOÁN'
+       - 'CHUYỂN KHOẢN CHO NHÀ CUNG CẤP'
+       - 'Kính gửi: Ban Giám đốc Đại học Kinh tế Quốc dân'
+       - Các chữ ký: BAN GIÁM ĐỐC, KẾ TOÁN TRƯỞNG, XÁC NHẬN ĐƠN VỊ, NGƯỜI ĐỀ NGHỊ THANH TOÁN
+    """
+    auth.login(vai_tro="mua_sam")
+    # Kiểm tra danh sách có nút lọc 'Đang nghiệm thu' và 'Chờ thanh toán'
+    res_ds = client.get("/mua-sam/")
+    assert res_ds.status_code == 200
+    assert "Đang nghiệm thu" in res_ds.text
+    assert "Chờ thanh toán" in res_ds.text
+
+    # Tạo đề nghị mới
+    client.post("/mua-sam/de-nghi/tao", data={
+        "tieu_de": "Mua hệ thống âm thanh hội thảo",
+        "don_vi_de_nghi": "Khoa Quản trị Kinh doanh",
+        "ten_hang_hoa[]": ["Loa hội thảo"],
+        "don_vi_tinh[]": ["Bộ"],
+        "so_luong[]": ["2"],
+        "don_gia_du_kien[]": ["12000000"]
+    })
+
+    # Khảo sát BM02 phù hợp
+    client.post("/mua-sam/de-nghi/1/khao-sat", data={
+        "noi_dung": "Khảo sát nhu cầu âm thanh",
+        "ket_luan": "phu_hop"
+    })
+
+    # Báo giá
+    for ncc in ("NCC 1", "NCC 2", "NCC 3"):
+        client.post("/mua-sam/de-nghi/1/bao-gia", data={
+            "nha_cung_cap": ncc,
+            "tong_gia": "24000000"
+        })
+    client.post("/mua-sam/de-nghi/1/chon-bao-gia/1")
+
+    # Phê duyệt đề nghị
+    auth.login(vai_tro="quan_tri")
+    client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt âm thanh"})
+
+    # Nghiệm thu BM04
+    auth.login(vai_tro="mua_sam")
+    client.post("/mua-sam/de-nghi/1/nghiem-thu", data={
+        "ket_qua": "dat",
+        "y_kien_danh_gia": "Âm thanh trong trẻo, không rè"
+    })
+
+    # M09 tiếp nhận hàng -> Đổi trạng thái sang 'Đang nghiệm thu'
+    auth.login(vai_tro="quan_ly_kho")
+    client.post("/tai-san/tiep-nhan/1", data={"ghi_chu": "Đã tiếp nhận vào kho"})
+
+    # Xem chi tiết đề nghị: Trạng thái hiển thị là 'Đang nghiệm thu'
+    auth.login(vai_tro="mua_sam")
+    res_view_nghiem_thu = client.get("/mua-sam/de-nghi/1")
+    assert res_view_nghiem_thu.status_code == 200
+    assert "Đang nghiệm thu" in res_view_nghiem_thu.text
+
+    # M08 lập Giấy đề nghị thanh toán
+    res_lap_phieu = client.post("/mua-sam/de-nghi/1/de-nghi-thanh-toan", data={
+        "ve_khoan": "Thanh toán tiền mua hệ thống âm thanh hội thảo",
+        "hop_dong_so": "HĐ-2026-AT-01",
+        "don_vi_thu_huong": "Công ty Âm thanh Ánh sáng",
+        "so_tai_khoan": "0241000888999",
+        "ngan_hang": "Vietcombank - Chi nhánh Hoàn Kiếm"
+    }, follow_redirects=True)
+    assert res_lap_phieu.status_code == 200
+
+    # Sau khi lập giấy đề nghị thanh toán -> Đề nghị chuyển sang trạng thái 'Chờ thanh toán'
+    assert "Chờ thanh toán" in res_lap_phieu.text
+
+    # Kiểm tra nội dung văn bản nộp hiển thị đúng mẫu chuẩn NEU:
+    assert "ĐẠI HỌC KINH TẾ QUỐC DÂN" in res_lap_phieu.text
+    assert "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" in res_lap_phieu.text
+    assert "GIẤY ĐỀ NGHỊ THANH TOÁN" in res_lap_phieu.text
+    assert "CHUYỂN KHOẢN CHO NHÀ CUNG CẤP" in res_lap_phieu.text
+    assert "Kính gửi: Ban Giám đốc Đại học Kinh tế Quốc dân" in res_lap_phieu.text
+    assert "Người đề nghị thanh toán:" in res_lap_phieu.text
+    assert "Căn cứ hợp đồng số:" in res_lap_phieu.text
+    assert "Số tiền đề nghị thanh toán:" in res_lap_phieu.text
+    assert "Viết bằng chữ:" in res_lap_phieu.text
+    assert "Đơn vị thụ hưởng:" in res_lap_phieu.text
+    assert "Hồ sơ kèm theo:" in res_lap_phieu.text
+    assert "BAN GIÁM ĐỐC" in res_lap_phieu.text
+    assert "KẾ TOÁN TRƯỞNG" in res_lap_phieu.text
+    assert "XÁC NHẬN ĐƠN VỊ" in res_lap_phieu.text
+    assert "NGƯỜI ĐỀ NGHỊ THANH TOÁN" in res_lap_phieu.text
+

@@ -28,6 +28,12 @@ def test_phe_duyet_de_nghi_khong_du_quyen(client, auth):
         "don_gia_du_kien[]": ["15000000"]
     })
 
+    # Cán bộ mua sắm lập khảo sát BM02 phù hợp
+    client.post("/mua-sam/de-nghi/1/khao-sat", data={
+        "noi_dung": "Khảo sát nhu cầu máy tính đồng bộ",
+        "ket_luan": "phu_hop"
+    })
+
     # Cán bộ mua sắm cố gắng phê duyệt đề nghị id 1 (>= 100 triệu) -> phải bị 403 Forbidden
     res = client.post("/mua-sam/de-nghi/1/phe-duyet", headers={"Accept": "application/json"})
     assert res.status_code == 403
@@ -52,12 +58,7 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
         "don_gia_du_kien[]": ["3500000"]
     })
 
-    # 2. Admin phê duyệt
-    auth.login(vai_tro="quan_tri")
-    res_duyet = client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt cấp máy in"}, follow_redirects=True)
-    assert res_duyet.status_code == 200
-
-    # Khảo sát BM02, thu thập tối thiểu 3 báo giá và chốt một nhà cung cấp.
+    # 2. Khảo sát BM02 phù hợp trước khi phê duyệt
     auth.login(vai_tro="mua_sam")
     client.post("/mua-sam/de-nghi/1/khao-sat", data={
         "noi_dung": "Khảo sát nhu cầu máy in",
@@ -70,7 +71,13 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
         })
     client.post("/mua-sam/de-nghi/1/chon-bao-gia/1")
 
-    # Lập biên bản nghiệm thu kỹ thuật BM04 đạt yêu cầu sau khi chốt NCC.
+    # 3. Sau khi khảo sát phù hợp -> Admin phê duyệt đề nghị
+    auth.login(vai_tro="quan_tri")
+    res_duyet = client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt cấp máy in"}, follow_redirects=True)
+    assert res_duyet.status_code == 200
+
+    # 4. Lập biên bản nghiệm thu kỹ thuật BM04 đạt yêu cầu sau khi duyệt và chốt NCC.
+    auth.login(vai_tro="mua_sam")
     res_nt = client.post("/mua-sam/de-nghi/1/nghiem-thu", data={
         "ket_qua": "dat",
         "dai_dien_ben_mua": "BP Mua sắm",
@@ -79,7 +86,7 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
     }, follow_redirects=True)
     assert res_nt.status_code == 200
 
-    # 3. Bộ phận quản lý tài sản tiếp nhận hàng vào kho
+    # 5. Bộ phận quản lý tài sản tiếp nhận hàng vào kho
     auth.login(vai_tro="quan_ly_kho")
     res_nhan = client.post("/tai-san/tiep-nhan/1", data={"ghi_chu": "Đã nhận máy in"}, follow_redirects=True)
     assert res_nhan.status_code == 200
@@ -89,3 +96,79 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
     res_ts = client.get("/tai-san/")
     assert res_ts.status_code == 200
     assert "Máy in Canon 2900" in res_ts.text
+
+
+def test_bat_buoc_khao_sat_phu_hop_moi_hien_thi_nut_duyet(client, auth):
+    """
+    Test quy tắc:
+    1. Chưa khảo sát: Ẩn nút phê duyệt trên giao diện, cố tình POST bị lỗi CHUA_KHAO_SAT.
+    2. Khảo sát chưa kết luận 'phù hợp và cần thiết để tổ chức thực hiện' (chua_du): Ẩn nút phê duyệt, cố tình POST bị lỗi KHAO_SAT_CHUA_PHU_HOP.
+    3. Trong mục kết luận chỉ có 2 lựa chọn: 'Phù hợp và cần thiết để tổ chức thực hiện' và 'Chưa đủ cơ sở để tổ chức thực hiện'.
+    4. Khảo sát xong và kết luận 'phù hợp và cần thiết để tổ chức thực hiện': Nút phê duyệt hiển thị và duyệt thành công.
+    """
+    # 1. Tạo đề nghị mới
+    auth.login(vai_tro="mua_sam")
+    client.post("/mua-sam/de-nghi/tao", data={
+        "tieu_de": "Mua bàn ghế phòng đọc thư viện",
+        "don_vi_de_nghi": "Thư viện NEU",
+        "ten_hang_hoa[]": ["Bàn đọc gỗ"],
+        "don_vi_tinh[]": ["Bộ"],
+        "so_luong[]": ["10"],
+        "don_gia_du_kien[]": ["2000000"]
+    })
+
+    # Đăng nhập Admin hoặc Trưởng BP Mua sắm xem chi tiết
+    auth.login(vai_tro="quan_tri")
+    res_view1 = client.get("/mua-sam/de-nghi/1")
+    assert res_view1.status_code == 200
+    # Khi chưa khảo sát: Không có nút/form Phê duyệt đề nghị
+    assert "/mua-sam/de-nghi/1/phe-duyet" not in res_view1.text
+    assert "Chưa thể phê duyệt" in res_view1.text
+
+    # Cố tình gọi API phê duyệt khi chưa khảo sát -> 400 CHUA_KHAO_SAT
+    res_duyet_fail1 = client.post("/mua-sam/de-nghi/1/phe-duyet", headers={"Accept": "application/json"})
+    assert res_duyet_fail1.status_code == 400
+    assert res_duyet_fail1.json["loi"] == "CHUA_KHAO_SAT"
+
+    # Kiểm tra modal khảo sát chỉ có 2 lựa chọn kết luận
+    assert "Phù hợp và cần thiết để tổ chức thực hiện" in res_view1.text
+    assert "Chưa đủ cơ sở để tổ chức thực hiện" in res_view1.text
+    assert "Cần điều chỉnh số lượng" not in res_view1.text
+
+    # 2. Thực hiện khảo sát nhưng kết luận là 'chua_du' (Chưa đủ cơ sở để tổ chức thực hiện)
+    auth.login(vai_tro="mua_sam")
+    res_ks_chua_du = client.post("/mua-sam/de-nghi/1/khao-sat", data={
+        "noi_dung": "Khảo sát hiện trạng thư viện",
+        "ket_luan": "chua_du"
+    }, follow_redirects=True)
+    assert res_ks_chua_du.status_code == 200
+
+    # Xem lại trang chi tiết: Nút duyệt vẫn BỊ ẨN
+    auth.login(vai_tro="quan_tri")
+    res_view2 = client.get("/mua-sam/de-nghi/1")
+    assert "/mua-sam/de-nghi/1/phe-duyet" not in res_view2.text
+    assert "Chưa thể phê duyệt" in res_view2.text
+
+    # Cố tình gọi API phê duyệt khi kết luận chưa phù hợp -> 400 KHAO_SAT_CHUA_PHU_HOP
+    res_duyet_fail2 = client.post("/mua-sam/de-nghi/1/phe-duyet", headers={"Accept": "application/json"})
+    assert res_duyet_fail2.status_code == 400
+    assert res_duyet_fail2.json["loi"] == "KHAO_SAT_CHUA_PHU_HOP"
+
+    # 3. Khảo sát lại với kết luận 'phu_hop' (Phù hợp và cần thiết để tổ chức thực hiện)
+    auth.login(vai_tro="mua_sam")
+    res_ks_ok = client.post("/mua-sam/de-nghi/1/khao-sat", data={
+        "noi_dung": "Khảo sát bổ sung nhu cầu thư viện",
+        "ket_luan": "phu_hop"
+    }, follow_redirects=True)
+    assert res_ks_ok.status_code == 200
+
+    # Xem lại trang chi tiết: NÚT DUYỆT ĐÃ HIỂN THỊ
+    auth.login(vai_tro="quan_tri")
+    res_view3 = client.get("/mua-sam/de-nghi/1")
+    assert "/mua-sam/de-nghi/1/phe-duyet" in res_view3.text
+
+    # Bấm phê duyệt thành công
+    res_duyet_ok = client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt mua bàn ghế"}, follow_redirects=True)
+    assert res_duyet_ok.status_code == 200
+    assert "Đã phê duyệt đề nghị" in res_duyet_ok.text
+

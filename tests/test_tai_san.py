@@ -109,6 +109,7 @@ def test_chi_hien_thi_de_nghi_da_nghiem_thu_dat_de_tiep_nhan(client, auth, app):
             "don_vi_de_nghi": "Khoa CNTT",
             "items": [{"ten_hang_hoa": "Màn hình Dell", "so_luong": 1, "don_gia_du_kien": 5000000}]
         }, u_id)
+        ms_svc.tao_khao_sat(dn_a["id"], {"noi_dung": "Khảo sát gói A", "ket_luan": "phu_hop"})
         ms_svc.phe_duyet_de_nghi(dn_a["id"], admin_id, "Duyệt", vai_tro="quan_tri")
 
         dn_b = ms_svc.tao_de_nghi({
@@ -116,15 +117,14 @@ def test_chi_hien_thi_de_nghi_da_nghiem_thu_dat_de_tiep_nhan(client, auth, app):
             "don_vi_de_nghi": "Khoa QTKD",
             "items": [{"ten_hang_hoa": "Máy in Canon LBP", "so_luong": 1, "don_gia_du_kien": 6000000}]
         }, u_id)
-        ms_svc.phe_duyet_de_nghi(dn_b["id"], admin_id, "Duyệt", vai_tro="quan_tri")
-
-        # Khảo sát BM02 -> Báo giá -> Chọn báo giá -> Nghiệm thu BM04 cho Gói B
+        # Khảo sát BM02 -> Báo giá -> Chọn báo giá -> Phê duyệt -> Nghiệm thu BM04 cho Gói B
         ms_svc.tao_khao_sat(dn_b["id"], {"noi_dung": "Khảo sát", "ket_luan": "phu_hop"})
         ms_svc.them_bao_gia(dn_b["id"], {"nha_cung_cap": "NCC B", "tong_gia": 6000000})
         ms_svc.them_bao_gia(dn_b["id"], {"nha_cung_cap": "NCC B2", "tong_gia": 6100000})
         ms_svc.them_bao_gia(dn_b["id"], {"nha_cung_cap": "NCC B3", "tong_gia": 6200000})
         bg_row = db.execute("SELECT id FROM bao_gia WHERE de_nghi_id = ?", (dn_b["id"],)).fetchone()
         ms_svc.chon_bao_gia(dn_b["id"], bg_row["id"])
+        ms_svc.phe_duyet_de_nghi(dn_b["id"], admin_id, "Duyệt", vai_tro="quan_tri")
         ms_svc.lap_bien_ban_nghiem_thu(dn_b["id"], {
             "dai_dien_ben_mua": "BP Mua sắm",
             "dai_dien_nha_cung_cap": "NCC B",

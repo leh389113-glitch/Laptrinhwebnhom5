@@ -606,6 +606,28 @@ def _migrate_db(conn):
         cur.execute("DROP TABLE thanh_toan")
         cur.execute("ALTER TABLE thanh_toan_migration RENAME TO thanh_toan")
 
+    # Bổ sung các cột hồ sơ thanh toán công vụ cho bảng thanh_toan
+    try:
+        cur.execute("PRAGMA table_info(thanh_toan)")
+        tt_cols = [r[1] for r in cur.fetchall()]
+        new_tt_cols = [
+            ("so_tien_bang_chu", "TEXT"),
+            ("don_vi_thu_huong", "TEXT"),
+            ("so_tai_khoan", "TEXT"),
+            ("ngan_hang", "TEXT"),
+            ("hop_dong_so", "TEXT"),
+            ("hop_dong_ngay", "TEXT"),
+            ("nguoi_de_nghi_ten", "TEXT"),
+            ("don_vi", "TEXT"),
+            ("ve_khoan", "TEXT"),
+            ("ho_so_kem_theo", "TEXT")
+        ]
+        for col_name, col_def in new_tt_cols:
+            if col_name not in tt_cols:
+                cur.execute(f"ALTER TABLE thanh_toan ADD COLUMN {col_name} {col_def}")
+    except Exception:
+        pass
+
     cur.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_thanh_toan_ma

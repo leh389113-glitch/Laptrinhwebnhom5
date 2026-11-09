@@ -189,15 +189,25 @@ def lap_nghiem_thu(id):
 @mua_sam_bp.route("/de-nghi/<int:id>/de-nghi-thanh-toan", methods=["POST"])
 @yeu_cau_vai_tro("mua_sam")
 def de_nghi_thanh_toan(id):
-    """Lập phiếu đề nghị thanh toán sau khi M09 đã tiếp nhận hàng."""
+    """Lập giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp chuẩn NEU gửi sang Kế toán."""
     du_lieu_form = {
-        "noi_dung_thanh_toan": request.form.get("noi_dung_thanh_toan"),
+        "noi_dung_thanh_toan": request.form.get("noi_dung_thanh_toan") or request.form.get("ve_khoan"),
+        "ve_khoan": request.form.get("ve_khoan") or request.form.get("noi_dung_thanh_toan"),
+        "nguoi_de_nghi_ten": request.form.get("nguoi_de_nghi_ten"),
+        "don_vi": request.form.get("don_vi"),
+        "hop_dong_so": request.form.get("hop_dong_so"),
+        "hop_dong_ngay": request.form.get("hop_dong_ngay"),
+        "so_tien_bang_chu": request.form.get("so_tien_bang_chu"),
+        "don_vi_thu_huong": request.form.get("don_vi_thu_huong"),
+        "so_tai_khoan": request.form.get("so_tai_khoan"),
+        "ngan_hang": request.form.get("ngan_hang"),
+        "ho_so_kem_theo": request.form.get("ho_so_kem_theo"),
         "ghi_chu": request.form.get("ghi_chu")
     }
     try:
         cleaned = schemas.xac_thuc_de_nghi_thanh_toan(du_lieu_form)
         phieu = ms_svc.tao_de_nghi_thanh_toan(id, cleaned, session["nguoi_dung_id"])
-        flash(f"Đã gửi phiếu thanh toán {phieu['ma_thanh_toan']} sang Kế toán kiểm tra.", "success")
+        flash(f"Đã lập Giấy đề nghị thanh toán (gửi phiếu thanh toán {phieu['ma_thanh_toan']}) sang trạng thái Chờ thanh toán để Kế toán kiểm tra.", "success")
     except LoiNghiepVu as e:
         flash(e.thong_bao, "danger")
 

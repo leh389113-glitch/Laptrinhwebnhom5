@@ -59,8 +59,8 @@ def ghi_nhan_thanh_toan(de_nghi_id: int, du_lieu: dict, nguoi_thanh_toan_id: int
         raise LoiNghiepVu("KHONG_CO_DE_NGHI_THANH_TOAN", "Đề nghị chưa có phiếu thanh toán do M08 lập.")
     if row["trang_thai"] != "cho_kiem_tra":
         raise LoiNghiepVu("TRANG_THAI_KHONG_HOP_LE", "Phiếu thanh toán không còn ở trạng thái chờ Kế toán kiểm tra.")
-    if row["trang_thai_de_nghi"] != "da_nhan":
-        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chỉ thanh toán khi đề nghị đã được M09 tiếp nhận hàng hóa.")
+    if row["trang_thai_de_nghi"] not in ["cho_thanh_toan", "da_nhan", "dang_nghiem_thu"]:
+        raise LoiNghiepVu("CHUA_TIEP_NHAN", "Chỉ thanh toán khi đề nghị đã được M09 tiếp nhận hàng hóa / lập hồ sơ thanh toán.")
 
     so_tien = float(du_lieu["so_tien"])
     so_tien_con_lai = float(row["so_tien_con_lai"] or 0)
