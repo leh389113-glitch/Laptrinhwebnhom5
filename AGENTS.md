@@ -150,7 +150,7 @@ graph TD
 | **BR03** | **Khảo sát nhu cầu (BM02)**: Trước khi mua sắm số lượng lớn, BP Mua sắm lập phiếu khảo sát ghi nhận hiện trạng và mức độ cấp thiết. |
 | **BR04** | **Quy tắc 3 báo giá cạnh tranh**: Mỗi gói mua sắm phải thu thập tối thiểu 3 báo giá từ các nhà cung cấp độc lập trước khi lựa chọn. |
 | **BR05** | **Nghiệm thu kỹ thuật (BM04)**: Hàng hóa giao đến phải được lập biên bản kiểm tra đạt yêu cầu kỹ thuật mới được nhập kho. |
-| **BR06** | **Tự động sinh tài sản vào kho M09**: Khi BP Quản lý tài sản nhấn "Tiếp nhận hàng hóa" tại `/tai-san/tiep-nhan`, hệ thống tự động sinh bản ghi tài sản tương ứng với trạng thái `cho_ban_giao`. |
+| **BR06** | **Tiếp nhận tài sản mới từ Mua sắm (M09)**: Bộ phận Quản lý tài sản kiểm tra nghiệm thu kỹ thuật và tiếp nhận nhập kho M09 tại `/tai-san/tiep-nhan`. **Chỉ hiển thị các đề nghị đã được nghiệm thu kỹ thuật đạt (BM04)**, đủ điều kiện tiếp nhận vào kho M09. Khi xác nhận tiếp nhận, hệ thống tự động sinh mã định danh (TSCĐ `TS-YYYY-XXXX` / CCDC `CCDC-YYYY-XXXX`) với trạng thái `cho_ban_giao`. Tuyệt đối không có nút đề xuất mua sắm thủ công trong M09. |
 | **BR07** | **Điều kiện thanh toán kế toán**: Kế toán chỉ được duyệt giải ngân cho các đề nghị mua sắm đã có trạng thái `da_nhan` (đã tiếp nhận hàng và nghiệm thu đầy đủ theo Mục IV Phụ lục 01). |
 | **BR08** | **Báo cáo hư hại hoàn toàn công khai**: Bất kỳ ai cũng có thể gửi phản ánh tại `/bao-cao-hu-hai` mà không cần tài khoản, mật khẩu hay captcha. |
 | **BR09** | **Ẩn nút báo cáo hư hại khi đã đăng nhập**: Trang chủ và toàn bộ navbar không hiển thị nút báo cáo sự cố khi phiên làm việc đã đăng nhập. |

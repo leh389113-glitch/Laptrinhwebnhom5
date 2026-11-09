@@ -122,7 +122,15 @@
             <li><i class="fa-solid fa-check text-success me-1"></i> Kế toán thanh toán hóa đơn</li>
           </ul>
           <div class="mt-auto">
-            <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M08</a>
+            {% if session.get('vai_tro') in ['mua_sam', 'quan_tri'] %}
+              <a href="{{ url_for('mua_sam.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M08</a>
+            {% elif session.get('vai_tro') == 'quan_ly_kho' %}
+              <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-outline-primary w-100"><i class="fa-solid fa-cart-arrow-down me-1"></i> Tiếp nhận hàng từ M08</a>
+            {% elif session.get('vai_tro') == 'don_vi' %}
+              <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-outline-primary w-100"><i class="fa-solid fa-list-check me-1"></i> Đề xuất mua sắm đơn vị</a>
+            {% else %}
+              <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-neu-primary w-100">Đăng nhập để truy cập</a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -144,7 +152,13 @@
             <li><i class="fa-solid fa-check text-success me-1"></i> Phiếu kiểm kê định kỳ</li>
           </ul>
           <div class="mt-auto">
-            <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M09</a>
+            {% if session.get('vai_tro') in ['quan_ly_kho', 'quan_tri'] %}
+              <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-neu-primary w-100">Truy cập Module M09</a>
+            {% elif session.get('vai_tro') == 'don_vi' %}
+              <a href="{{ url_for('don_vi.danh_sach_tai_san') }}" class="btn btn-outline-primary w-100"><i class="fa-solid fa-boxes-stacked me-1"></i> Danh mục tài sản đơn vị</a>
+            {% else %}
+              <a href="{{ url_for('auth.dang_nhap') }}" class="btn btn-neu-primary w-100">Đăng nhập để truy cập</a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -166,7 +180,11 @@
             <li><i class="fa-solid fa-check text-success me-1"></i> Giám sát xử lý sự cố hư hại</li>
           </ul>
           <div class="mt-auto">
-            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-neu-primary w-100">Truy cập Dashboard M17</a>
+            {% if session.get('vai_tro') == 'quan_tri' %}
+              <a href="{{ url_for('admin.dashboard') }}" class="btn btn-neu-primary w-100">Truy cập Dashboard M17</a>
+            {% else %}
+              <button class="btn btn-secondary w-100" disabled><i class="fa-solid fa-lock me-1"></i> Dành riêng cho Lãnh đạo</button>
+            {% endif %}
           </div>
         </div>
       </div>

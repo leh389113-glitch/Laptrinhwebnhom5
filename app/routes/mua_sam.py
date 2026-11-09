@@ -186,23 +186,22 @@ def lap_nghiem_thu(id):
 
     return redirect(url_for("mua_sam.chi_tiet", id=id))
 
-@mua_sam_bp.route("/de-nghi/<int:id>/tiep-nhan", methods=["GET", "POST"])
-@yeu_cau_vai_tro("quan_ly_kho")
-def tiep_nhan(id):
-    """Ghi nhận tiếp nhận hàng hóa nhập kho (chuyên trách do Bộ phận Quản lý tài sản thực hiện)."""
-    de_nghi = ms_svc.lay_chi_tiet_de_nghi(id)
-    if request.method == "POST":
-        du_lieu = {
-            "ghi_chu": request.form.get("ghi_chu", "")
-        }
-        try:
-            ms_svc.tiep_nhan_hang_hoa(id, du_lieu, session["nguoi_dung_id"])
-            flash(f"Tiếp nhận hàng hóa thành công! Các tài sản đã được tạo tự động và đưa vào kho (M09).", "success")
-            return redirect(url_for("tai_san.danh_sach_tiep_nhan"))
-        except LoiNghiepVu as e:
-            flash(e.thong_bao, "danger")
+@mua_sam_bp.route("/de-nghi/<int:id>/de-nghi-thanh-toan", methods=["POST"])
+@yeu_cau_vai_tro("mua_sam")
+def de_nghi_thanh_toan(id):
+    """Lập phiếu đề nghị thanh toán sau khi M09 đã tiếp nhận hàng."""
+    du_lieu_form = {
+        "noi_dung_thanh_toan": request.form.get("noi_dung_thanh_toan"),
+        "ghi_chu": request.form.get("ghi_chu")
+    }
+    try:
+        cleaned = schemas.xac_thuc_de_nghi_thanh_toan(du_lieu_form)
+        phieu = ms_svc.tao_de_nghi_thanh_toan(id, cleaned, session["nguoi_dung_id"])
+        flash(f"Đã gửi phiếu thanh toán {phieu['ma_thanh_toan']} sang Kế toán kiểm tra.", "success")
+    except LoiNghiepVu as e:
+        flash(e.thong_bao, "danger")
 
-    return render_template("tai_san/tiep_nhan.html", de_nghi=de_nghi)
+    return redirect(url_for("mua_sam.chi_tiet", id=id))
 
 @mua_sam_bp.route("/ho-so")
 @yeu_cau_vai_tro("mua_sam", "quan_tri")

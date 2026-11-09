@@ -1,101 +1,149 @@
 {% extends "base.html" %}
-{% block title %}Tiếp nhận hàng hóa từ Mua sắm (M08 &rarr; M09) - NEU Facility Hub{% endblock %}
+{% block title %}Tiếp nhận tài sản mới từ Mua sắm (M08 &rarr; M09) - NEU Facility Hub{% endblock %}
 {% block content %}
-<div class="container">
+<div class="container my-4">
 
-  <div class="neu-page-header">
+  <div class="neu-page-header mb-4">
     <div>
-      <h2 class="neu-page-title"><i class="fa-solid fa-cart-arrow-down text-info me-2"></i> TIẾP NHẬN TÀI SẢN MỚI TỪ MUA SẮM</h2>
-      <small class="text-muted">Bộ phận Quản lý tài sản kiểm tra nghiệm thu kỹ thuật và tiếp nhận nhập kho M09</small>
+      <h2 class="neu-page-title text-success fw-bold">
+        <i class="fa-solid fa-cart-arrow-down text-success me-2"></i> TIẾP NHẬN TÀI SẢN MỚI TỪ MUA SẮM
+      </h2>
+      <p class="text-muted mb-0">Bộ phận Quản lý tài sản kiểm tra nghiệm thu kỹ thuật và tiếp nhận nhập kho M09</p>
     </div>
     <div>
       <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-outline-secondary">
-        <i class="fa-solid fa-boxes-stacked me-1"></i> Sổ tài sản M09
+        <i class="fa-solid fa-warehouse me-1"></i> Sổ tài sản M09
       </a>
     </div>
   </div>
 
-  <!-- Filter tabs -->
-  <div class="neu-filter-bar mb-3">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <span class="fw-bold me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái gói mua:</span>
-      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-neu-dark text-white{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
-      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan', trang_thai='da_phe_duyet') }}" class="btn btn-sm {% if trang_thai_chon == 'da_phe_duyet' %}btn-neu-dark text-white{% else %}btn-outline-info{% endif %}">Đã phê duyệt</a>
-      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan', trang_thai='dang_mua') }}" class="btn btn-sm {% if trang_thai_chon == 'dang_mua' %}btn-neu-dark text-white{% else %}btn-outline-primary{% endif %}">Đang mua sắm</a>
-      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan', trang_thai='da_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'da_nhan' %}btn-neu-dark text-white{% else %}btn-outline-success{% endif %}">Đã tiếp nhận</a>
+  <!-- Thông báo quy chuẩn tiếp nhận -->
+  <div class="alert alert-success border-success bg-light shadow-sm mb-4">
+    <div class="d-flex align-items-center">
+      <i class="fa-solid fa-clipboard-check fs-2 text-success me-3"></i>
+      <div>
+        <strong class="text-success fs-6"><i class="fa-solid fa-check-double me-1"></i> Tiêu chí kiểm soát tiếp nhận:</strong>
+        <div class="text-dark small mt-1">
+          Hệ thống <strong>chỉ hiển thị các đề nghị mua sắm đã có Biên bản nghiệm thu kỹ thuật (BM04) ĐẠT YÊU CẦU</strong>, đủ điều kiện tiếp nhận. Khi Cán bộ Quản lý tài sản xác nhận tiếp nhận, hệ thống sẽ tự động phân loại và cấp mã định danh chuẩn hóa:
+          <strong>TSCĐ</strong> (đơn giá &ge; 10 triệu: <code>TS-YYYY-XXXX</code>) hoặc <strong>CCDC</strong> (đơn giá &lt; 10 triệu: <code>CCDC-YYYY-XXXX</code>) vào kho M09.
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Proposal List for Receipt -->
-  <div class="neu-card">
-    <div class="neu-card-header">
-      <span><i class="fa-solid fa-list me-2"></i> Danh sách gói mua sắm chuyển giao sang M09 (Tổng: {{ de_nghi_list|length }})</span>
+  <!-- Thanh lọc trạng thái -->
+  <div class="neu-filter-bar mb-3 p-3 bg-white border rounded shadow-sm">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="fw-bold me-2"><i class="fa-solid fa-filter me-1 text-primary"></i> Trạng thái nhập kho:</span>
+      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-dark text-white fw-bold{% else %}btn-outline-secondary{% endif %}">
+        Tất cả đã nghiệm thu
+      </a>
+      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan', trang_thai='cho_tiep_nhan') }}" class="btn btn-sm {% if trang_thai_chon == 'cho_tiep_nhan' %}btn-warning text-dark fw-bold{% else %}btn-outline-warning text-dark{% endif %}">
+        <i class="fa-solid fa-clock me-1"></i> Chờ tiếp nhận vào kho
+      </a>
+      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan', trang_thai='da_tiep_nhan') }}" class="btn btn-sm {% if trang_thai_chon in ['da_tiep_nhan', 'da_nhan'] %}btn-success text-white fw-bold{% else %}btn-outline-success{% endif %}">
+        <i class="fa-solid fa-circle-check me-1"></i> Đã tiếp nhận nhập kho
+      </a>
     </div>
-    <div class="neu-card-body p-0">
-      <table class="neu-table">
-        <thead>
-          <tr>
-            <th>Mã đề nghị</th>
-            <th>Tiêu đề gói mua sắm</th>
-            <th>Đơn vị đề nghị</th>
-            <th>Nguồn gốc</th>
-            <th class="text-end">Dự toán kinh phí</th>
-            <th class="text-center">Trạng thái mua sắm</th>
-            <th class="text-center">Thao tác QLTS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if de_nghi_list %}
-            {% for d in de_nghi_list %}
+  </div>
+
+  <!-- Bảng danh sách gói mua sắm đã nghiệm thu -->
+  <div class="neu-card card shadow-sm border-0">
+    <div class="card-header bg-neu-primary text-white py-3 d-flex justify-content-between align-items-center">
+      <span class="fw-bold"><i class="fa-solid fa-dolly me-2"></i> Danh sách gói mua sắm đủ điều kiện tiếp nhận (Tổng: {{ de_nghi_list|length }})</span>
+      <span class="badge bg-light text-dark"><i class="fa-solid fa-shield-check text-success me-1"></i> Đã kiểm tra nghiệm thu BM04</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
             <tr>
-              <td><strong class="text-primary">{{ d.ma_de_nghi }}</strong></td>
-              <td>
-                <div class="fw-bold text-dark">{{ d.tieu_de }}</div>
-                <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> {{ d.ngay_tao[:10] if d.ngay_tao else '' }}</small>
-              </td>
-              <td><span class="badge bg-light text-dark border">{{ d.don_vi_de_nghi }}</span></td>
-              <td>
-                {% if d.nguon_goc == 'thay_the_hu_hai' %}
-                  <span class="badge bg-danger"><i class="fa-solid fa-rotate me-1"></i> Thay thế hư hại</span>
-                {% else %}
-                  <span class="badge bg-secondary">Đề xuất mới</span>
-                {% endif %}
-              </td>
-              <td class="text-end fw-bold text-danger">{{ (d.tong_du_toan or d.tong_tien_uoc_tinh or 0) | tien_vnd }}</td>
-              <td class="text-center">
-                {% if d.trang_thai == 'da_phe_duyet' %}
-                  <span class="badge bg-info text-dark">Đã phê duyệt</span>
-                {% elif d.trang_thai == 'dang_mua' %}
-                  <span class="badge bg-primary">Đang mua sắm</span>
-                {% elif d.trang_thai == 'da_nhan' %}
-                  <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Đã tiếp nhận kho</span>
-                {% else %}
-                  <span class="badge bg-secondary">{{ d.trang_thai }}</span>
-                {% endif %}
-              </td>
-              <td class="text-center">
-                {% if d.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
-                  <a href="{{ url_for('tai_san.tiep_nhan_don_hang', id=d.id) }}" class="btn btn-sm btn-success fw-bold">
-                    <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận vào kho
-                  </a>
-                {% else %}
-                  <span class="badge bg-light text-success border border-success p-2">
-                    <i class="fa-solid fa-circle-check me-1"></i> Đã nhập kho M09
-                  </span>
-                {% endif %}
-              </td>
+              <th class="ps-3">Mã đề nghị</th>
+              <th>Biên bản nghiệm thu kỹ thuật (BM04)</th>
+              <th>Gói mua sắm & Nhà cung cấp</th>
+              <th>Đơn vị đề nghị</th>
+              <th class="text-end">Giá trị nghiệm thu</th>
+              <th class="text-center">Trạng thái kho M09</th>
+              <th class="text-center pe-3">Thao tác QLTS</th>
             </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="7" class="text-center py-4 text-muted">
-                <i class="fa-solid fa-box-open fa-2x mb-2 d-block"></i>
-                Hiện tại không có gói mua sắm nào cần tiếp nhận.
-              </td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% if de_nghi_list %}
+              {% for d in de_nghi_list %}
+              <tr>
+                <td class="ps-3">
+                  <strong class="text-primary fs-6">{{ d.ma_de_nghi }}</strong>
+                  {% if d.nguon_goc == 'thay_the_hu_hai' %}
+                    <span class="badge bg-danger d-block mt-1" style="font-size: 0.7rem;"><i class="fa-solid fa-rotate me-1"></i> Thay thế hư hại</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="fw-bold text-success">
+                    <i class="fa-solid fa-file-signature me-1"></i> {{ d.ma_nghiem_thu }}
+                  </div>
+                  <div class="small mt-1">
+                    <span class="badge bg-success-subtle text-success border border-success">
+                      <i class="fa-solid fa-circle-check me-1"></i> Nghiệm thu ĐẠT
+                    </span>
+                    <span class="text-muted ms-1"><i class="fa-regular fa-calendar-check me-1"></i> {{ d.ngay_nghiem_thu | dinh_dang_ngay }}</span>
+                  </div>
+                  {% if d.y_kien_nghiem_thu %}
+                    <div class="text-muted small fst-italic mt-1 text-truncate" style="max-width: 260px;" title="{{ d.y_kien_nghiem_thu }}">
+                      "{{ d.y_kien_nghiem_thu }}"
+                    </div>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="fw-bold text-dark">{{ d.tieu_de }}</div>
+                  {% if d.nha_cung_cap %}
+                    <small class="text-muted"><i class="fa-solid fa-truck-field me-1"></i> NCC: {{ d.nha_cung_cap }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ d.don_vi_de_nghi }}</span>
+                  <div class="text-muted small mt-1">{{ d.nguoi_de_nghi_ten }}</div>
+                </td>
+                <td class="text-end fw-bold text-danger">
+                  {{ (d.gia_tri_hop_dong or d.tong_du_toan or 0) | tien_vnd }}
+                </td>
+                <td class="text-center">
+                  {% if d.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+                    <span class="badge bg-warning text-dark p-2">
+                      <i class="fa-solid fa-hourglass-half me-1"></i> Chờ tiếp nhận vào kho
+                    </span>
+                  {% elif d.trang_thai in ['da_nhan', 'hoan_tat'] %}
+                    <span class="badge bg-success p-2">
+                      <i class="fa-solid fa-circle-check me-1"></i> Đã tiếp nhận nhập kho
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary p-2">{{ d.trang_thai }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center pe-3">
+                  {% if d.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+                    <a href="{{ url_for('tai_san.tiep_nhan_don_hang', id=d.id) }}" class="btn btn-success btn-sm fw-bold shadow-sm">
+                      <i class="fa-solid fa-boxes-packing me-1"></i> Tiếp nhận vào kho
+                    </a>
+                  {% else %}
+                    <a href="{{ url_for('tai_san.tiep_nhan_don_hang', id=d.id) }}" class="btn btn-outline-primary btn-sm">
+                      <i class="fa-solid fa-circle-info me-1"></i> Xem chi tiết
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  <i class="fa-solid fa-boxes-stacked fa-3x text-secondary opacity-50 mb-3 d-block"></i>
+                  <h6 class="text-muted">Hiện tại không có gói mua sắm nào đủ điều kiện tiếp nhận</h6>
+                  <p class="small text-secondary mb-0">Các gói mua sắm cần hoàn tất lập Biên bản nghiệm thu kỹ thuật (BM04) ĐẠT tại phân hệ Mua sắm mới xuất hiện tại đây.</p>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 

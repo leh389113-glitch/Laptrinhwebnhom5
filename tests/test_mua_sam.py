@@ -57,9 +57,31 @@ def test_phe_duyet_va_tiep_nhan_hang_sinh_tai_san(client, auth):
     res_duyet = client.post("/mua-sam/de-nghi/1/phe-duyet", data={"ghi_chu": "Duyệt cấp máy in"}, follow_redirects=True)
     assert res_duyet.status_code == 200
 
+    # Khảo sát BM02, thu thập tối thiểu 3 báo giá và chốt một nhà cung cấp.
+    auth.login(vai_tro="mua_sam")
+    client.post("/mua-sam/de-nghi/1/khao-sat", data={
+        "noi_dung": "Khảo sát nhu cầu máy in",
+        "ket_luan": "phu_hop"
+    })
+    for nha_cung_cap in ("NCC A", "NCC B", "NCC C"):
+        client.post("/mua-sam/de-nghi/1/bao-gia", data={
+            "nha_cung_cap": nha_cung_cap,
+            "tong_gia": "3500000"
+        })
+    client.post("/mua-sam/de-nghi/1/chon-bao-gia/1")
+
+    # Lập biên bản nghiệm thu kỹ thuật BM04 đạt yêu cầu sau khi chốt NCC.
+    res_nt = client.post("/mua-sam/de-nghi/1/nghiem-thu", data={
+        "ket_qua": "dat",
+        "dai_dien_ben_mua": "BP Mua sắm",
+        "dai_dien_nha_cung_cap": "NCC Canon",
+        "y_kien_danh_gia": "Máy in nguyên seal, thử in rõ nét đạt yêu cầu"
+    }, follow_redirects=True)
+    assert res_nt.status_code == 200
+
     # 3. Bộ phận quản lý tài sản tiếp nhận hàng vào kho
     auth.login(vai_tro="quan_ly_kho")
-    res_nhan = client.post("/mua-sam/de-nghi/1/tiep-nhan", data={"ghi_chu": "Đã nhận máy in"}, follow_redirects=True)
+    res_nhan = client.post("/tai-san/tiep-nhan/1", data={"ghi_chu": "Đã nhận máy in"}, follow_redirects=True)
     assert res_nhan.status_code == 200
     assert "Tiếp nhận hàng hóa thành công" in res_nhan.text
 

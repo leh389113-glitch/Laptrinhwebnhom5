@@ -18,11 +18,9 @@
       <a href="{{ url_for('tai_san.kiem_ke') }}" class="btn btn-outline-primary">
         <i class="fa-solid fa-clipboard-check me-1"></i> Đợt kiểm kê
       </a>
-      {% if session.get('vai_tro') == 'quan_ly_kho' %}
-      <a href="{{ url_for('mua_sam.tao_de_nghi') }}" class="btn btn-primary fw-bold">
-        <i class="fa-solid fa-cart-plus me-1"></i> Đề xuất mua sắm
+      <a href="{{ url_for('tai_san.danh_sach_tiep_nhan') }}" class="btn btn-success fw-bold shadow-sm">
+        <i class="fa-solid fa-cart-arrow-down me-1"></i> TIẾP NHẬN TÀI SẢN MỚI TỪ MUA SẮM
       </a>
-      {% endif %}
     </div>
   </div>
 

@@ -99,4 +99,182 @@ def test_nut_bao_cao_hu_hai_da_xoa_khoi_trang_chu(client, auth):
     # Các trang nội bộ cũng không có nút báo cáo hư hại ngoài luồng
     res_muasam = client.get("/mua-sam/")
     assert "/bao-cao-hu-hai" not in res_muasam.text
+
+
+def test_quy_trinh_8_buoc_m09_sua_chua(client, auth):
+    """
+    Test luồng xử lý phiếu hư hại 8 bước chuẩn của Phân hệ M09 (Phòng QTTB):
+    1. Chờ tiếp nhận -> Tiếp nhận (chuyển sang Khảo sát BM03)
+    2. Lập khảo sát BM03 (chuyển sang Chờ duyệt phương án)
+    3. Lập phương án & phê duyệt (chuyển sang Đang sửa chữa)
+    4. Cập nhật tiến độ thi công
+    5. Lập biên bản nghiệm thu (chuyển sang Chờ nghiệm thu)
+    6. Đánh giá nghiệm thu đạt -> Hoàn thành (cập nhật tài sản bình thường)
+    """
+    # 1. Cán bộ đơn vị gửi báo cáo sự cố
+    auth.login(vai_tro="don_vi")
+    res_tao = client.post("/don-vi/sua-chua/tao", data={
+        "ten_vat_chat": "Điều hòa Daikin phòng 302 không mát",
+        "vi_tri": "Phòng A1-302",
+        "do_khan_cap": "trung_binh",
+        "muc_do": "trung_binh",
+        "loai_yeu_cau": "sua_chua_thiet_bi",
+        "mo_ta_chi_tiet": "Bật 16 độ nhưng chỉ có gió, không mát"
+    }, follow_redirects=True)
+    assert res_tao.status_code == 200
+
+    # Lấy ID phiếu vừa tạo
+    auth.login(vai_tro="quan_ly_kho")
+    res_list = client.get("/tai-san/bao-cao-hu-hai")
+    assert res_list.status_code == 200
+    assert "Điều hòa Daikin phòng 302 không mát" in res_list.text
+
+    # Giả sử phiếu vừa tạo có id
+    with client.application.app_context():
+        from app.db import get_db
+        bc = get_db().execute("SELECT id FROM bao_cao_hu_hai WHERE vi_tri = 'Phòng A1-302'").fetchone()
+    bc_id = bc["id"]
+
+    # Bước 1: Tiếp nhận yêu cầu
+    res_tn = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/tiep-nhan", follow_redirects=True)
+    assert res_tn.status_code == 200
+
+    # Bước 2: Lập biên bản khảo sát BM03
+    res_ks = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/khao-sat", data={
+        "thanh_phan_khao_sat": "Nguyễn Văn Kho (QTTB), Lê Văn Đơn Vị",
+        "hien_trang_thuc_te": "Hết gas làm lạnh, ống đồng rò rỉ nhẹ",
+        "nguyen_nhan_hu_hong": "Sử dụng lâu năm hở van",
+        "muc_do_hu_hong": "trung_binh",
+        "nhom_sua_chua": "sua_chua_nho",
+        "tinh_trang_bao_hanh": "het_han",
+        "anh_huong_an_toan": "Không gây nguy hiểm, chỉ ảnh hưởng phòng học",
+        "khoi_luong_du_kien": "Hàn ống đồng và nạp đầy gas R32"
+    }, follow_redirects=True)
+    assert res_ks.status_code == 200
+
+    # Bước 3: Lập phương án trình duyệt
+    res_pa = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/phuong-an", data={
+        "phuong_an_chi_tiet": "Thuê thợ bảo dưỡng ngoài nạp gas",
+        "kinh_phi_du_kien": "1200000",
+        "nguon_kinh_phi": "Kinh phí thường xuyên",
+        "yeu_cau_m08": "0"
+    }, follow_redirects=True)
+    assert res_pa.status_code == 200
+
+    # Phê duyệt phương án
+    res_duyet_pa = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/phe-duyet-phuong-an", data={
+        "y_kien": "Đồng ý phương án sửa chữa",
+        "don_vi_thi_cong": "Công ty Cơ điện Lạnh Hà Nội"
+    }, follow_redirects=True)
+    assert res_duyet_pa.status_code == 200
+
+    # Bước 4: Cập nhật nhật ký tiến độ
+    res_td = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/tien-do", data={
+        "nhat_ky": "Đã hàn ống đồng, nạp 1.2kg gas R32, máy bắt đầu chạy lạnh 18 độ"
+    }, follow_redirects=True)
+    assert res_td.status_code == 200
+
+    # Bước 5: Lập biên bản nghiệm thu
+    res_lap_nt = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/lap-nghiem-thu", data={
+        "y_kien": "Điều hòa hoạt động mát sâu, áp suất gas ổn định"
+    }, follow_redirects=True)
+    assert res_lap_nt.status_code == 200
+
+    # Bước 6: Đánh giá nghiệm thu ĐẠT
+    res_dg = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/danh-gia-nghiem-thu", data={
+        "ket_qua": "dat",
+        "y_kien_nghiem_thu": "Nghiệm thu đạt yêu cầu vận hành"
+    }, follow_redirects=True)
+    assert res_dg.status_code == 200
+    assert "Nghiệm thu ĐẠT" in res_dg.text
+
     assert "/bao-cao-hu-hai" not in res_muasam.text
+
+
+def test_quy_trinh_8_buoc_m09_sua_chua(client, auth):
+    """
+    Test luồng xử lý phiếu hư hại 8 bước chuẩn của Phân hệ M09 (Phòng QTTB):
+    1. Chờ tiếp nhận -> Tiếp nhận (chuyển sang Khảo sát BM03)
+    2. Lập khảo sát BM03 (chuyển sang Chờ duyệt phương án)
+    3. Lập phương án & phê duyệt (chuyển sang Đang sửa chữa)
+    4. Cập nhật tiến độ thi công
+    5. Lập biên bản nghiệm thu (chuyển sang Chờ nghiệm thu)
+    6. Đánh giá nghiệm thu đạt -> Hoàn thành (cập nhật tài sản bình thường)
+    """
+    # 1. Cán bộ đơn vị gửi báo cáo sự cố
+    auth.login(vai_tro="don_vi")
+    res_tao = client.post("/don-vi/sua-chua/tao", data={
+        "ten_vat_chat": "Điều hòa Daikin phòng 302 không mát",
+        "vi_tri": "Phòng A1-302",
+        "do_khan_cap": "trung_binh",
+        "muc_do": "trung_binh",
+        "loai_yeu_cau": "sua_chua_thiet_bi",
+        "mo_ta_chi_tiet": "Bật 16 độ nhưng chỉ có gió, không mát"
+    }, follow_redirects=True)
+    assert res_tao.status_code == 200
+
+    # Lấy ID phiếu vừa tạo
+    auth.login(vai_tro="quan_ly_kho")
+    res_list = client.get("/tai-san/bao-cao-hu-hai")
+    assert res_list.status_code == 200
+    assert "Điều hòa Daikin phòng 302 không mát" in res_list.text
+
+    # Giả sử phiếu vừa tạo có id
+    with client.application.app_context():
+        from app.db import get_db
+        bc = get_db().execute("SELECT id FROM bao_cao_hu_hai WHERE vi_tri = 'Phòng A1-302'").fetchone()
+    bc_id = bc["id"]
+
+    # Bước 1: Tiếp nhận yêu cầu
+    res_tn = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/tiep-nhan", follow_redirects=True)
+    assert res_tn.status_code == 200
+
+    # Bước 2: Lập biên bản khảo sát BM03
+    res_ks = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/khao-sat", data={
+        "thanh_phan_khao_sat": "Nguyễn Văn Kho (QTTB), Lê Văn Đơn Vị",
+        "hien_trang_thuc_te": "Hết gas làm lạnh, ống đồng rò rỉ nhẹ",
+        "nguyen_nhan_hu_hong": "Sử dụng lâu năm hở van",
+        "muc_do_hu_hong": "trung_binh",
+        "nhom_sua_chua": "sua_chua_nho",
+        "tinh_trang_bao_hanh": "het_han",
+        "anh_huong_an_toan": "Không gây nguy hiểm, chỉ ảnh hưởng phòng học",
+        "khoi_luong_du_kien": "Hàn ống đồng và nạp đầy gas R32"
+    }, follow_redirects=True)
+    assert res_ks.status_code == 200
+
+    # Bước 3: Lập phương án trình duyệt
+    res_pa = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/phuong-an", data={
+        "phuong_an_chi_tiet": "Thuê thợ bảo dưỡng ngoài nạp gas",
+        "kinh_phi_du_kien": "1200000",
+        "nguon_kinh_phi": "Kinh phí thường xuyên",
+        "yeu_cau_m08": "0"
+    }, follow_redirects=True)
+    assert res_pa.status_code == 200
+
+    # Phê duyệt phương án
+    res_duyet_pa = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/phe-duyet-phuong-an", data={
+        "y_kien": "Đồng ý phương án sửa chữa",
+        "don_vi_thi_cong": "Công ty Cơ điện Lạnh Hà Nội"
+    }, follow_redirects=True)
+    assert res_duyet_pa.status_code == 200
+
+    # Bước 4: Cập nhật nhật ký tiến độ
+    res_td = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/tien-do", data={
+        "nhat_ky": "Đã hàn ống đồng, nạp 1.2kg gas R32, máy bắt đầu chạy lạnh 18 độ"
+    }, follow_redirects=True)
+    assert res_td.status_code == 200
+
+    # Bước 5: Lập biên bản nghiệm thu
+    res_lap_nt = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/lap-nghiem-thu", data={
+        "y_kien": "Điều hòa hoạt động mát sâu, áp suất gas ổn định"
+    }, follow_redirects=True)
+    assert res_lap_nt.status_code == 200
+
+    # Bước 6: Đánh giá nghiệm thu ĐẠT
+    res_dg = client.post(f"/tai-san/bao-cao-hu-hai/{bc_id}/danh-gia-nghiem-thu", data={
+        "ket_qua": "dat",
+        "y_kien_nghiem_thu": "Nghiệm thu đạt yêu cầu vận hành"
+    }, follow_redirects=True)
+    assert res_dg.status_code == 200
+    assert "Nghiệm thu ĐẠT" in res_dg.text
+

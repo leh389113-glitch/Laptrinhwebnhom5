@@ -159,6 +159,13 @@ def xac_thuc_khao_sat(data: Dict[str, Any]) -> Dict[str, Any]:
 
     if not noi_dung:
         raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung khảo sát không được để trống.")
+    if ket_luan not in (
+        "phu_hop",
+        "chua_du",
+        "Phù hợp và cần thiết để tổ chức thực hiện",
+        "Chưa đủ cơ sở để tổ chức thực hiện"
+    ):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Kết luận khảo sát chỉ chấp nhận 'phù hợp và cần thiết để tổ chức thực hiện' hoặc 'chưa đủ cơ sở để tổ chức thực hiện'.")
 
     return {
         "noi_dung": noi_dung,
@@ -201,6 +208,8 @@ def xac_thuc_nghiem_thu(data: Dict[str, Any]) -> Dict[str, Any]:
     dai_dien_don_vi_su_dung = (data.get("dai_dien_don_vi_su_dung") or "").strip()
     ket_qua = (data.get("ket_qua") or "dat").strip()
     y_kien_danh_gia = (data.get("y_kien_danh_gia") or "").strip()
+    if ket_qua not in ("dat", "khong_dat"):
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Kết quả nghiệm thu không hợp lệ.")
 
     return {
         "dai_dien_ben_mua": dai_dien_ben_mua,
@@ -235,12 +244,31 @@ def xac_thuc_thanh_toan(data: Dict[str, Any]) -> Dict[str, Any]:
     so_hoa_don = (data.get("so_hoa_don") or "").strip()
     phuong_thuc = (data.get("phuong_thuc") or "chuyen_khoan").strip()
     ghi_chu = (data.get("ghi_chu") or "").strip()
+    if not so_hoa_don:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Cần nhập số hóa đơn hoặc chứng từ thanh toán.")
 
     return {
         "so_tien": so_tien,
         "so_hoa_don": so_hoa_don,
         "phuong_thuc": phuong_thuc,
         "ghi_chu": ghi_chu
+    }
+
+def xac_thuc_de_nghi_thanh_toan(data: Dict[str, Any]) -> Dict[str, Any]:
+    noi_dung = (data.get("noi_dung_thanh_toan") or "").strip()
+    if not noi_dung:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Nội dung đề nghị thanh toán không được để trống.")
+    try:
+        gia_tri = float(data.get("gia_tri_de_nghi", 0)) if data.get("gia_tri_de_nghi") else 0
+    except (ValueError, TypeError) as exc:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Giá trị đề nghị thanh toán không hợp lệ.") from exc
+    if gia_tri < 0:
+        raise LoiNghiepVu("DU_LIEU_DAU_VAO_KHONG_HOP_LE", "Giá trị đề nghị thanh toán không được âm.")
+
+    return {
+        "noi_dung_thanh_toan": noi_dung,
+        "gia_tri_de_nghi": gia_tri,
+        "ghi_chu": (data.get("ghi_chu") or "").strip()
     }
 
 def xac_thuc_tai_san(data: Dict[str, Any]) -> Dict[str, Any]:

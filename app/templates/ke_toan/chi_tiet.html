@@ -5,8 +5,8 @@
 
   <div class="neu-page-header">
     <div>
-      <h2 class="neu-page-title"><i class="fa-solid fa-receipt text-warning me-2"></i> XÁC NHẬN THANH TOÁN GÓI MUA SẮM</h2>
-      <small class="text-muted">Đề nghị: {{ de_nghi.ma_de_nghi }} - {{ de_nghi.tieu_de }}</small>
+      <h2 class="neu-page-title"><i class="fa-solid fa-receipt text-warning me-2"></i> KIỂM TRA HỒ SƠ ĐỀ NGHỊ THANH TOÁN</h2>
+      <small class="text-muted">Mã thanh toán: {{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }} | Hồ sơ mua sắm: {{ de_nghi.ma_de_nghi }}</small>
     </div>
     <div>
       <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-outline-secondary">
@@ -16,6 +16,35 @@
   </div>
 
   <div class="row g-4">
+    <div class="col-12">
+      <div class="neu-card">
+        <div class="neu-card-header bg-warning-subtle">
+          <span><i class="fa-solid fa-file-invoice-dollar me-2"></i> Phiếu đề nghị thanh toán</span>
+          <span class="badge bg-warning text-dark">Chờ kế toán kiểm tra</span>
+        </div>
+        <div class="neu-card-body">
+          <div class="row g-3">
+            <div class="col-md-6"><strong>Hồ sơ mua sắm:</strong> {{ de_nghi.ma_de_nghi }}</div>
+            <div class="col-md-6"><strong>Nhà cung cấp:</strong> {{ de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</div>
+            <div class="col-12"><strong>Nội dung thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan }}</div>
+            <div class="col-md-4"><strong>Giá trị đề nghị:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</div>
+            <div class="col-md-4"><strong>Giá trị đã thanh toán:</strong> {{ de_nghi.de_nghi_thanh_toan.gia_tri_da_thanh_toan | tien_vnd }}</div>
+            <div class="col-md-4"><strong>Còn phải thanh toán:</strong> <span class="text-danger fw-bold">{{ de_nghi.de_nghi_thanh_toan.so_tien_con_lai | tien_vnd }}</span></div>
+            <div class="col-md-6"><strong>Biên bản nghiệm thu:</strong> {{ de_nghi.de_nghi_thanh_toan.ma_nghiem_thu }}</div>
+            <div class="col-md-6"><strong>Ngày lập phiếu:</strong> {{ de_nghi.de_nghi_thanh_toan.ngay_de_nghi | dinh_dang_ngay }}</div>
+            <div class="col-12">
+              <strong>Danh mục hồ sơ cần đối chiếu:</strong>
+              <ul class="mb-0 mt-2">
+                {% for muc in de_nghi.de_nghi_thanh_toan.ho_so_dinh_kem.split('\n') %}
+                <li>{{ muc }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Cột trái: Tóm tắt đề nghị & Hàng hóa -->
     <div class="col-lg-7">
       <div class="neu-card">
@@ -64,31 +93,14 @@
         <div class="neu-card-body">
           
           {% if session.get('vai_tro') == 'ke_toan' %}
-          <!-- Checklist Hồ sơ tối thiểu theo Phụ lục 01 (Mục IV) -->
-          <div class="alert alert-light border shadow-sm p-3 mb-3 small">
-            <strong class="d-block text-primary mb-2"><i class="fa-solid fa-folder-check me-1"></i> Hồ sơ tối thiểu theo Phụ lục 01 (Mục IV):</strong>
-            <div class="form-check mb-1">
-              <input class="form-check-input" type="checkbox" checked disabled id="chkDeNghi">
-              <label class="form-check-label text-dark" for="chkDeNghi">1. Đề nghị mua sắm đã được phê duyệt ({{ de_nghi.ma_de_nghi }})</label>
-            </div>
-            <div class="form-check mb-1">
-              <input class="form-check-input" type="checkbox" checked disabled id="chkBaoGia">
-              <label class="form-check-label text-dark" for="chkBaoGia">2. Báo giá cạnh tranh / Căn cứ xác định giá (NCC: {{ de_nghi.nha_cung_cap or 'Đã chọn' }})</label>
-            </div>
-            <div class="form-check mb-1">
-              <input class="form-check-input" type="checkbox" checked disabled id="chkNghiemThu">
-              <label class="form-check-label text-dark" for="chkNghiemThu">3. Biên bản kiểm tra nghiệm thu & bàn giao hàng hóa vào kho</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="chkHoaDon" checked>
-              <label class="form-check-label text-danger fw-bold" for="chkHoaDon">4. Hóa đơn điện tử hợp lệ & Chứng từ giải ngân</label>
-            </div>
+          <div class="alert alert-info small">
+            Đối chiếu hóa đơn điện tử và chứng từ thanh toán với hồ sơ đã tiếp nhận trước khi ghi nhận giải ngân.
           </div>
 
           <form method="POST" action="{{ url_for('ke_toan.thanh_toan', id=de_nghi.id) }}">
             <div class="mb-3">
-              <label class="neu-form-label">Số tiền thực thanh toán (VNĐ) <span class="text-danger">*</span></label>
-              <input type="number" name="so_tien" class="form-control neu-form-control fw-bold text-danger fs-5" value="{{ de_nghi.tong_du_toan }}" required>
+              <label class="neu-form-label">Số tiền giải ngân (VNĐ) <span class="text-danger">*</span></label>
+              <input type="number" name="so_tien" class="form-control neu-form-control fw-bold text-danger fs-5" value="{{ de_nghi.de_nghi_thanh_toan.so_tien_con_lai }}" readonly required>
             </div>
 
             <div class="mb-3">
@@ -111,7 +123,7 @@
             </div>
 
             <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2">
-              <i class="fa-solid fa-check-circle me-1"></i> Xác nhận đã thanh toán xong
+              <i class="fa-solid fa-check-circle me-1"></i> Xác nhận hồ sơ hợp lệ và ghi nhận giải ngân
             </button>
           </form>
           {% else %}

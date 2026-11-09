@@ -155,14 +155,26 @@ CREATE TABLE IF NOT EXISTS chi_tiet_tiep_nhan (
 -- Bảng thanh toán (Kế toán - M08)
 CREATE TABLE IF NOT EXISTS thanh_toan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ma_thanh_toan TEXT UNIQUE,
     de_nghi_id INTEGER NOT NULL,
-    so_tien REAL NOT NULL,
-    ngay_thanh_toan TEXT NOT NULL,
-    nguoi_thanh_toan_id INTEGER NOT NULL,
+    nha_cung_cap TEXT,
+    noi_dung_thanh_toan TEXT,
+    gia_tri_de_nghi REAL DEFAULT 0,
+    gia_tri_da_thanh_toan REAL DEFAULT 0,
+    so_tien_con_lai REAL DEFAULT 0,
+    ma_nghiem_thu TEXT,
+    ho_so_dinh_kem TEXT,
+    trang_thai TEXT DEFAULT 'cho_kiem_tra',
+    so_tien REAL NOT NULL DEFAULT 0,
+    ngay_de_nghi TEXT,
+    nguoi_de_nghi_id INTEGER,
+    ngay_thanh_toan TEXT,
+    nguoi_thanh_toan_id INTEGER,
     phuong_thuc TEXT DEFAULT 'chuyen_khoan',
     so_hoa_don TEXT,
     ghi_chu TEXT,
     FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id),
+    FOREIGN KEY (nguoi_de_nghi_id) REFERENCES nguoi_dung(id),
     FOREIGN KEY (nguoi_thanh_toan_id) REFERENCES nguoi_dung(id)
 );
 
@@ -272,6 +284,7 @@ CREATE TABLE IF NOT EXISTS chi_tiet_kiem_ke (
 -- Bảng báo cáo hư hại vật chất (Public - không cần đăng nhập)
 CREATE TABLE IF NOT EXISTS bao_cao_hu_hai (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ma_bao_cao TEXT,
     ho_ten TEXT NOT NULL,
     lien_he TEXT NOT NULL,
     ten_vat_chat TEXT NOT NULL,
@@ -279,7 +292,7 @@ CREATE TABLE IF NOT EXISTS bao_cao_hu_hai (
     muc_do TEXT NOT NULL,
     mo_ta_chi_tiet TEXT,
     thoi_gian_phat_hien TEXT,
-    trang_thai TEXT DEFAULT 'chua_xu_ly',
+    trang_thai TEXT DEFAULT 'cho_tiep_nhan',
     phuong_an_xu_ly TEXT,
     nguoi_xu_ly_id INTEGER,
     ngay_xu_ly TEXT,
@@ -287,6 +300,42 @@ CREATE TABLE IF NOT EXISTS bao_cao_hu_hai (
     de_nghi_mua_sam_id INTEGER,
     tai_san_id INTEGER,
     ngay_tao TEXT NOT NULL,
+    nguoi_gui_id INTEGER,
+    loai_yeu_cau TEXT DEFAULT 'sua_chua_thiet_bi',
+    do_khan_cap TEXT DEFAULT 'binh_thuong',
+    don_vi TEXT,
+    hinh_anh TEXT,
+    xac_nhan_khao_sat_don_vi INTEGER DEFAULT 0,
+    xac_nhan_nghiem_thu_don_vi INTEGER DEFAULT 0,
+    ma_khao_sat TEXT,
+    ngay_khao_sat TEXT,
+    thanh_phan_khao_sat TEXT,
+    hien_trang_thuc_te TEXT,
+    nguyen_nhan_hu_hong TEXT,
+    muc_do_hu_hong TEXT,
+    anh_huong_an_toan TEXT,
+    khoi_luong_du_kien TEXT,
+    hinh_anh_khao_sat TEXT,
+    nhom_sua_chua TEXT DEFAULT 'sua_chua_thiet_bi',
+    tinh_trang_bao_hanh TEXT DEFAULT 'het_bao_hanh',
+    phuong_an_chi_tiet TEXT,
+    kinh_phi_du_kien REAL DEFAULT 0,
+    nguon_kinh_phi_sua_chua TEXT,
+    ngay_trinh_duyet TEXT,
+    nguoi_duyet_phuong_an_id INTEGER,
+    ngay_duyet_phuong_an TEXT,
+    y_kien_lanh_dao TEXT,
+    yeu_cau_m08 INTEGER DEFAULT 0,
+    don_vi_thi_cong TEXT,
+    ngay_bat_dau_sua TEXT,
+    nhat_ky_thi_cong TEXT,
+    hinh_anh_thi_cong TEXT,
+    ma_nghiem_thu TEXT,
+    ngay_nghiem_thu TEXT,
+    ket_qua_nghiem_thu TEXT,
+    y_kien_nghiem_thu TEXT,
+    yeu_cau_khac_phuc TEXT,
+    ly_do_tra_lai TEXT,
     FOREIGN KEY (nguoi_xu_ly_id) REFERENCES nguoi_dung(id),
     FOREIGN KEY (de_nghi_mua_sam_id) REFERENCES de_nghi_mua_sam(id),
     FOREIGN KEY (tai_san_id) REFERENCES tai_san(id)
@@ -406,6 +455,35 @@ def _migrate_db(conn):
             ("ghi_chu_xu_ly", "TEXT"),
             ("de_nghi_mua_sam_id", "INTEGER"),
             ("tai_san_id", "INTEGER"),
+            ("ma_khao_sat", "TEXT"),
+            ("ngay_khao_sat", "TEXT"),
+            ("thanh_phan_khao_sat", "TEXT"),
+            ("hien_trang_thuc_te", "TEXT"),
+            ("nguyen_nhan_hu_hong", "TEXT"),
+            ("muc_do_hu_hong", "TEXT"),
+            ("anh_huong_an_toan", "TEXT"),
+            ("khoi_luong_du_kien", "TEXT"),
+            ("hinh_anh_khao_sat", "TEXT"),
+            ("nhom_sua_chua", "TEXT DEFAULT 'sua_chua_thiet_bi'"),
+            ("tinh_trang_bao_hanh", "TEXT DEFAULT 'het_bao_hanh'"),
+            ("phuong_an_chi_tiet", "TEXT"),
+            ("kinh_phi_du_kien", "REAL DEFAULT 0"),
+            ("nguon_kinh_phi_sua_chua", "TEXT"),
+            ("ngay_trinh_duyet", "TEXT"),
+            ("nguoi_duyet_phuong_an_id", "INTEGER"),
+            ("ngay_duyet_phuong_an", "TEXT"),
+            ("y_kien_lanh_dao", "TEXT"),
+            ("yeu_cau_m08", "INTEGER DEFAULT 0"),
+            ("don_vi_thi_cong", "TEXT"),
+            ("ngay_bat_dau_sua", "TEXT"),
+            ("nhat_ky_thi_cong", "TEXT"),
+            ("hinh_anh_thi_cong", "TEXT"),
+            ("ma_nghiem_thu", "TEXT"),
+            ("ngay_nghiem_thu", "TEXT"),
+            ("ket_qua_nghiem_thu", "TEXT"),
+            ("y_kien_nghiem_thu", "TEXT"),
+            ("yeu_cau_khac_phuc", "TEXT"),
+            ("ly_do_tra_lai", "TEXT"),
         ]
         for col_name, col_def in new_hh_cols:
             if col_name not in cols:
@@ -440,6 +518,108 @@ def _migrate_db(conn):
             cur.execute("ALTER TABLE chi_tiet_kiem_ke ADD COLUMN trang_thai_giai_trinh TEXT")
     except Exception:
         pass
+
+    cur.execute("PRAGMA table_info(thanh_toan)")
+    cols = [row[1] for row in cur.fetchall()]
+    new_tt_cols = [
+        ("ma_thanh_toan", "TEXT"),
+        ("nha_cung_cap", "TEXT"),
+        ("noi_dung_thanh_toan", "TEXT"),
+        ("gia_tri_de_nghi", "REAL DEFAULT 0"),
+        ("gia_tri_da_thanh_toan", "REAL DEFAULT 0"),
+        ("so_tien_con_lai", "REAL DEFAULT 0"),
+        ("ma_nghiem_thu", "TEXT"),
+        ("ho_so_dinh_kem", "TEXT"),
+        ("trang_thai", "TEXT DEFAULT 'cho_kiem_tra'"),
+        ("ngay_de_nghi", "TEXT"),
+        ("nguoi_de_nghi_id", "INTEGER"),
+    ]
+    for col_name, col_def in new_tt_cols:
+        if col_name not in cols:
+            cur.execute(f"ALTER TABLE thanh_toan ADD COLUMN {col_name} {col_def}")
+
+    # Keep historical payments marked as paid and permit new rows to remain unpaid
+    # until M08 submits them to Accounting.
+    cur.execute(
+        """
+        UPDATE thanh_toan
+        SET trang_thai = 'da_thanh_toan',
+            gia_tri_de_nghi = CASE WHEN gia_tri_de_nghi = 0 THEN so_tien ELSE gia_tri_de_nghi END,
+            gia_tri_da_thanh_toan = CASE WHEN gia_tri_da_thanh_toan = 0 THEN so_tien ELSE gia_tri_da_thanh_toan END,
+            so_tien_con_lai = 0
+        WHERE ma_thanh_toan IS NULL
+          AND ngay_thanh_toan IS NOT NULL
+          AND ngay_thanh_toan != ''
+          AND nguoi_thanh_toan_id IS NOT NULL
+        """
+    )
+
+    cur.execute("PRAGMA table_info(thanh_toan)")
+    payment_columns = {row[1]: row for row in cur.fetchall()}
+    if payment_columns["ngay_thanh_toan"][3] or payment_columns["nguoi_thanh_toan_id"][3]:
+        cur.execute(
+            """
+            CREATE TABLE thanh_toan_migration (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ma_thanh_toan TEXT UNIQUE,
+                de_nghi_id INTEGER NOT NULL,
+                nha_cung_cap TEXT,
+                noi_dung_thanh_toan TEXT,
+                gia_tri_de_nghi REAL DEFAULT 0,
+                gia_tri_da_thanh_toan REAL DEFAULT 0,
+                so_tien_con_lai REAL DEFAULT 0,
+                ma_nghiem_thu TEXT,
+                ho_so_dinh_kem TEXT,
+                trang_thai TEXT DEFAULT 'cho_kiem_tra',
+                so_tien REAL NOT NULL DEFAULT 0,
+                ngay_de_nghi TEXT,
+                nguoi_de_nghi_id INTEGER,
+                ngay_thanh_toan TEXT,
+                nguoi_thanh_toan_id INTEGER,
+                phuong_thuc TEXT DEFAULT 'chuyen_khoan',
+                so_hoa_don TEXT,
+                ghi_chu TEXT,
+                FOREIGN KEY (de_nghi_id) REFERENCES de_nghi_mua_sam(id),
+                FOREIGN KEY (nguoi_de_nghi_id) REFERENCES nguoi_dung(id),
+                FOREIGN KEY (nguoi_thanh_toan_id) REFERENCES nguoi_dung(id)
+            )
+            """
+        )
+        cur.execute(
+            """
+            INSERT INTO thanh_toan_migration (
+                id, ma_thanh_toan, de_nghi_id, nha_cung_cap, noi_dung_thanh_toan,
+                gia_tri_de_nghi, gia_tri_da_thanh_toan, so_tien_con_lai,
+                ma_nghiem_thu, ho_so_dinh_kem, trang_thai, so_tien,
+                ngay_de_nghi, nguoi_de_nghi_id, ngay_thanh_toan,
+                nguoi_thanh_toan_id, phuong_thuc, so_hoa_don, ghi_chu
+            )
+            SELECT
+                id, ma_thanh_toan, de_nghi_id, nha_cung_cap, noi_dung_thanh_toan,
+                gia_tri_de_nghi, gia_tri_da_thanh_toan, so_tien_con_lai,
+                ma_nghiem_thu, ho_so_dinh_kem, trang_thai, so_tien,
+                ngay_de_nghi, nguoi_de_nghi_id, ngay_thanh_toan,
+                nguoi_thanh_toan_id, phuong_thuc, so_hoa_don, ghi_chu
+            FROM thanh_toan
+            """
+        )
+        cur.execute("DROP TABLE thanh_toan")
+        cur.execute("ALTER TABLE thanh_toan_migration RENAME TO thanh_toan")
+
+    cur.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_thanh_toan_ma
+        ON thanh_toan(ma_thanh_toan)
+        WHERE ma_thanh_toan IS NOT NULL
+        """
+    )
+    cur.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_thanh_toan_de_nghi
+        ON thanh_toan(de_nghi_id)
+        WHERE ma_thanh_toan IS NOT NULL
+        """
+    )
 
 def init_db(db_conn=None):
     """Khởi tạo toàn bộ bảng nếu chưa tồn tại và chạy migration cập nhật cấu trúc."""

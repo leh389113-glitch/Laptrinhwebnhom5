@@ -87,7 +87,7 @@ def test_khao_sat_va_bao_gia_va_nghiem_thu(client, auth):
 
     # 7. Bộ phận Quản lý tài sản tiếp nhận hàng hóa vào M09
     auth.login(vai_tro="quan_ly_kho")
-    res_nhan = client.post("/mua-sam/de-nghi/1/tiep-nhan", data={"ghi_chu": "Đã nhận 2 máy in vào kho"}, follow_redirects=True)
+    res_nhan = client.post("/tai-san/tiep-nhan/1", data={"ghi_chu": "Đã nhận 2 máy in vào kho"}, follow_redirects=True)
     assert res_nhan.status_code == 200
     assert "tiếp nhận hàng hóa thành công" in res_nhan.text.lower()
 

@@ -550,3 +550,48 @@ def lay_danh_sach_kiem_ke() -> list:
         """
     ).fetchall()
     return [dict(r) for r in rows]
+
+def lay_danh_sach_de_nghi_cho_tiep_nhan(trang_thai: str = None) -> list:
+    """
+    Lấy danh sách các gói mua sắm đã có Biên bản nghiệm thu kỹ thuật (BM04) ĐẠT YÊU CẦU,
+    đủ điều kiện để Bộ phận Quản lý tài sản kiểm tra và tiếp nhận nhập kho M09.
+    """
+    db = get_db()
+    query = """
+        SELECT d.*, u.ho_ten AS nguoi_de_nghi_ten,
+               nt.id AS nghiem_thu_id,
+               nt.ma_nghiem_thu,
+               nt.ngay_nghiem_thu,
+               nt.ket_qua AS ket_qua_nghiem_thu,
+               nt.y_kien_danh_gia AS y_kien_nghiem_thu,
+               nt.dai_dien_ben_mua,
+               nt.dai_dien_nha_cung_cap,
+               nt.dai_dien_don_vi_su_dung
+        FROM de_nghi_mua_sam d
+        LEFT JOIN nguoi_dung u ON d.nguoi_de_nghi_id = u.id
+        INNER JOIN nghiem_thu_mua_sam nt
+            ON nt.de_nghi_id = d.id
+           AND nt.id = (
+               SELECT MAX(nt_moi.id)
+               FROM nghiem_thu_mua_sam nt_moi
+               WHERE nt_moi.de_nghi_id = d.id
+           )
+           AND nt.ket_qua = 'dat'
+        WHERE d.da_nghiem_thu = 1
+          AND EXISTS (
+              SELECT 1 FROM bao_gia bg
+              WHERE bg.de_nghi_id = d.id AND bg.duoc_chon = 1
+          )
+    """
+    params = []
+    if trang_thai == "cho_tiep_nhan":
+        query += " AND d.trang_thai IN ('da_phe_duyet', 'dang_mua')"
+    elif trang_thai in ["da_tiep_nhan", "da_nhan"]:
+        query += " AND d.trang_thai IN ('da_nhan', 'hoan_tat')"
+    elif trang_thai:
+        query += " AND d.trang_thai = ?"
+        params.append(trang_thai)
+
+    query += " ORDER BY d.id DESC"
+    rows = db.execute(query, params).fetchall()
+    return [dict(r) for r in rows]

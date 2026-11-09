@@ -116,9 +116,10 @@ def nap_du_lieu():
 
         # Báo giá
         them_bao_gia(dn1["id"], {"nha_cung_cap": "Công ty TNHH Hệ thống Thông tin FPT", "ma_so_thue": "0101234567", "tong_gia": 268000000, "hieu_luc": "30 ngày"})
-        bg2 = them_bao_gia(dn1["id"], {"nha_cung_cap": "Công ty CP Công nghệ CMC", "ma_so_thue": "0107654321", "tong_gia": 265000000, "hieu_luc": "45 ngày"})
-        them_bao_gia(dn1["id"], {"nha_cung_cap": "Tập đoàn Công nghệ HPT", "ma_so_thue": "0301122334", "tong_gia": 270000000, "hieu_luc": "30 ngày"})
-        chon_bao_gia(dn1["id"], bg2["bao_gia"][1]["id"])
+        bg_cmc = them_bao_gia(dn1["id"], {"nha_cung_cap": "Công ty CP Công nghệ CMC", "ma_so_thue": "0107654321", "tong_gia": 265000000, "hieu_luc": "45 ngày"})
+        bg_all = them_bao_gia(dn1["id"], {"nha_cung_cap": "Tập đoàn Công nghệ HPT", "ma_so_thue": "0301122334", "tong_gia": 270000000, "hieu_luc": "30 ngày"})
+        cmc_id = [bg["id"] for bg in bg_all["bao_gia"] if "CMC" in bg["nha_cung_cap"]][0]
+        chon_bao_gia(dn1["id"], cmc_id)
 
         # Lãnh đạo duyệt (>= 100 triệu)
         phe_duyet_de_nghi(dn1["id"], user_ids["admin"], "Đồng ý chủ trương mua sắm nâng cấp hạ tầng số.", vai_tro="quan_tri")
@@ -138,7 +139,14 @@ def nap_du_lieu():
         # Bộ phận Quản lý tài sản tiếp nhận hàng vào kho M09 (Tự động sinh TSCĐ)
         tiep_nhan_hang_hoa(dn1["id"], {"ghi_chu": "Đã tiếp nhận đầy đủ vào kho tài sản M09."}, user_ids["cb_kho"])
 
-        # Kế toán thanh toán
+        # M08 lập phiếu đề nghị thanh toán để Kế toán kiểm tra và giải ngân
+        from app.services.mua_sam import tao_de_nghi_thanh_toan
+        tao_de_nghi_thanh_toan(dn1["id"], {
+            "noi_dung_thanh_toan": "Thanh toán gói máy chủ và lưu trữ cho Trung tâm CNTT",
+            "ghi_chu": "Hồ sơ minh họa quy trình liên thông M08-M09-Kế toán"
+        }, user_ids["cb_muasam"])
+
+        # Kế toán ghi nhận giải ngân sau khi nhận phiếu thanh toán từ M08
         ghi_nhan_thanh_toan(dn1["id"], {
             "so_tien": 265000000,
             "so_hoa_don": "HD-2026-NEU-001",
@@ -165,8 +173,61 @@ def nap_du_lieu():
             ]
         }, user_ids["cb_muasam"])
 
-        # Trưởng BP Mua sắm duyệt (< 100 triệu)
+        # Khảo sát nhu cầu BM02 cho dn2 (bắt buộc trước khi duyệt)
+        tao_khao_sat(dn2["id"], {
+            "noi_dung": "Khảo sát thực tế nhu cầu trang bị máy chiếu Giảng đường D2",
+            "dia_diem": "Giảng đường D2 - Phòng 401, 402",
+            "can_bo_khao_sat": "Cán bộ Bộ phận Mua sắm",
+            "dai_dien_don_vi": "Ban Quản lý Giảng đường D2",
+            "ket_qua_danh_gia": "Phòng học chưa có máy chiếu, giảng viên phải dùng bảng phụ",
+            "kiem_tra_kho": "Trong kho hiện không còn máy chiếu công suất lớn",
+            "doi_chieu_dinh_muc": "Đúng định mức phòng học 80 chỗ",
+            "muc_do_can_thiet": "cap_thiet",
+            "phuong_an_de_xuat": "mua_moi",
+            "ket_luan": "phu_hop"
+        })
+
+        # Trưởng BP Mua sắm duyệt (< 100 triệu) sau khi khảo sát đạt yêu cầu
         phe_duyet_de_nghi(dn2["id"], user_ids["truongmuasam"], "Trưởng BP Mua sắm duyệt gói < 100 triệu.", vai_tro="mua_sam")
+
+        # 3 Báo giá cạnh tranh cho dn2
+        them_bao_gia(dn2["id"], {
+            "nha_cung_cap": "Công ty Cổ phần Máy tính Phúc Anh",
+            "ma_so_thue": "0101987654",
+            "lien_he": "02438561234 - kinhdoanh@phucanh.vn",
+            "tong_gia": 57000000,
+            "hieu_luc": "30 ngày",
+            "ghi_chu": "Bảo hành 24 tháng chính hãng"
+        })
+        them_bao_gia(dn2["id"], {
+            "nha_cung_cap": "Công ty TNHH Thiết bị Nghe nhìn Hà Việt",
+            "ma_so_thue": "0103456789",
+            "lien_he": "02439876543 - contact@haviet.com.vn",
+            "tong_gia": 56000000,
+            "hieu_luc": "30 ngày",
+            "ghi_chu": "Bảo hành 24 tháng"
+        })
+        bg_res2 = them_bao_gia(dn2["id"], {
+            "nha_cung_cap": "Công ty TNHH Thương mại LOGICO",
+            "ma_so_thue": "0102345678",
+            "lien_he": "02437654321 - sales@logico.com.vn",
+            "tong_gia": 55000000,
+            "hieu_luc": "30 ngày",
+            "ghi_chu": "Báo giá chính hãng Sony, bảo hành 24 tháng tận nơi"
+        })
+
+        # Chọn LOGICO trúng thầu
+        logico_id = [bg["id"] for bg in bg_res2["bao_gia"] if "LOGICO" in bg["nha_cung_cap"]][0]
+        chon_bao_gia(dn2["id"], logico_id)
+
+        # Lập Biên bản nghiệm thu kỹ thuật BM04 (kết quả ĐẠT) -> Đủ điều kiện tiếp nhận vào kho M09
+        lap_bien_ban_nghiem_thu(dn2["id"], {
+            "dai_dien_ben_mua": "Cán bộ Bộ phận Mua sắm",
+            "dai_dien_nha_cung_cap": "Công ty TNHH Thương mại LOGICO",
+            "dai_dien_don_vi_su_dung": "Ban Quản lý Giảng đường D2",
+            "ket_qua": "dat",
+            "y_kien_danh_gia": "02 máy chiếu Sony Laser nguyên đai nguyên kiện, chạy thử hình ảnh sắc nét, đúng cấu hình hợp đồng."
+        })
 
         # 3. Đề nghị 3: Gói >= 100 triệu đang chờ Lãnh đạo Trường duyệt
         tao_de_nghi({
@@ -183,35 +244,74 @@ def nap_du_lieu():
             ]
         }, user_ids["cb_muasam"])
 
-        # 4. Báo cáo hư hại mẫu & Luồng xử lý M09
-        # Báo cáo 1: Sửa chữa được -> M09 tạo yêu cầu sửa chữa
+        # 4. Báo cáo hư hại mẫu & Luồng xử lý M09 theo 8 giai đoạn chuẩn
+        # Báo cáo 1: Đang sửa chữa (Đã khảo sát BM03 và duyệt phương án)
         bc1 = gui_bao_cao({
+            "ma_bao_cao": "YC-20261109-002",
             "ho_ten": "Nguyễn Hoàng Nam (Giảng viên Khoa Marketing)",
             "lien_he": "nam.nh@neu.edu.vn",
+            "don_vi": "Khoa Marketing",
             "ten_vat_chat": "Máy điều hòa phòng A1-304 chảy nước và kêu to",
             "vi_tri": "Phòng A1-304, Tòa nhà A1",
             "muc_do": "trung_binh",
             "mo_ta_chi_tiet": "Điều hòa bị đọng nước nhỏ giọt xuống dãy bàn học, phát tiếng ồn khi chạy.",
             "thoi_gian_phat_hien": hien_tai
         })
-        xac_minh_danh_gia(bc1["id"], "sua_chua", ghi_chu="Đã cử thợ điện lạnh đến kiểm tra máng thoát nước", nguoi_xu_ly_id=user_ids["cb_kho"])
+        # Lập khảo sát BM03 và duyệt phương án
+        from app.services.bao_cao_hu_hai import tiep_nhan_yeu_cau, lap_khao_sat_bm03, lap_phuong_an_trinh_duyet, phe_duyet_phuong_an
+        tiep_nhan_yeu_cau(bc1["id"], user_ids["cb_kho"])
+        lap_khao_sat_bm03(bc1["id"], {
+            "thanh_phan_khao_sat": "Cán bộ QTTB, Đại diện Khoa Marketing, Kỹ thuật viên điện lạnh",
+            "hien_trang_thuc_te": "Máng thoát nước điều hòa bị tắc bụi bẩn, quạt gió khô dầu phát tiếng kêu",
+            "nguyen_nhan_hu_hong": "Bụi bẩn tích tụ sau 1 năm sử dụng chưa bảo dưỡng",
+            "muc_do_hu_hong": "trung_binh",
+            "anh_huong_an_toan": "Nước nhỏ giọt gây trơn trượt nền nhà",
+            "khoi_luong_du_kien": "Thông tắc máng xả nước, nạp bổ sung gas R410A, bảo dưỡng quạt lồng sóc",
+            "nhom_sua_chua": "sua_chua_nho",
+            "tinh_trang_bao_hanh": "het_bao_hanh"
+        }, user_ids["cb_kho"])
+        lap_phuong_an_trinh_duyet(bc1["id"], {
+            "phuong_an_chi_tiet": "Thông tắc máng thoát nước, bảo dưỡng vệ sinh dàn lạnh và nạp gas bổ sung",
+            "kinh_phi_du_kien": 650000,
+            "nguon_kinh_phi_sua_chua": "Kinh phí bảo dưỡng thường xuyên",
+            "yeu_cau_m08": 0
+        }, user_ids["cb_kho"])
+        phe_duyet_phuong_an(bc1["id"], {"y_kien_lanh_dao": "Duyệt phương án bảo dưỡng điều hòa A1-304"}, user_ids["truongmuasam"])
 
-        # Báo cáo 2: Cần thay thế -> M09 chuyển sang đề xuất mua sắm M08
+        # Báo cáo 2: Cần thay thế -> Chờ thủ tục M08
         bc2 = gui_bao_cao({
+            "ma_bao_cao": "YC-20261109-003",
             "ho_ten": "Trần Thị Mai (Cán bộ Viện CNTT)",
             "lien_he": "0912345678",
+            "don_vi": "Viện Công nghệ Thông tin",
             "ten_vat_chat": "Máy chiếu phòng Lab 501 cháy nguồn không lên",
             "vi_tri": "Phòng Lab 501, Nhà D2",
             "muc_do": "nghiem_trong",
             "mo_ta_chi_tiet": "Thiết bị cũ hỏng bo nguồn và bóng đèn laser, không có linh kiện thay thế.",
             "thoi_gian_phat_hien": hien_tai
         })
-        tao_yeu_cau_thay_the_sang_m08(bc2["id"], user_ids["cb_kho"])
+        lap_khao_sat_bm03(bc2["id"], {
+            "thanh_phan_khao_sat": "Cán bộ QTTB, Viện CNTT, Kỹ thuật viên hãng",
+            "hien_trang_thuc_te": "Cháy bo nguồn cao áp, nứt thấu kính laser",
+            "nguyen_nhan_hu_hong": "Sét lan truyền trên đường dây điện nguồn",
+            "muc_do_hu_hong": "nghiem_trong",
+            "nhom_sua_chua": "sua_chua_thiet_bi"
+        }, user_ids["cb_kho"])
+        lap_phuong_an_trinh_duyet(bc2["id"], {
+            "phuong_an_chi_tiet": "Mua sắm máy chiếu mới thay thế do chi phí sửa chữa vượt 80% giá trị máy",
+            "kinh_phi_du_kien": 10000000,
+            "yeu_cau_m08": 1
+        }, user_ids["cb_kho"])
+        phe_duyet_phuong_an(bc2["id"], {"y_kien_lanh_dao": "Duyệt mua sắm thay thế qua Module M08"}, user_ids["admin"])
+        from app.services.bao_cao_hu_hai import lien_ket_m08_mua_sam
+        lien_ket_m08_mua_sam(bc2["id"], user_ids["cb_kho"])
 
-        # Báo cáo 3: Mới gửi chưa xử lý
+        # Báo cáo 3: Mới gửi chờ tiếp nhận
         gui_bao_cao({
+            "ma_bao_cao": "YC-20261109-004",
             "ho_ten": "Lê Hải Đăng (Sinh viên K64)",
             "lien_he": "0988776655",
+            "don_vi": "Lớp Quản trị Khách sạn K64",
             "ten_vat_chat": "Bóng đèn tuýp LED hàng ghế cuối nhấp nháy",
             "vi_tri": "Phòng C-201, Giảng đường C",
             "muc_do": "nhe",
