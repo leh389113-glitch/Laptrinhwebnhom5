@@ -35,15 +35,18 @@ def lay_thong_ke_don_vi(don_vi: str, nguoi_dung_id: int = None) -> dict:
     cur_ts = db.execute(
         """
         SELECT 
-            COUNT(*) AS tong_so,
+            COUNT(DISTINCT t.id) AS tong_so,
             COALESCE(SUM(gia_tri), 0) AS tong_gia_tri,
-            SUM(CASE WHEN tinh_trang_ky_thuat = 'co_hu_hong' THEN 1 ELSE 0 END) AS so_hu_hong,
-            SUM(CASE WHEN trang_thai = 'dang_sua_chua' THEN 1 ELSE 0 END) AS so_dang_sua,
-            SUM(CASE WHEN xac_nhan_ban_giao_don_vi = 0 THEN 1 ELSE 0 END) AS cho_ban_giao
-        FROM tai_san
-        WHERE don_vi_su_dung LIKE ? OR phong_ban LIKE ?
+            COALESCE(SUM(CASE WHEN t.tinh_trang_ky_thuat = 'co_hu_hong' THEN 1 ELSE 0 END), 0) AS so_hu_hong,
+            COALESCE(SUM(CASE WHEN t.trang_thai = 'dang_sua_chua' THEN 1 ELSE 0 END), 0) AS so_dang_sua,
+            COALESCE(SUM(CASE WHEN t.xac_nhan_ban_giao_don_vi = 0 THEN 1 ELSE 0 END), 0) AS cho_ban_giao
+        FROM tai_san t
+        LEFT JOIN nguoi_dung nguoi_nhan ON nguoi_nhan.id = t.nguoi_su_dung_id
+        WHERE t.don_vi_su_dung LIKE ?
+           OR t.phong_ban LIKE ?
+           OR nguoi_nhan.don_vi LIKE ?
         """,
-        (f"%{don_vi}%", f"%{don_vi}%")
+        (f"%{don_vi}%", f"%{don_vi}%", f"%{don_vi}%")
     )
     thong_ke_ts = cur_ts.fetchone()
 
@@ -60,7 +63,7 @@ def lay_thong_ke_don_vi(don_vi: str, nguoi_dung_id: int = None) -> dict:
             ) THEN 1 ELSE 0 END) AS dang_xu_ly,
             SUM(CASE WHEN trang_thai IN ('da_thanh_toan', 'da_hoan_thanh', 'da_xu_ly') THEN 1 ELSE 0 END) AS da_hoan_thanh
         FROM yeu_cau_sua_chua
-        WHERE don_vi LIKE ? OR nguoi_tao_id = ?
+        WHERE don_vi = ? OR nguoi_tao_id = ?
         """,
         (f"%{don_vi}%", nguoi_dung_id)
     )
@@ -75,7 +78,7 @@ def lay_thong_ke_don_vi(don_vi: str, nguoi_dung_id: int = None) -> dict:
             SUM(CASE WHEN trang_thai IN ('da_phe_duyet', 'dang_mua') THEN 1 ELSE 0 END) AS dang_trien_khai,
             SUM(CASE WHEN trang_thai = 'hoan_tat' THEN 1 ELSE 0 END) AS da_hoan_tat
         FROM de_nghi_mua_sam
-        WHERE don_vi_de_nghi LIKE ? OR nguoi_de_nghi_id = ?
+        WHERE don_vi_de_nghi = ? OR nguoi_de_nghi_id = ?
         """,
         (f"%{don_vi}%", nguoi_dung_id)
     )

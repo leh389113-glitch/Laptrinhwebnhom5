@@ -25,6 +25,63 @@ def test_dashboard_don_vi(client, auth):
     assert "Ban Quản lý Tòa A1".encode("utf-8") in res.data
     assert "BẢNG ĐIỀU KHIỂN ĐƠN VỊ SỬ DỤNG".encode("utf-8") in res.data
 
+def test_dashboard_don_vi_cap_nhat_kpi_theo_du_lieu_thuc(client, auth, app):
+    """KPI phải tính cả tài sản gán qua người nhận bàn giao và hoạt động của đơn vị."""
+    with app.app_context():
+        db = get_db()
+        user = db.execute(
+            "SELECT id FROM nguoi_dung WHERE ten_dang_nhap = 'user_don_vi'"
+        ).fetchone()
+        db.execute(
+            """
+            INSERT INTO tai_san (
+                ma_tai_san, ten_tai_san, gia_tri, ngay_tiep_nhan,
+                nguoi_su_dung_id, trang_thai, ngay_tao, ngay_cap_nhat
+            ) VALUES (
+                'TS-KPI-A1', 'Tài sản KPI A1', 12345000, '2026-11-10',
+                ?, 'dang_su_dung', '2026-11-10', '2026-11-10'
+            )
+            """,
+            (user["id"],)
+        )
+        db.execute(
+            """
+            INSERT INTO yeu_cau_sua_chua (
+                ma_yeu_cau, noi_dung, ngay_tiep_nhan, nguoi_tao_id, don_vi, trang_thai
+            ) VALUES (
+                'YC-KPI-A1', 'Sửa chữa KPI', '2026-11-10', ?,
+                'Ban Quản lý Tòa A1', 'cho_tiep_nhan'
+            )
+            """,
+            (user["id"],)
+        )
+        db.execute(
+            """
+            INSERT INTO de_nghi_mua_sam (
+                ma_de_nghi, tieu_de, don_vi_de_nghi, nguoi_de_nghi_id,
+                tong_du_toan, trang_thai, ngay_tao, ngay_cap_nhat
+            ) VALUES (
+                'DN-KPI-A1', 'Mua sắm KPI', 'Ban Quản lý Tòa A1', ?,
+                1000000, 'cho_phe_duyet', '2026-11-10', '2026-11-10'
+            )
+            """,
+            (user["id"],)
+        )
+        db.commit()
+        from app.services.don_vi import lay_thong_ke_don_vi
+        thong_ke = lay_thong_ke_don_vi("Ban Quản lý Tòa A1", user["id"])
+        assert thong_ke["tai_san"]["tong_so"] == 1
+        assert thong_ke["tai_san"]["tong_gia_tri"] == 12345000
+        assert thong_ke["sua_chua"]["dang_xu_ly"] == 1
+        assert thong_ke["mua_sam"]["cho_duyet"] == 1
+
+    auth.login(vai_tro="don_vi")
+    response = client.get("/don-vi/dashboard")
+    assert response.status_code == 200
+    assert "12.345.000" in response.text
+    assert "YC-KPI-A1" in response.text
+    assert "DN-KPI-A1" in response.text
+
 def test_sua_chua_tu_dong_dinh_danh(client, auth, app):
     """Kiểm tra lập phiếu sửa chữa: tự động lấy thông tin người gửi, sinh mã YC-..."""
     auth.login(vai_tro="don_vi")
