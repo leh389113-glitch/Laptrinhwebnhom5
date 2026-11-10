@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}Hồ sơ sửa chữa {{ yc.ma_yeu_cau }} - M09{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+      <a href="{{ url_for('tai_san.danh_sach_sua_chua') }}" class="small text-decoration-none">← Danh sách sửa chữa</a>
+      <h2 class="fw-bold text-primary mt-2 mb-1">Hồ sơ sửa chữa {{ yc.ma_yeu_cau }}</h2>
+      <div class="text-muted">{{ yc.don_vi or 'Đơn vị chưa xác định' }} · {{ yc.ten_vat_chat or yc.noi_dung }}</div>
+    </div>
+    <span class="{{ yc.trang_thai | badge_trang_thai }} fs-6">{{ yc.trang_thai | ten_trang_thai }}</span>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">Tiến độ xử lý M09</h5>
+      <div class="row g-2">
+        {% for step in [
+          ('cho_tiep_nhan', 'Chờ tiếp nhận'),
+          ('cho_khao_sat', 'Chờ khảo sát'),
+          ('dang_khao_sat', 'Đang khảo sát BM03'),
+          ('cho_duyet_phuong_an', 'Duyệt phương án'),
+          ('cho_thu_tuc_m08', 'Thủ tục M08'),
+          ('dang_sua_chua', 'Đang sửa chữa'),
+          ('cho_nghiem_thu', 'Chờ nghiệm thu'),
+          ('cho_lap_ho_so_thanh_toan', 'Chờ lập hồ sơ thanh toán'),
+          ('cho_thanh_toan', 'Chờ thanh toán'),
+          ('dang_xu_ly_thanh_toan', 'Đang xử lý thanh toán'),
+          ('yeu_cau_bo_sung_ho_so', 'Yêu cầu bổ sung hồ sơ'),
+          ('da_thanh_toan', 'Hoàn tất')
+        ] %}
+        <div class="col-md-3 col-6">
+          <div class="border rounded p-2 h-100 {% if yc.trang_thai == step[0] or (step[0] == 'dang_sua_chua' and yc.trang_thai == 'khong_dat_yeu_cau') %}border-primary bg-light{% endif %}">
+            <div class="small text-muted">Bước {{ loop.index }}</div>
+            <strong class="small">{{ step[1] }}</strong>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if yc.trang_thai == 'tra_lai' %}
+        <div class="alert alert-warning mt-3 mb-0"><strong>Đang chờ bổ sung:</strong> {{ yc.ly_do_tra_lai }}</div>
+      {% elif yc.trang_thai == 'khong_dat_yeu_cau' %}
+        <div class="alert alert-danger mt-3 mb-0">Nghiệm thu không đạt; yêu cầu đơn vị thi công khắc phục lại.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold">Thông tin yêu cầu và tài sản</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Mã yêu cầu</dt><dd class="col-sm-7">{{ yc.ma_yeu_cau }}</dd>
+            <dt class="col-sm-5">Người đề nghị</dt><dd class="col-sm-7">{{ yc.nguoi_tao_ten or '—' }}</dd>
+            <dt class="col-sm-5">Đơn vị</dt><dd class="col-sm-7">{{ yc.don_vi or '—' }}</dd>
+            <dt class="col-sm-5">Thiết bị</dt><dd class="col-sm-7">{{ yc.ten_tai_san or yc.ten_vat_chat or '—' }}</dd>
+            <dt class="col-sm-5">Mã tài sản</dt><dd class="col-sm-7">{{ yc.ma_tai_san or 'Chưa gắn mã tài sản' }}</dd>
+            <dt class="col-sm-5">Vị trí</dt><dd class="col-sm-7">{{ yc.vi_tri or yc.tai_san_vi_tri or '—' }}</dd>
+            <dt class="col-sm-5">Bảo hành</dt><dd class="col-sm-7">{{ yc.tinh_trang_bao_hanh or yc.thoi_han_bao_hanh or 'Chưa xác định' }}</dd>
+            <dt class="col-sm-5">Yêu cầu khác đang xử lý</dt><dd class="col-sm-7">{{ yc.so_yeu_cau_dang_xu_ly or 0 }}</dd>
+            <dt class="col-sm-5">Nội dung</dt><dd class="col-sm-7">{{ yc.noi_dung }}</dd>
+            <dt class="col-sm-5">Độ khẩn cấp</dt><dd class="col-sm-7">{{ yc.do_khan_cap | ten_trang_thai }}</dd>
+          </dl>
+          {% if yc.hinh_anh %}
+            <div class="mt-3"><strong>Ảnh ban đầu</strong><br><img src="{{ yc.hinh_anh }}" alt="Ảnh hiện trạng ban đầu" class="img-fluid rounded border mt-2" style="max-height:220px"></div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if yc.trang_thai in ['cho_lap_ho_so_thanh_toan', 'da_nghiem_thu', 'cho_thanh_toan', 'dang_xu_ly_thanh_toan', 'yeu_cau_bo_sung_ho_so', 'da_thanh_toan'] %}
+      <div class="card border-primary shadow-sm mb-4">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+          <span>Lập hồ sơ thanh toán chi phí sửa chữa</span>
+          {% if ho_so_thanh_toan %}
+            <span class="{{ ho_so_thanh_toan.trang_thai | badge_trang_thai }}">{% if ho_so_thanh_toan.trang_thai == 'da_thanh_toan' %}Hoàn tất{% else %}{{ ho_so_thanh_toan.trang_thai | ten_trang_thai }}{% endif %}</span>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if ho_so_thanh_toan and ho_so_thanh_toan.ghi_chu_ke_toan %}
+            <div class="alert alert-warning"><strong>Ý kiến Kế toán:</strong> {{ ho_so_thanh_toan.ghi_chu_ke_toan }}</div>
+          {% endif %}
+          {% if session.get('vai_tro') == 'quan_ly_kho' and (not ho_so_thanh_toan or ho_so_thanh_toan.trang_thai in ['nhap', 'yeu_cau_bo_sung_ho_so']) %}
+          <p class="small text-muted">Chỉ lập/gửi hồ sơ sau khi nghiệm thu đạt. Hồ sơ nháp có thể chỉnh sửa; trạng thái thanh toán chỉ do Kế toán cập nhật.</p>
+          <form method="post" enctype="multipart/form-data" action="{{ url_for('tai_san.luu_ho_so_thanh_toan_sua_chua', id=yc.id) }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Người đề nghị thanh toán</label>
+                <input class="form-control" name="nguoi_de_nghi_ten" value="{{ ho_so_thanh_toan.nguoi_de_nghi_ten if ho_so_thanh_toan else session.get('ho_ten', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Đơn vị / địa chỉ</label>
+                <input class="form-control" name="don_vi" value="{{ ho_so_thanh_toan.don_vi if ho_so_thanh_toan else session.get('don_vi', 'Phòng Quản trị thiết bị') }}">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Về khoản</label>
+                <input class="form-control" name="ve_khoan" value="{{ ho_so_thanh_toan.ve_khoan if ho_so_thanh_toan else 'Thanh toán chi phí sửa chữa ' ~ yc.ma_yeu_cau }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Căn cứ hợp đồng số</label>
+                <input class="form-control" name="hop_dong_so" value="{{ ho_so_thanh_toan.hop_dong_so if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Ngày hợp đồng</label>
+                <input type="date" class="form-control" name="hop_dong_ngay" value="{{ ho_so_thanh_toan.hop_dong_ngay if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Số tiền đề nghị (VNĐ)</label>
+                <input type="number" min="0" step="1" class="form-control" name="so_tien" value="{{ ho_so_thanh_toan.so_tien if ho_so_thanh_toan else yc.chi_phi_thuc_te or yc.chi_phi_du_kien or 0 }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Viết bằng chữ</label>
+                <input class="form-control" name="so_tien_bang_chu" value="{{ ho_so_thanh_toan.so_tien_bang_chu if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Đơn vị thụ hưởng</label>
+                <input class="form-control" name="don_vi_thu_huong" value="{{ ho_so_thanh_toan.don_vi_thu_huong if ho_so_thanh_toan else yc.don_vi_thuc_hien or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Số tài khoản</label>
+                <input class="form-control" name="so_tai_khoan" value="{{ ho_so_thanh_toan.so_tai_khoan if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Tại ngân hàng</label>
+                <input class="form-control" name="ngan_hang" value="{{ ho_so_thanh_toan.ngan_hang if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-12">
+                <label class="form-label d-block">Hồ sơ kèm theo</label>
+                {% for key, label in [
+                  ('hop_dong', 'Hợp đồng'),
+                  ('bien_ban_nghiem_thu', 'Biên bản nghiệm thu'),
+                  ('bang_xac_dinh_khoi_luong', 'Bảng xác định giá trị khối lượng công việc hoàn thành'),
+                  ('hoa_don', 'Hóa đơn')
+                ] %}
+                  <label class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="ho_so_kem_theo" value="{{ key }}" {% if ho_so_thanh_toan and key in ho_so_thanh_toan.ho_so_kem_theo %}checked{% endif %}>
+                    <span class="form-check-label">{{ label }}</span>
+                  </label>
+                {% endfor %}
+                <input class="form-control mt-2" name="ho_so_khac" placeholder="Khác (nếu có)" value="{{ ho_so_thanh_toan.ho_so_khac if ho_so_thanh_toan else '' }}">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Tệp chứng từ đính kèm (PDF/PNG/JPEG/WebP, tối đa 5 tệp × 10 MB)</label>
+                <input type="file" class="form-control" name="tai_lieu" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple>
+                {% if ho_so_thanh_toan and ho_so_thanh_toan.tep_dinh_kem %}
+                  <ul class="small mt-2 mb-0">
+                    {% for tep in ho_so_thanh_toan.tep_dinh_kem %}
+                      <li><a href="{{ url_for('tai_san.xem_tep_ho_so_thanh_toan_sua_chua', id=tep.id) }}" target="_blank" rel="noopener">{{ tep.ten_tep }}</a></li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button class="btn btn-outline-primary" name="hanh_dong" value="luu">Lưu hồ sơ nháp</button>
+              <button class="btn btn-primary" name="hanh_dong" value="gui">Gửi Kế toán M08</button>
+              {% if ho_so_thanh_toan %}
+                <a class="btn btn-outline-secondary" href="{{ url_for('tai_san.in_ho_so_thanh_toan_sua_chua', id=yc.id) }}" target="_blank" rel="noopener">In giấy đề nghị</a>
+              {% endif %}
+            </div>
+          </form>
+          {% elif ho_so_thanh_toan %}
+            {% if ho_so_thanh_toan.trang_thai == 'da_thanh_toan' %}
+              <p class="mb-2">Kế toán đã xác nhận thanh toán; quy trình sửa chữa đã hoàn tất.</p>
+            {% else %}
+              <p class="mb-2">Hồ sơ đã được gửi sang Kế toán. Thông tin và trạng thái thanh toán được đồng bộ tại M08.</p>
+            {% endif %}
+            <a class="btn btn-outline-secondary" href="{{ url_for('tai_san.in_ho_so_thanh_toan_sua_chua', id=yc.id) }}" target="_blank" rel="noopener">In giấy đề nghị</a>
+          {% else %}
+            <p class="mb-0">Biên bản nghiệm thu đạt; chờ M09 lập hồ sơ thanh toán.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'cho_tiep_nhan' %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Tiếp nhận / Trả lại</div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('tai_san.tiep_nhan_sua_chua', id=yc.id) }}">
+            <label class="form-label">Ghi chú hoặc nội dung cần đơn vị bổ sung</label>
+            <textarea name="noi_dung" class="form-control mb-3" rows="3"></textarea>
+            <div class="d-flex gap-2">
+              <button name="hanh_dong" value="tiep_nhan" class="btn btn-primary">📥 Tiếp nhận</button>
+              <button name="hanh_dong" value="tra_lai" class="btn btn-outline-danger">↩️ Trả lại</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'cho_khao_sat' %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <p class="fw-bold mb-2">Phiếu đã được tiếp nhận. Bắt đầu khảo sát hiện trạng và lập BM03.</p>
+          <form method="post" action="{{ url_for('tai_san.bat_dau_khao_sat_sua_chua', id=yc.id) }}">
+            <button class="btn btn-primary">📋 Lập khảo sát (BM03)</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'dang_khao_sat' and not yc.da_khao_sat %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Lập khảo sát hiện trạng (BM03)</div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" action="{{ url_for('tai_san.khao_sat_sua_chua', id=yc.id) }}">
+            <label class="form-label">Thành phần tham gia khảo sát</label>
+            <textarea name="thanh_phan_khao_sat" class="form-control mb-2" required></textarea>
+            <label class="form-label">Tình trạng bảo hành</label>
+            <input name="tinh_trang_bao_hanh" class="form-control mb-2" value="{{ yc.tinh_trang_bao_hanh or '' }}">
+            <label class="form-label">Phân loại yêu cầu</label>
+            <select name="phan_loai_yeu_cau" class="form-select mb-2" required>
+              <option value="sua_chua_nho">Sửa chữa nhỏ</option>
+              <option value="thiet_bi">Sửa chữa thiết bị</option>
+              <option value="cong_trinh">Sửa chữa công trình</option>
+            </select>
+            <label class="form-label">Hiện trạng thực tế</label>
+            <textarea name="hien_trang" class="form-control mb-2" required></textarea>
+            <label class="form-label">Nguyên nhân dự kiến</label>
+            <textarea name="nguyen_nhan_du_kien" class="form-control mb-2"></textarea>
+            <label class="form-label">Mức độ hư hỏng</label>
+            <select name="muc_do_hu_hong" class="form-select mb-2" required>
+              <option value="nhe">Nhẹ</option><option value="trung_binh">Trung bình</option><option value="nghiem_trong">Nghiêm trọng</option>
+            </select>
+            <label class="form-label">Ảnh hưởng hoạt động / an toàn</label>
+            <textarea name="anh_huong_an_toan" class="form-control mb-2"></textarea>
+            <label class="form-label">Khối lượng công việc dự kiến</label>
+            <textarea name="khoi_luong_cong_viec" class="form-control mb-2"></textarea>
+            <label class="form-label">Ảnh khảo sát (PNG/JPEG/WebP, tối đa 5 ảnh × 5 MB)</label>
+            <input type="file" name="hinh_anh" accept=".png,.jpg,.jpeg,.webp" multiple class="form-control mb-3">
+            <button class="btn btn-primary w-100">Lưu biên bản khảo sát BM03</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'dang_khao_sat' and yc.da_khao_sat %}
+      <div class="alert alert-success mb-4">
+        <strong>Biên bản BM03 đã được lập.</strong> Mở phần lịch sử hồ sơ để xem lại; có thể tiếp tục lập phương án trình duyệt.
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'dang_khao_sat' and yc.da_khao_sat %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Lập phương án trình duyệt</div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('tai_san.trinh_phuong_an_sua_chua', id=yc.id) }}">
+            <label class="form-label">Phương án xử lý</label>
+            <select name="phuong_an" class="form-select mb-2" required>
+              <option value="sua_chua">Sửa chữa</option><option value="bao_tri">Bảo trì</option>
+              <option value="thay_the">Thay thế</option><option value="cai_tao">Cải tạo</option>
+            </select>
+            <label class="form-label">Nội dung / phạm vi công việc</label>
+            <textarea name="phuong_an_chi_tiet" class="form-control mb-2" required></textarea>
+            <label class="form-label">Kinh phí dự kiến (VNĐ)</label>
+            <input type="number" name="chi_phi_du_kien" min="0" step="1" value="{{ yc.chi_phi_du_kien or 0 }}" class="form-control mb-2" required>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="can_mua_sam" value="1" id="canMuaSam">
+              <label class="form-check-label" for="canMuaSam">Phát sinh mua vật tư/thiết bị hoặc thuê dịch vụ ngoài (thực hiện thủ tục M08 sau khi duyệt)</label>
+            </div>
+            <button class="btn btn-warning w-100">📄 Trình Lãnh đạo phê duyệt</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-7">
+      {% if session.get('vai_tro') == 'quan_tri' and yc.trang_thai == 'cho_duyet_phuong_an' %}
+      <div class="card border-warning shadow-sm mb-4">
+        <div class="card-header fw-bold">Lãnh đạo phê duyệt phương án</div>
+        <div class="card-body">
+          <p><strong>Phương án:</strong> {{ yc.phuong_an | ten_trang_thai }} — {{ yc.phuong_an_chi_tiet }}</p>
+          <p><strong>Dự toán:</strong> {{ (yc.chi_phi_du_kien or 0) | tien_vnd }}{% if yc.can_mua_sam %} · Cần thủ tục M08{% endif %}</p>
+          <form method="post" action="{{ url_for('tai_san.phe_duyet_phuong_an_sua_chua', id=yc.id) }}">
+            <label class="form-label">Ý kiến phê duyệt</label>
+            <textarea name="ghi_chu" class="form-control mb-3" rows="2"></textarea>
+            <button class="btn btn-success">Phê duyệt phương án</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'cho_thu_tuc_m08' %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Liên kết thủ tục M08</div>
+        <div class="card-body">
+          {% if yc.de_nghi_mua_sam_id %}
+            <p>Đề nghị M08 <strong>{{ yc.ma_de_nghi_m08 }}</strong> · {{ yc.trang_thai_m08 | ten_trang_thai }}</p>
+            {% if yc.trang_thai_m08 in ['da_nhan', 'hoan_tat'] %}
+              <form method="post" action="{{ url_for('tai_san.bat_dau_sua_chua', id=yc.id) }}"><button class="btn btn-primary">Bắt đầu sửa chữa</button></form>
+            {% else %}
+              <p class="text-muted mb-0">Chỉ bắt đầu thi công sau khi M08 đã tiếp nhận hàng hóa.</p>
+            {% endif %}
+          {% else %}
+            <p>Phương án đã duyệt có phát sinh mua sắm / thuê dịch vụ.</p>
+            <form method="post" action="{{ url_for('tai_san.lien_ket_m08_sua_chua', id=yc.id) }}">
+              <button class="btn btn-primary">🔗 Tạo và liên kết đề nghị M08</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai in ['dang_sua_chua', 'khong_dat_yeu_cau'] %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Cập nhật tiến độ thi công</div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" action="{{ url_for('tai_san.cap_nhat_tien_do_sua_chua', id=yc.id) }}">
+            <label class="form-label">Nhật ký công việc</label>
+            <textarea name="noi_dung" class="form-control mb-2" rows="3" required></textarea>
+            <label class="form-label">Ảnh tiến độ (PNG/JPEG/WebP, tối đa 5 ảnh × 5 MB)</label>
+            <input type="file" name="hinh_anh" accept=".png,.jpg,.jpeg,.webp" multiple class="form-control mb-3">
+            <button class="btn btn-primary">📝 Lưu tiến độ</button>
+          </form>
+          {% if yc.trang_thai == 'khong_dat_yeu_cau' %}
+            <form method="post" action="{{ url_for('tai_san.bat_dau_sua_chua', id=yc.id) }}" class="mt-3">
+              <button class="btn btn-warning">Bắt đầu khắc phục lại</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if session.get('vai_tro') == 'quan_ly_kho' and yc.trang_thai == 'dang_sua_chua' %}
+      <div class="card border-success shadow-sm mb-4">
+        <div class="card-header fw-bold">Lập biên bản nghiệm thu</div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('tai_san.nghiem_thu_sua_chua', id=yc.id) }}">
+            <label class="form-label">Chi phí thực tế (VNĐ)</label>
+            <input type="number" name="chi_phi_thuc_te" min="0" value="{{ yc.chi_phi_du_kien or 0 }}" class="form-control mb-2" required>
+            <label class="form-label">Kết quả kiểm tra / ý kiến</label>
+            <textarea name="ghi_chu" class="form-control mb-3"></textarea>
+            <button class="btn btn-success">🏁 Lập biên bản · Chờ nghiệm thu</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử toàn bộ hồ sơ</div>
+        <div class="card-body">
+          {% for event in yc.lich_su %}
+          <div class="border-start border-3 ps-3 pb-3 mb-3">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+              <strong>{{ event.tieu_de }}</strong>
+              <small class="text-muted">{{ event.ngay_tao[:16].replace('T', ' ') }}</small>
+            </div>
+            {% if event.nguoi_tao_ten %}<small class="text-muted">Thực hiện: {{ event.nguoi_tao_ten }}</small>{% endif %}
+            {% if event.noi_dung %}<div class="mt-1">{{ event.noi_dung }}</div>{% endif %}
+            {% if event.du_lieu %}
+              <div class="small mt-2">
+                {% for key, value in event.du_lieu.items() %}
+                  {% if value %}<div><strong>{{ key | replace('_', ' ') | capitalize }}:</strong> {{ value }}</div>{% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% for tep in event.tep_dinh_kem %}
+              <a href="{{ url_for('tai_san.xem_tep_sua_chua', id=tep.id) }}" target="_blank" rel="noopener">
+                <img src="{{ url_for('tai_san.xem_tep_sua_chua', id=tep.id) }}" alt="{{ tep.ten_tep }}" class="img-thumbnail mt-2" style="max-height:140px">
+              </a>
+            {% endfor %}
+          </div>
+          {% else %}
+            <p class="text-muted mb-0">Chưa có hoạt động nào được ghi nhận.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

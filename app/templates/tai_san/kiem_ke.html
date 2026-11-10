@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Kiểm kê tài sản - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-clipboard-check text-primary me-2"></i> KIỂM KÊ TÀI SẢN ĐỊNH KỲ</h2>
+      <small class="text-muted">Lập phiếu đối soát hiện trạng thực tế của tài sản cơ sở vật chất tại các giảng đường và phòng ban</small>
+    </div>
+    <div>
+      <a href="{{ url_for('tai_san.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Danh sách tài sản
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Lịch sử các phiếu kiểm kê -->
+    <div class="col-lg-6">
+      <div class="neu-card">
+        <div class="neu-card-header bg-primary-neu">
+          <span><i class="fa-solid fa-clock-rotate-left me-2"></i> Các đợt kiểm kê đã thực hiện</span>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Mã phiếu</th>
+                <th>Ngày kiểm kê</th>
+                <th>Người thực hiện</th>
+                <th>Số tài sản</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if kiem_ke_list %}
+                {% for pk in kiem_ke_list %}
+                <tr>
+                  <td><strong class="text-primary">{{ pk.ma_phieu }}</strong></td>
+                  <td class="text-muted small">{{ pk.ngay_kiem_ke | dinh_dang_ngay }}</td>
+                  <td>{{ pk.nguoi_kiem_ke_ten }}</td>
+                  <td><span class="badge bg-secondary">{{ pk.so_tai_san }} tài sản</span></td>
+                  <td><span class="badge bg-success">Hoàn tất</span></td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">Chưa có đợt kiểm kê nào.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Form tạo đợt kiểm kê nhanh -->
+    <div class="col-lg-6">
+      <div class="neu-card">
+        <div class="neu-card-header bg-success text-white">
+          <span><i class="fa-solid fa-plus-circle me-2"></i> Lập phiếu kiểm kê mới</span>
+        </div>
+        <div class="neu-card-body">
+          <form method="POST" action="{{ url_for('tai_san.tao_kiem_ke') }}">
+            <div class="mb-3">
+              <label class="neu-form-label">Ghi chú đợt kiểm kê</label>
+              <input type="text" name="ghi_chu" class="form-control neu-form-control" placeholder="Ví dụ: Kiểm kê định kỳ cuối năm 2026 khu giảng đường A1">
+            </div>
+
+            <label class="neu-form-label mb-2">Chọn tài sản và đánh giá hiện trạng:</label>
+            <div style="max-height: 280px; overflow-y: auto;" class="border rounded p-2 mb-3">
+              {% for ts in tai_san_list %}
+              <div class="row g-2 align-items-center border-bottom pb-2 mb-2">
+                <div class="col-6">
+                  <input type="hidden" name="tai_san_id[]" value="{{ ts.id }}">
+                  <strong class="text-primary small d-block">{{ ts.ma_tai_san }}</strong>
+                  <span class="small text-dark">{{ ts.ten_tai_san }}</span>
+                </div>
+                <div class="col-6">
+                  <select name="tinh_trang[]" class="form-select form-select-sm neu-form-control">
+                    <option value="tot">Tốt (Bình thường)</option>
+                    <option value="can_sua_chua">Cần bảo trì / sửa chữa</option>
+                    <option value="mat_mat">Mất mát / Thất lạc</option>
+                  </select>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-bold">
+              <i class="fa-solid fa-check me-1"></i> Lưu và hoàn tất phiếu kiểm kê
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

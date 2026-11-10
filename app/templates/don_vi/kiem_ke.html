@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Phối hợp Kiểm kê & Nghiệm thu - {{ user.don_vi }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-4">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-clipboard-check text-primary me-2"></i> PHỐI HỢP KIỂM KÊ & GIẢI TRÌNH CHÊNH LỆCH</h2>
+      <p class="text-muted mb-0">Tham gia đợt kiểm kê tài sản định kỳ do Phòng Quản trị thiết bị khởi tạo và gửi giải trình chênh lệch số liệu</p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Bảng điều khiển
+      </a>
+    </div>
+  </div>
+
+  <!-- Thông tin hướng dẫn nghiệp vụ -->
+  <div class="alert alert-info border-info mb-4">
+    <div class="d-flex align-items-center">
+      <i class="fa-solid fa-circle-info fs-3 me-3 text-info"></i>
+      <div>
+        <strong>Hướng dẫn phối hợp kiểm kê tài sản:</strong>
+        <div class="small">Đại diện đơn vị sử dụng cùng Hội đồng kiểm kê đối chiếu số lượng và hiện trạng thực tế tại các phòng. Nếu phát hiện chênh lệch (thiếu, thừa, hỏng chưa báo, hoặc di chuyển vị trí), đơn vị nhập nội dung <strong>Giải trình chênh lệch</strong> ngay tại từng tài sản bên dưới để Phòng QTTB xác minh và cập nhật hồ sơ.</div>
+      </div>
+    </div>
+  </div>
+
+  {% if kiem_ke_list %}
+    {% for kk in kiem_ke_list %}
+    <div class="neu-card mb-4 border-primary">
+      <div class="neu-card-header bg-light d-flex justify-content-between align-items-center">
+        <div>
+          <span class="fs-5 fw-bold text-primary"><i class="fa-solid fa-calendar-check me-2"></i> Đợt kiểm kê: {{ kk.ma_phieu }}</span>
+          <span class="text-muted ms-3">Kỳ kiểm kê: <strong>{{ kk.ky_kiem_ke or 'Định kỳ năm' }}</strong> — Ngày thực hiện: <strong>{{ kk.ngay_kiem_ke }}</strong></span>
+        </div>
+        <div>
+          <span class="badge bg-primary">Cán bộ kiểm kê: {{ kk.nguoi_kiem_ke_ten or 'Phòng QTTB' }}</span>
+        </div>
+      </div>
+      <div class="neu-card-body p-0">
+        <div class="p-3 bg-white border-bottom">
+          <small class="text-muted"><i class="fa-solid fa-comment me-1"></i> Ghi chú đợt kiểm kê:</small>
+          <div class="text-dark small">{{ kk.ghi_chu or 'Kiểm kê định kỳ hiện trạng tài sản, trang thiết bị toàn trường.' }}</div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="neu-table mb-0">
+            <thead>
+              <tr>
+                <th style="width: 15%;">Mã tài sản</th>
+                <th style="width: 25%;">Tên tài sản</th>
+                <th style="width: 15%;">Vị trí kiểm kê</th>
+                <th style="width: 15%;">Kết quả kiểm kê</th>
+                <th style="width: 30%;">Giải trình chênh lệch của đơn vị</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if kk.chi_tiet %}
+                {% for ct in kk.chi_tiet %}
+                {% set tt_tt = ct.tinh_trang_thuc_te or ct.tinh_trang or 'Bình thường' %}
+                <tr class="{% if 'Khớp' not in tt_tt and 'Bình thường' not in tt_tt and 'tot' not in tt_tt %}table-warning{% endif %}">
+                  <td>
+                    <strong class="text-primary">{{ ct.ma_tai_san }}</strong>
+                  </td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ ct.ten_tai_san }}</div>
+                  </td>
+                  <td><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ ct.vi_tri }}</td>
+                  <td>
+                    <span class="badge {% if 'Khớp' in tt_tt or 'Bình thường' in tt_tt or 'tot' in tt_tt %}bg-success{% else %}bg-danger{% endif %}">
+                      {{ tt_tt }}
+                    </span>
+                    {% if ct.ghi_chu %}
+                      <div class="small text-muted mt-1">{{ ct.ghi_chu }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if ct.giai_trinh_don_vi %}
+                      <div class="p-2 bg-light rounded border small">
+                        <strong class="text-success"><i class="fa-solid fa-check me-1"></i> Đã gửi giải trình:</strong>
+                        <div>{{ ct.giai_trinh_don_vi }}</div>
+                      </div>
+                    {% else %}
+                      <form action="{{ url_for('don_vi.giai_trinh_kiem_ke', id=ct.id) }}" method="POST" class="d-flex gap-1 align-items-center">
+                        <input type="text" name="noi_dung_giai_trinh" class="form-control form-control-sm" placeholder="Nhập lý do chênh lệch (thừa/thiếu/chuyển phòng)..." required>
+                        <button type="submit" class="btn btn-sm btn-primary text-nowrap">
+                          <i class="fa-solid fa-paper-plane me-1"></i> Giải trình
+                        </button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center py-3 text-muted">Không có tài sản nào của đơn vị trong đợt kiểm kê này.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="neu-card">
+      <div class="neu-card-body text-center py-5">
+        <i class="fa-solid fa-clipboard-list fa-3x text-secondary mb-3"></i>
+        <h5 class="text-dark">Hiện chưa có đợt kiểm kê nào cho đơn vị</h5>
+        <p class="text-muted">Khi Phòng Quản trị thiết bị khởi tạo đợt kiểm kê định kỳ có tài sản của đơn vị, dữ liệu sẽ hiển thị tại đây để đối chiếu và giải trình.</p>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

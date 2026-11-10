@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}M09 - Quản lý Sửa chữa & Bảo trì - NEU Facility Hub{% endblock %}
+{% block content %}
+<div class="container my-4">
+  <div class="mb-4">
+    <h2 class="fw-bold text-primary mb-1"><i class="fa-solid fa-screwdriver-wrench me-2 text-danger"></i>M09 — QUẢN LÝ SỬA CHỮA & BẢO TRÌ</h2>
+    <p class="text-muted mb-0">Tiếp nhận, khảo sát BM03, trình duyệt phương án, theo dõi thi công và nghiệm thu.</p>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-bold text-muted me-2"><i class="fa-solid fa-filter me-1"></i> Trạng thái:</span>
+        <a href="{{ url_for('tai_san.danh_sach_sua_chua') }}" class="btn btn-sm {% if not trang_thai_chon %}btn-primary{% else %}btn-outline-secondary{% endif %}">Tất cả</a>
+        {% for status in [
+          ('cho_tiep_nhan', 'Chờ tiếp nhận'),
+          ('cho_khao_sat', 'Chờ khảo sát'),
+          ('dang_khao_sat', 'Đang khảo sát'),
+          ('cho_duyet_phuong_an', 'Chờ duyệt phương án'),
+          ('cho_thu_tuc_m08', 'Chờ thủ tục M08'),
+          ('dang_sua_chua', 'Đang sửa chữa'),
+          ('cho_nghiem_thu', 'Chờ nghiệm thu'),
+          ('khong_dat_yeu_cau', 'Không đạt yêu cầu'),
+          ('cho_lap_ho_so_thanh_toan', 'Chờ lập hồ sơ thanh toán'),
+          ('cho_thanh_toan', 'Chờ thanh toán'),
+          ('dang_xu_ly_thanh_toan', 'Đang xử lý thanh toán'),
+          ('yeu_cau_bo_sung_ho_so', 'Yêu cầu bổ sung hồ sơ'),
+          ('da_thanh_toan', 'Hoàn tất'),
+          ('tra_lai', 'Yêu cầu bổ sung')
+        ] %}
+          <a href="{{ url_for('tai_san.danh_sach_sua_chua', trang_thai=status[0]) }}" class="btn btn-sm {% if trang_thai_chon == status[0] %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ status[1] }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Mã yêu cầu</th>
+              <th>Đơn vị / Nội dung</th>
+              <th>Tài sản / Vị trí</th>
+              <th>Loại yêu cầu</th>
+              <th>Chi phí dự kiến</th>
+              <th>Tiến độ xử lý</th>
+              <th class="text-end">Hồ sơ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sc in sua_chua_list %}
+            <tr>
+              <td><span class="badge bg-light text-dark border fw-bold">{{ sc.ma_yeu_cau }}</span></td>
+              <td>
+                <strong>{{ sc.don_vi or 'Đơn vị chưa xác định' }}</strong><br>
+                <small class="text-muted">{{ sc.noi_dung }}</small>
+              </td>
+              <td>
+                {% if sc.ma_tai_san %}<span class="badge bg-info text-dark">{{ sc.ma_tai_san }}</span> {{ sc.ten_tai_san }}
+                {% else %}{{ sc.ten_vat_chat or 'Chưa gắn tài sản' }}{% endif %}
+                <br><small class="text-muted">{{ sc.vi_tri or sc.tai_san_vi_tri or '' }}</small>
+              </td>
+              <td>{{ sc.loai_sua_chua | ten_trang_thai }}</td>
+              <td>{{ (sc.chi_phi_du_kien or 0) | tien_vnd }}</td>
+              <td><span class="{{ sc.trang_thai | badge_trang_thai }}">{{ sc.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('tai_san.chi_tiet_sua_chua', id=sc.id) }}">
+                  <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center py-4 text-muted">Hiện không có yêu cầu sửa chữa nào.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

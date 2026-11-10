@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết Đề xuất Mua sắm {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.dashboard') }}">Đơn vị sử dụng</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.danh_sach_mua_sam') }}">Đề xuất mua sắm</a></li>
+          <li class="breadcrumb-item active">{{ de_nghi.ma_de_nghi }}</li>
+        </ol>
+      </nav>
+      <h2 class="neu-page-title">
+        <i class="fa-solid fa-cart-shopping text-primary me-2"></i> 
+        ĐỀ XUẤT MUA SẮM: {{ de_nghi.ma_de_nghi }}
+      </h2>
+      <p class="text-muted mb-0">{{ de_nghi.tieu_de }}</p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <!-- Tiến trình luồng đề xuất mua sắm -->
+  <div class="neu-card mb-4">
+    <div class="neu-card-header bg-light">
+      <span class="fw-bold text-dark"><i class="fa-solid fa-timeline me-2 text-primary"></i> Luồng xử lý & Phê duyệt đề xuất mua sắm</span>
+      <span class="{{ de_nghi.trang_thai | badge_trang_thai }}">{{ de_nghi.trang_thai | ten_trang_thai }}</span>
+    </div>
+    <div class="neu-card-body p-4">
+      <div class="row text-center g-3">
+        <!-- Bước 1 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border bg-light border-primary text-primary">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-file-signature"></i></div>
+            <div class="fw-bold small">1. Đề xuất (BM01)</div>
+            <small class="text-muted d-block">{{ de_nghi.ngay_tao[:10] }}</small>
+            <span class="badge bg-success mt-1">Đã lập</span>
+          </div>
+        </div>
+        <!-- Bước 2 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if de_nghi.trang_thai not in ['cho_phe_duyet', 'cho_lanh_dao_duyet', 'tu_choi'] %}bg-light border-success text-success{% elif de_nghi.trang_thai == 'tu_choi' %}bg-light border-danger text-danger{% else %}bg-light border-warning text-warning{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-stamp"></i></div>
+            <div class="fw-bold small">2. Phê duyệt</div>
+            {% if de_nghi.trang_thai == 'tu_choi' %}
+              <span class="badge bg-danger mt-1">Từ chối</span>
+            {% elif de_nghi.trang_thai in ['cho_phe_duyet', 'cho_lanh_dao_duyet'] %}
+              <span class="badge bg-warning text-dark mt-1">Chờ duyệt</span>
+            {% else %}
+              <span class="badge bg-success mt-1">Đã duyệt</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 3 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if de_nghi.xac_nhan_khao_sat_don_vi %}bg-light border-success text-success{% elif de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}bg-light border-info text-info{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div class="fw-bold small">3. Khảo sát (BM02)</div>
+            {% if de_nghi.xac_nhan_khao_sat_don_vi %}
+              <span class="badge bg-success mt-1"><i class="fa-solid fa-check me-1"></i> Đã ký BM02</span>
+            {% elif de_nghi.trang_thai in ['da_phe_duyet', 'dang_mua'] %}
+              <span class="badge bg-warning text-dark mt-1">Cần khảo sát</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ duyệt</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 4 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if de_nghi.trang_thai in ['dang_mua', 'da_nhan', 'hoan_tat'] %}bg-light border-primary text-primary{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-handshake"></i></div>
+            <div class="fw-bold small">4. Báo giá & Hợp đồng</div>
+            {% if de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}
+              <span class="badge bg-success mt-1">Đã ký HĐ</span>
+            {% elif de_nghi.trang_thai == 'dang_mua' %}
+              <span class="badge bg-primary mt-1">Đang chọn thầu</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chưa thực hiện</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 5 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if de_nghi.xac_nhan_nghiem_thu_don_vi or de_nghi.trang_thai in ['da_nhan', 'hoan_tat'] %}bg-light border-success text-success{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="fw-bold small">5. Tiếp nhận & BM04</div>
+            {% if de_nghi.xac_nhan_nghiem_thu_don_vi %}
+              <span class="badge bg-success mt-1"><i class="fa-solid fa-check-double me-1"></i> Đã nghiệm thu</span>
+            {% elif de_nghi.trang_thai == 'da_nhan' %}
+              <span class="badge bg-warning text-dark mt-1">Chờ ký BM04</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ giao hàng</span>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Bước 6 -->
+        <div class="col-md-2 col-6">
+          <div class="p-3 rounded border {% if de_nghi.trang_thai == 'hoan_tat' %}bg-light border-success text-success{% else %}text-muted{% endif %}">
+            <div class="fs-4 mb-1"><i class="fa-solid fa-money-check-dollar"></i></div>
+            <div class="fw-bold small">6. Thanh toán & Nhập kho</div>
+            {% if de_nghi.trang_thai == 'hoan_tat' %}
+              <span class="badge bg-success mt-1">Hoàn tất</span>
+            {% else %}
+              <span class="badge bg-secondary mt-1">Chờ thanh toán</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Thông tin đề xuất & Danh mục hàng hóa -->
+    <div class="col-lg-8">
+      
+      <!-- Thông tin chung -->
+      <div class="neu-card mb-4">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-circle-info me-2"></i> Thông tin phiếu đề xuất (BM01)</span>
+        </div>
+        <div class="neu-card-body">
+          <table class="table table-bordered mb-0">
+            <tbody>
+              <tr>
+                <th class="bg-light" style="width: 30%;">Tiêu đề đề xuất</th>
+                <td class="fw-bold text-dark">{{ de_nghi.tieu_de }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Đơn vị đề nghị</th>
+                <td><span class="badge bg-primary fs-6">{{ de_nghi.don_vi_de_nghi }}</span></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Người đề xuất</th>
+                <td>{{ de_nghi.nguoi_de_nghi_ten }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Tổng kinh phí dự toán</th>
+                <td class="fs-5 fw-bold text-danger">
+                  {{ "{:,.0f}".format(de_nghi.tong_du_toan or de_nghi.tong_tien_uoc_tinh or 0) }} VNĐ
+                  {% if (de_nghi.tong_du_toan or de_nghi.tong_tien_uoc_tinh or 0) >= 100000000 %}
+                    <span class="badge bg-warning text-dark ms-2">&ge; 100tr (Bắt buộc HĐ riêng)</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark ms-2">&lt; 100tr (Áp dụng Phụ lục 01)</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Địa điểm bố trí sử dụng</th>
+                <td>{{ de_nghi.dia_diem_su_dung or 'Theo phòng chức năng' }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Thời gian cần hàng</th>
+                <td>{{ de_nghi.thoi_gian_can_hang or 'Theo kế hoạch mua sắm' }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Lý do sự cần thiết</th>
+                <td class="text-pre-wrap">{{ de_nghi.ly_do_su_can_thiet }}</td>
+              </tr>
+              {% if de_nghi.ly_do_tu_choi %}
+              <tr>
+                <th class="bg-danger text-white">Lý do từ chối</th>
+                <td class="text-danger fw-bold">{{ de_nghi.ly_do_tu_choi }}</td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Danh mục mặt hàng chi tiết -->
+      <div class="neu-card mb-4">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-box-archive me-2"></i> Danh mục trang thiết bị, vật tư yêu cầu mua sắm</span>
+        </div>
+        <div class="neu-card-body p-0">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th style="width: 5%;">STT</th>
+                <th>Tên hàng hóa / Quy cách</th>
+                <th class="text-center">ĐVT</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá dự kiến</th>
+                <th class="text-end">Thành tiền</th>
+                <th>Vị trí sử dụng</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if de_nghi['items'] %}
+                {% for it in de_nghi['items'] %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td class="fw-bold text-dark">{{ it.ten_hang_hoa }}</td>
+                  <td class="text-center">{{ it.don_vi_tinh }}</td>
+                  <td class="text-center fw-bold">{{ it.so_luong }}</td>
+                  <td class="text-end">{{ "{:,.0f}".format(it.don_gia_du_kien or 0) }} đ</td>
+                  <td class="text-end fw-bold text-danger">{{ "{:,.0f}".format(it.thanh_tien or 0) }} đ</td>
+                  <td class="small">{{ it.vi_tri_su_dung or de_nghi.dia_diem_su_dung }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="7" class="text-center py-3 text-muted">Không có dữ liệu mặt hàng.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Cột phải: Khối Phối hợp & Ký xác nhận của Đơn vị -->
+    <div class="col-lg-4">
+
+      <!-- 1. Xác nhận khảo sát nhu cầu (BM02) -->
+      <div class="neu-card mb-4 border-info">
+        <div class="neu-card-header bg-info text-dark">
+          <span class="fw-bold"><i class="fa-solid fa-signature me-2"></i> 1. Xác nhận khảo sát nhu cầu (BM02)</span>
+        </div>
+        <div class="neu-card-body">
+          <p class="small text-muted mb-3">
+            Khi BP Mua sắm tiến hành khảo sát thực tế tình trạng thiết bị hiện có và nhu cầu bổ sung tại đơn vị, đại diện đơn vị phối hợp xác nhận kết quả khảo sát BM02.
+          </p>
+
+          {% if de_nghi.xac_nhan_khao_sat_don_vi %}
+            <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+              <i class="fa-solid fa-circle-check fs-3 me-3 text-success"></i>
+              <div>
+                <strong>Đơn vị đã ký xác nhận BM02!</strong>
+                <div class="small">Biên bản khảo sát nhu cầu thực tế đã được lưu vào hồ sơ thầu.</div>
+              </div>
+            </div>
+          {% else %}
+            <form action="{{ url_for('don_vi.xac_nhan_khao_sat_mua_sam', id=de_nghi.id) }}" method="POST">
+              <div class="mb-3">
+                <label class="form-label fw-bold small">Ý kiến / Ghi chú khảo sát:</label>
+                <textarea name="ghi_chu" class="form-control form-control-sm" rows="3" placeholder="Xác nhận số lượng và nhu cầu thực tế cấp thiết..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
+                <i class="fa-solid fa-signature me-1"></i> Ký xác nhận khảo sát nhu cầu (BM02)
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 2. Tham gia nghiệm thu tiếp nhận hàng hóa mua sắm -->
+      <div class="neu-card mb-4 border-success">
+        <div class="neu-card-header bg-success text-white">
+          <span class="fw-bold"><i class="fa-solid fa-boxes-packing me-2"></i> 2. Nghiệm thu hàng hóa mua sắm</span>
+        </div>
+        <div class="neu-card-body">
+          <p class="small text-muted mb-3">
+            Khi Nhà cung cấp giao hàng, đại diện đơn vị sử dụng tham gia cùng Phòng Quản trị thiết bị kiểm tra thông số kỹ thuật, số lượng và ký Biên bản nghiệm thu (BM04) trước khi đưa vào kho M09.
+          </p>
+
+          {% if de_nghi.xac_nhan_nghiem_thu_don_vi %}
+            <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+              <i class="fa-solid fa-award fs-3 me-3 text-success"></i>
+              <div>
+                <strong>Đã tham gia nghiệm thu tiếp nhận!</strong>
+                <div class="small">Hàng hóa đạt chuẩn và sẵn sàng được bàn giao sử dụng.</div>
+              </div>
+            </div>
+          {% else %}
+            <form action="{{ url_for('don_vi.nghiem_thu_mua_sam', id=de_nghi.id) }}" method="POST">
+              <div class="mb-3">
+                <label class="form-label fw-bold small">Nhận xét chất lượng & quy cách:</label>
+                <textarea name="ghi_chu" class="form-control form-control-sm" rows="3" placeholder="Hàng hóa mới 100%, đúng quy cách mẫu mã trong đề xuất..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-success w-100 fw-bold" onclick="return confirm('Bạn có chắc chắn xác nhận nghiệm thu đạt yêu cầu kỹ thuật?');">
+                <i class="fa-solid fa-award me-1"></i> Ký nghiệm thu hàng hóa mua sắm
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Ghi chú tiến độ mua sắm -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-store me-2"></i> Thông tin cung ứng & Hợp đồng</span>
+        </div>
+        <div class="neu-card-body small">
+          <div class="mb-2"><strong>Nhà cung cấp:</strong> {{ de_nghi.nha_cung_cap or 'Đang lựa chọn qua báo giá' }}</div>
+          <div class="mb-2"><strong>Số hợp đồng / Đơn hàng:</strong> {{ de_nghi.so_hop_dong or 'Chưa phát hành' }}</div>
+          <div class="mb-0"><strong>Giá trị hợp đồng:</strong> {% if de_nghi.gia_tri_hop_dong %}{{ "{:,.0f}".format(de_nghi.gia_tri_hop_dong) }} đ{% else %}Chưa chốt giá trúng thầu{% endif %}</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

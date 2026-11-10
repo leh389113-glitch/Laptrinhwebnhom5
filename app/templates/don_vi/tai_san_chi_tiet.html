@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Hồ sơ Tài sản {{ tai_san.ma_tai_san }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.dashboard') }}">Đơn vị sử dụng</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('don_vi.danh_sach_tai_san') }}">Tài sản đơn vị</a></li>
+          <li class="breadcrumb-item active">{{ tai_san.ma_tai_san }}</li>
+        </ol>
+      </nav>
+      <h2 class="neu-page-title">
+        <i class="fa-solid fa-laptop text-primary me-2"></i> 
+        HỒ SƠ TÀI SẢN: {{ tai_san.ma_tai_san }}
+      </h2>
+      <p class="text-muted mb-0">{{ tai_san.ten_tai_san }} — Vị trí: <strong>{{ tai_san.vi_tri }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('don_vi.danh_sach_tai_san') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh mục
+      </a>
+      <a href="{{ url_for('don_vi.tao_sua_chua', tai_san_id=tai_san.id) }}" class="btn btn-danger fw-bold shadow-sm">
+        <i class="fa-solid fa-screwdriver-wrench me-1"></i> Báo sự cố thiết bị này
+      </a>
+    </div>
+  </div>
+
+  <!-- Cảnh báo nếu tài sản chưa được đơn vị ký nhận bàn giao -->
+  {% if not tai_san.xac_nhan_ban_giao_don_vi %}
+  <div class="alert alert-warning border-warning shadow-sm mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h5 class="alert-heading mb-1"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Tài sản đang chờ Đơn vị ký Biên bản tiếp nhận bàn giao!</h5>
+        <div class="small">Phòng Quản trị thiết bị đã cấp phát tài sản này cho đơn vị. Vui lòng kiểm tra thực tế tại phòng và ký xác nhận tiếp nhận bên dưới.</div>
+      </div>
+      <div>
+        <form action="{{ url_for('don_vi.xac_nhan_ban_giao', id=tai_san.id) }}" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-success fw-bold" onclick="return confirm('Bạn xác nhận đã nhận bàn giao đủ và đúng tình trạng thiết bị?');">
+            <i class="fa-solid fa-check me-1"></i> Ký xác nhận tiếp nhận bàn giao ngay
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Cột trái: Thông số kỹ thuật & Hồ sơ lý lịch -->
+    <div class="col-lg-7">
+      <div class="neu-card mb-4">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-microchip me-2"></i> Thông số kỹ thuật & Lý lịch tài sản</span>
+          <span class="{{ tai_san.trang_thai | badge_trang_thai }}">{{ tai_san.trang_thai | ten_trang_thai }}</span>
+        </div>
+        <div class="neu-card-body">
+          <table class="table table-bordered mb-0">
+            <tbody>
+              <tr>
+                <th class="bg-light" style="width: 35%;">Mã định danh</th>
+                <td><strong class="text-primary fs-5">{{ tai_san.ma_tai_san }}</strong></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Tên tài sản</th>
+                <td class="fw-bold">{{ tai_san.ten_tai_san }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Phân loại quản lý</th>
+                <td>
+                  {% if tai_san.phan_loai == 'tai_san_co_dinh' %}
+                    <span class="badge bg-primary fs-6">Tài sản cố định (TSCĐ &ge; 10 triệu)</span>
+                  {% else %}
+                    <span class="badge bg-secondary fs-6">Công cụ dụng cụ (CCDC &lt; 10 triệu)</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Model & Hãng sản xuất</th>
+                <td>{{ tai_san.model or 'N/A' }} — <strong>{{ tai_san.hang_san_xuat or 'N/A' }}</strong></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Số Serial</th>
+                <td><code>{{ tai_san.so_serial or 'Không có' }}</code></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Vị trí phòng đặt</th>
+                <td><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ tai_san.vi_tri }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Đơn vị quản lý sử dụng</th>
+                <td><strong class="text-neu-navy">{{ tai_san.don_vi_su_dung or tai_san.phong_ban }}</strong></td>
+              </tr>
+              <tr>
+                <th class="bg-light">Nguyên giá tiếp nhận</th>
+                <td class="fw-bold text-danger">{{ "{:,.0f}".format(tai_san.gia_tri or 0) }} VNĐ</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Thời hạn bảo hành</th>
+                <td>{{ tai_san.thoi_han_bao_hanh or 'Theo quy định nhà sản xuất' }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Ngày tiếp nhận vào kho</th>
+                <td>{{ tai_san.ngay_tiep_nhan or tai_san.ngay_tao[:10] }}</td>
+              </tr>
+              <tr>
+                <th class="bg-light">Tình trạng kỹ thuật</th>
+                <td>
+                  {% if tai_san.tinh_trang_ky_thuat == 'binh_thuong' %}
+                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Bình thường (Hoạt động tốt)</span>
+                  {% elif tai_san.tinh_trang_ky_thuat == 'co_hu_hong' %}
+                    <span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Đang có sự cố hư hỏng</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Cần kiểm tra</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th class="bg-light">Mô tả quy cách</th>
+                <td class="text-pre-wrap">{{ tai_san.mo_ta or 'Không có ghi chú thêm.' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Lịch sử bàn giao & Lịch sử sửa chữa -->
+    <div class="col-lg-5">
+
+      <!-- Trạng thái xác nhận tiếp nhận bàn giao -->
+      <div class="neu-card mb-4 border-primary">
+        <div class="neu-card-header bg-primary text-white">
+          <span><i class="fa-solid fa-hand-holding-hand me-2"></i> Biên bản bàn giao tài sản (BM03)</span>
+        </div>
+        <div class="neu-card-body">
+          {% if tai_san.xac_nhan_ban_giao_don_vi %}
+            <div class="alert alert-success d-flex align-items-center mb-0">
+              <i class="fa-solid fa-circle-check fs-2 me-3 text-success"></i>
+              <div>
+                <strong>Đơn vị đã xác nhận tiếp nhận bàn giao!</strong>
+                <div class="small">Tài sản đã được nhập sổ theo dõi tài sản của đơn vị.</div>
+              </div>
+            </div>
+          {% else %}
+            <p class="small text-muted mb-3">
+              Cán bộ phụ trách CSVC của đơn vị kiểm tra số lượng, thông số kỹ thuật thực tế và bấm nút ký xác nhận để hoàn tất bàn giao.
+            </p>
+            <form action="{{ url_for('don_vi.xac_nhan_ban_giao', id=tai_san.id) }}" method="POST">
+              <div class="mb-3">
+                <label class="form-label small fw-bold">Ghi chú tiếp nhận:</label>
+                <input type="text" name="ghi_chu" class="form-control form-control-sm" placeholder="Thiết bị mới, đủ phụ kiện, hoạt động bình thường...">
+              </div>
+              <button type="submit" class="btn btn-success w-100 fw-bold">
+                <i class="fa-solid fa-check-double me-1"></i> Ký xác nhận tiếp nhận bàn giao (BM03)
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Lịch sử sửa chữa / bảo trì trước đây -->
+      <div class="neu-card mb-4">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-clock-rotate-left me-2"></i> Lịch sử sửa chữa & bảo trì</span>
+        </div>
+        <div class="neu-card-body p-0">
+          {% if tai_san.lich_su_bao_tri %}
+            <ul class="list-group list-group-flush">
+              {% for bt in tai_san.lich_su_bao_tri %}
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong class="text-primary">{{ bt.ngay_bao_tri }}</strong>
+                  <span class="badge bg-secondary">{{ "{:,.0f}".format(bt.chi_phi or 0) }} đ</span>
+                </div>
+                <div class="small fw-bold">{{ bt.noi_dung }}</div>
+                <div class="small text-muted">Đơn vị sửa chữa: {{ bt.don_vi_thuc_hien or 'Bộ phận kỹ thuật' }}</div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="p-3 text-center text-muted small">
+              <i class="fa-solid fa-shield-heart fa-2x mb-2 d-block text-success"></i>
+              Tài sản chưa ghi nhận lịch sử sửa chữa lớn nào.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Lịch sử điều chuyển / Bàn giao trước đây -->
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-arrows-split-up-and-left me-2"></i> Lịch sử bàn giao vị trí</span>
+        </div>
+        <div class="neu-card-body p-0">
+          {% if tai_san.lich_su_ban_giao %}
+            <ul class="list-group list-group-flush">
+              {% for bg in tai_san.lich_su_ban_giao %}
+              <li class="list-group-item small">
+                <div class="fw-bold text-dark">{{ bg.ngay_ban_giao }}</div>
+                <div>Chuyển đến: <strong class="text-danger">{{ bg.vi_tri_moi }}</strong></div>
+                <div class="text-muted">{{ bg.ghi_chu or 'Điều chuyển phục vụ công tác.' }}</div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="p-3 text-center text-muted small">
+              Vị trí ban đầu: <strong>{{ tai_san.vi_tri }}</strong> (chưa có đợt điều chuyển nào).
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

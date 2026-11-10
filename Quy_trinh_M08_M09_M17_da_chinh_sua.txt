@@ -1,0 +1,970 @@
+PHẦN I. TỔNG QUAN QUY TRÌNH NGHIỆP VỤ
+ĐƠN VỊ SỬ DỤNG: Phát sinh nhu cầu mua sắm hoặc phát hiện tài sản/công trình cần sửa chữa
+M08 – MUA SẮM VÀ THANH TOÁN: Đề xuất mua sắm → phê duyệt → lựa chọn nhà cung cấp → hợp đồng → kiểm tra/nghiệm thu → thanh toán
+M09 – QUẢN LÝ TÀI SẢN: Tiếp nhận hàng hóa từ M08 → phân loại → ghi nhận/cấp mã → bàn giao → theo dõi → tiếp nhận và quản lý sửa chữa khi phát sinh → kiểm kê
+M17 – DASHBOARD, BÁO CÁO VÀ ĐÁNH GIÁ: Tổng hợp dữ liệu mua sắm, thanh toán, tài sản và tình trạng xử lý
+1. Phân chia các quy trình cần số hóa
+STT	Quy trình	Module chính
+1	Đề xuất và phê duyệt chủ trương mua sắm	M08
+2	Xác định giá, lập dự toán và kế hoạch lựa chọn nhà thầu	M08
+3	Lựa chọn nhà cung cấp và ký hợp đồng	M08
+4	Thực hiện hợp đồng, giao nhận và nghiệm thu	M08 + M09
+5	Tạm ứng, thanh toán và quyết toán	M08
+6	Tiếp nhận, nhập kho và ghi nhận tài sản	M09
+7	Cấp mã, quản lý thông tin và bàn giao tài sản	M09
+8	Tiếp nhận và xử lý yêu cầu sửa chữa	M09; liên kết M08 khi phát sinh mua sắm/dịch vụ
+9	Kiểm kê và xử lý chênh lệch	M09
+10	Tổng hợp báo cáo và theo dõi tiến độ	M17
+PHẦN II. QUY TRÌNH MUA SẮM VÀ THANH TOÁN – M08
+Đối tượng tham gia:
+•	Đơn vị sử dụng: phát sinh nhu cầu, lập đề xuất và xác nhận nhu cầu thực tế.
+•	Phòng Quản trị thiết bị (QTTB): tổng hợp nhu cầu, khảo sát, chủ trì các nghiệp vụ được giao.
+•	Phòng Tài chính – Kế toán: xác nhận khả năng kinh phí, phối hợp thẩm định và thực hiện thanh toán.
+•	Bộ phận thẩm định: thẩm định hồ sơ theo nhiệm vụ được giao.
+•	Lãnh đạo/người có thẩm quyền: phê duyệt chủ trương, dự toán, kế hoạch và kết quả lựa chọn nhà thầu.
+•	Nhà cung cấp: gửi báo giá, cung cấp hàng hóa/dịch vụ, thực hiện hợp đồng.
+Giai đoạn 1 – Đề xuất nhu cầu và phê duyệt chủ trương
+Bước 1. Đơn vị sử dụng lập phiếu đề xuất mua sắm: Đơn vị có nhu cầu mua sắm hàng hóa, vật tư hoặc dịch vụ lập phiếu đề xuất. Yêu cầu sửa chữa được lập tại M09 theo Phần III.
+1. Phiếu đề nghị mua sắm / cung cấp hàng hóa, dịch vụ
+A. Thông tin chung
+Trường thông tin	Nội dung
+Mã phiếu	Hệ thống tự động sinh
+Đơn vị đề nghị	Chọn đơn vị lập phiếu
+Người đề nghị	Tự động lấy theo tài khoản đăng nhập
+Ngày lập phiếu	Hệ thống tự động ghi nhận
+Kính gửi	Ban Giám đốc / Phòng Quản trị Thiết bị
+B. Danh mục hàng hóa, dịch vụ cần đề nghị
+Cho phép người dùng thêm nhiều dòng hàng hóa vào cùng một phiếu.
+Trường thông tin	Nội dung
+Tên hàng hóa, dịch vụ	Tên thiết bị hoặc dịch vụ cần mua
+Đơn vị tính	Cái, bộ, chiếc, gói...
+Số lượng	Số lượng cần mua
+Vị trí sử dụng	Phòng, ban, địa điểm dự kiến sử dụng
+Lý do/Mục đích	Mục đích sử dụng hàng hóa
+Ghi chú	Thông tin bổ sung nếu có
+C. Thông tin bổ sung
+•	Lý do, sự cần thiết của việc mua sắm.
+•	Địa điểm sử dụng.
+•	Thời gian cần có hàng hóa, dịch vụ.
+•	Nguồn kinh phí đề nghị.
+•	Mức độ ưu tiên: Bình thường / Cần sớm / Khẩn cấp.
+•	Tài liệu đính kèm: Hình ảnh, tài liệu liên quan.
+Lưu ý: Yêu cầu sửa chữa tài sản, thiết bị và công trình được tiếp nhận, quản lý tại M09 theo Phần III. M08 chỉ tham gia khi phương án sửa chữa cần mua sắm hàng hóa, thuê dịch vụ hoặc lựa chọn nhà thầu.
+Bước 2. QTTB khảo sát và xác định nhu cầu mua sắm
+QTTB phối hợp với đơn vị đề nghị kiểm tra nhu cầu mua sắm, khả năng đáp ứng từ nguồn hiện có và sự phù hợp với tiêu chuẩn, định mức. Nghiệp vụ khảo sát sửa chữa được thực hiện tại M09, không lập lại trong quy trình M08.
+1. Thông tin chung của đợt khảo sát
+Các trường hiển thị ở đầu phiếu khảo sát
+Thông tin	Nội dung nhập trên hệ thống
+Mã phiếu khảo sát	Hệ thống tự sinh
+Phiếu đề nghị liên quan	Chọn số phiếu đề nghị mua sắm BM01C
+Nội dung khảo sát	Nhập nội dung/vấn đề cần khảo sát
+Thời gian khảo sát	Ngày, giờ bắt đầu khảo sát
+Địa điểm khảo sát	Nhập địa điểm thực hiện khảo sát
+Đại diện Phòng QTTB	Họ tên, chức vụ cán bộ tham gia
+Đại diện đơn vị đề nghị	Đơn vị, họ tên, chức vụ người tham gia
+Thành phần khác	Họ tên, chức vụ (nếu có)
+2. Trường hợp 1: Khảo sát nhu cầu cung cấp hàng hóa, vật tư, dịch vụ (BM02)
+Cán bộ QTTB nhập các thông tin sau:
+a. Nội dung và mục đích đề nghị
+Trường thông tin	Hình thức nhập
+Nội dung đề nghị	Chọn: Cung cấp hàng hóa / Cung cấp vật tư, phụ kiện / Cung cấp dịch vụ / Khác
+Mục đích sử dụng	Nhập nội dung
+Địa điểm sử dụng/thực hiện	Nhập địa điểm
+Đơn vị/bộ phận trực tiếp quản lý, sử dụng	Chọn hoặc nhập đơn vị
+Thời gian cần cung cấp/thực hiện	Chọn ngày hoặc khoảng thời gian
+b. Kết quả khảo sát và xác định nhu cầu thực tế
+Hiển thị bảng để cán bộ QTTB nhập từng loại hàng hóa, vật tư hoặc dịch vụ được khảo sát.
+STT	Tên hàng hóa, vật tư, dịch vụ	Quy cách/Thông số kỹ thuật	ĐVT	SL đề nghị	SL xác định sau khảo sát	Mục đích sử dụng	Ghi chú
+1	Nhập	Nhập	Nhập	Nhập	Nhập	Nhập	Nhập
+2	Nhập	Nhập	Nhập	Nhập	Nhập	Nhập	Nhập
+Sau bảng, cán bộ QTTB chọn kết quả đánh giá nhu cầu:
+•	Nhu cầu phù hợp với thực tế sử dụng.
+•	Cần điều chỉnh số lượng/khối lượng.
+•	Cần điều chỉnh quy cách, thông số kỹ thuật.
+•	Cần bổ sung tài liệu hoặc làm rõ yêu cầu chuyên môn.
+•	Chưa đủ cơ sở để thực hiện.
+Trường bổ sung: Nội dung đánh giá cụ thể.
+c. Kiểm tra khả năng đáp ứng hiện có
+Hiển thị các lựa chọn để cán bộ QTTB đánh dấu:
+•	Có thể cấp từ hàng hóa, vật tư hiện có tại kho.
+•	Có thể điều chuyển từ đơn vị/khu vực khác.
+•	Hàng hóa, vật tư hiện có không đáp ứng đủ số lượng.
+•	Hàng hóa, vật tư hiện có không đáp ứng yêu cầu kỹ thuật.
+•	Chưa có hàng hóa, vật tư phù hợp để cấp.
+•	Dịch vụ đề nghị chưa có trong hợp đồng/dịch vụ đang thực hiện.
+•	Có thể sử dụng hợp đồng/dịch vụ hiện có.
+•	Cần tổ chức thuê/mua dịch vụ mới.
+Trường bổ sung: Kết quả kiểm tra.
+d. Đối chiếu tiêu chuẩn, định mức
+Trường thông tin	Nội dung nhập
+Văn bản làm căn cứ đối chiếu	Nhập hoặc đính kèm văn bản
+Số lượng đề nghị	Nhập số lượng
+Số lượng hiện có	Nhập số lượng
+Số lượng được trang bị theo định mức	Nhập số lượng
+Kết quả đối chiếu	Chọn các phương án trong BM02
+Ý kiến của Phòng QTTB	Đồng ý trình / Đề nghị điều chỉnh / Không đồng ý
+Lý do	Nhập nội dung giải thích
+Lưu ý: Phần này chỉ áp dụng đối với mua sắm hàng hóa, trang thiết bị theo BM02; không áp dụng đối với thuê dịch vụ và vật tư tiêu hao.
+e. Yêu cầu kỹ thuật, chất lượng và điều kiện cung cấp
+Hệ thống hiển thị theo loại đề nghị:
+•	Nếu là hàng hóa, vật tư: quy cách, kích thước; vật liệu/chất liệu; thông số kỹ thuật; xuất xứ/chất lượng; bảo hành; lắp đặt, vận chuyển; yêu cầu khác.
+•	Nếu là dịch vụ: phạm vi công việc; khối lượng/tần suất; thời gian thực hiện; yêu cầu nhân sự/chuyên môn; chất lượng, kết quả đầu ra; yêu cầu khác.
+f. Đánh giá mức độ cần thiết và đề xuất phương án
+Mức độ cần thiết:
+•	Thông thường.
+•	Cần thiết.
+•	Cần thực hiện sớm.
+•	Khẩn cấp.
+Trường nhập thêm: Lý do đánh giá mức độ cần thiết.
+Phương án xử lý:
+•	Cấp từ kho hiện có.
+•	Điều chuyển hàng hóa, vật tư.
+•	Mua bổ sung hàng hóa, vật tư.
+•	Thuê/cung cấp dịch vụ.
+•	Tổng hợp vào kế hoạch mua sắm định kỳ.
+•	Thực hiện riêng do yêu cầu cấp thiết.
+•	Chưa thực hiện, tiếp tục rà soát nhu cầu.
+•	Phương án khác.
+Trường nhập thêm: dự kiến thời gian thực hiện, dự kiến kinh phí và ghi chú.
+g. Kết luận khảo sát
+Cán bộ QTTB chọn một trong các kết luận:
+•	Phù hợp và cần thiết để tổ chức thực hiện.
+•	Phù hợp nhưng cần điều chỉnh theo nội dung tại biên bản.
+•	Cần bổ sung hồ sơ/thông tin trước khi xem xét thực hiện.
+•	Chưa đủ cơ sở để thực hiện.
+Trường nhập thêm: Kiến nghị.
+Lưu ý: Biên bản khảo sát hiện trạng sửa chữa BM03 được lập trong quy trình sửa chữa tại M09, không thực hiện lại tại M08.
+4. Thông tin xác nhận và hoàn thành khảo sát
+Sau khi nhập xong các nội dung, hệ thống hiển thị phần xác nhận:
+Trường thông tin	Nội dung
+Đại diện đơn vị sử dụng	Họ tên, chữ ký xác nhận
+Cán bộ khảo sát Phòng QTTB	Họ tên, chữ ký xác nhận
+Đại diện Phòng QTTB	Họ tên, chữ ký xác nhận
+Thời gian kết thúc khảo sát	Ngày, giờ
+Tài liệu đính kèm	Ảnh, tài liệu liên quan (nếu có)
+
+Sau khi xác nhận, hệ thống lưu biên bản khảo sát nhu cầu mua sắm và cập nhật trạng thái phiếu đề nghị.
+Bước 3. Tổng hợp nhu cầu và xác định đơn vị chủ trì
+Phòng QTTB tổng hợp đề xuất từ các đơn vị.
+Công việc:
+1.	Tập hợp các phiếu đề xuất.
+2.	Kiểm tra nội dung và kết quả khảo sát.
+3.	Phân nhóm nhu cầu có tính chất tương đồng.
+4.	Tổng hợp danh mục mua sắm.
+5.	Xác định đơn vị chủ trì thực hiện từng nhiệm vụ.
+Kết quả: Danh mục nhu cầu mua sắm tổng hợp.
+Bước 4. Trình phê duyệt chủ trương và xác nhận khả năng bố trí kinh phí
+Phòng QTTB lập hồ sơ trình lãnh đạo.
+Phòng Tài chính – Kế toán phối hợp xác nhận khả năng bố trí kinh phí.
+Kết quả có hai trường hợp:
+•	Được phê duyệt: Hệ thống ghi nhận quyết định phê duyệt chủ trương và giao đơn vị chủ trì tiếp tục thực hiện.
+•	Không được phê duyệt: Hồ sơ chuyển về đơn vị đề xuất, ghi rõ lý do và yêu cầu điều chỉnh hoặc kết thúc.
+Giai đoạn 1B – Nhánh kỹ thuật đối với sửa chữa, cải tạo, nâng cấp công trình
+Nhánh này thuộc hồ sơ sửa chữa do M09 tiếp nhận và quản lý. Chỉ áp dụng khi là nhiệm vụ sửa chữa, cải tạo, nâng cấp công trình xây dựng. Sau khi M09 khảo sát và phương án được chấp thuận, hồ sơ kỹ thuật được liên kết sang M08 để thực hiện các thủ tục mua sắm, lựa chọn nhà thầu nếu có. Nhánh này được thực hiện trước khi xác định giá gói thầu.
+Không phải mọi trường hợp sửa máy tính, thay bóng đèn hay sửa bàn ghế đều phải thực hiện nhánh này.
+B1. Xác định có phải lập Báo cáo kinh tế – kỹ thuật hay không
+•	QTTB xem xét tính chất và quy mô nhiệm vụ.
+•	Đối chiếu hiện trạng công trình, hồ sơ chủ trương.
+•	Xác định thủ tục cần thực hiện.
+•	Ghi nhận kết luận trên hệ thống.
+B2. Nếu không phải lập Báo cáo kinh tế – kỹ thuật
+•	Khảo sát khối lượng công việc.
+•	Xác định định mức và đơn giá.
+•	Lập dự toán sửa chữa.
+•	Chuyển dự toán cho bước xác định giá gói thầu.
+B3. Nếu phải lập Báo cáo kinh tế – kỹ thuật
+•	QTTB tổ chức lựa chọn đơn vị tư vấn.
+•	Phối hợp Tài chính – Kế toán và bộ phận pháp chế.
+•	Trình người có thẩm quyền phê duyệt, ký hợp đồng tư vấn.
+B4. Khảo sát và lập Báo cáo kinh tế – kỹ thuật
+Đơn vị tư vấn thực hiện khảo sát, lập hồ sơ và thẩm tra. QTTB kiểm soát quá trình và tiếp nhận kết quả.
+B5. Thẩm định và phê duyệt Báo cáo kinh tế – kỹ thuật
+QTTB trình hồ sơ, phối hợp với tư vấn thẩm tra và Tài chính – Kế toán. Người có thẩm quyền xem xét phê duyệt báo cáo và dự toán xây dựng.
+B6. Thực hiện thủ tục chuyên ngành nếu có
+Ví dụ: thủ tục phòng cháy chữa cháy, môi trường hoặc giấy phép xây dựng.
+Kết quả của nhánh này là hồ sơ kỹ thuật và dự toán xây dựng đã được phê duyệt để chuyển sang Giai đoạn 2.
+Giai đoạn 2. Xác định giá, thẩm định và phê duyệt dự toán, kế hoạch lựa chọn nhà thầu
+1. Đăng tải yêu cầu báo giá
+Đối tượng sử dụng: Cán bộ Phòng Quản trị thiết bị (QTTB).
+Thông tin cần có:
+•	Mã và tên gói thầu.
+•	Danh mục hàng hóa/dịch vụ.
+•	Số lượng, đơn vị tính.
+•	Yêu cầu kỹ thuật.
+•	Thời hạn nhận báo giá.
+•	Yêu cầu về giá, chi phí liên quan, thời gian giao hàng, bảo hành.
+•	File yêu cầu báo giá.
+•	Ngày đăng tải, người đăng tải, minh chứng đăng tải.
+2. Tiếp nhận và tổng hợp báo giá
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Tên nhà cung cấp.
+•	Mã số thuế, địa chỉ, thông tin liên hệ.
+•	Ngày nhận báo giá.
+•	File báo giá.
+•	Tên hàng hóa/dịch vụ, số lượng, đơn giá.
+•	Thuế, tổng giá trị, chi phí phát sinh.
+•	Thời gian giao hàng, bảo hành, hiệu lực báo giá.
+•	Bảng so sánh báo giá giữa các nhà cung cấp.
+•	Giá gói thầu đề xuất và căn cứ xác định.
+Chức năng: Tiếp nhận nhiều báo giá, tự động tổng hợp và hỗ trợ so sánh giá.
+3. Lập hồ sơ trình duyệt dự toán và kế hoạch lựa chọn nhà thầu
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Tên gói thầu.
+•	Giá gói thầu và căn cứ xác định.
+•	Dự toán chi tiết.
+•	Nguồn kinh phí.
+•	Hình thức và phương thức lựa chọn nhà thầu.
+•	Thời gian tổ chức lựa chọn nhà thầu.
+•	Loại hợp đồng, thời gian thực hiện.
+•	Tờ trình và tài liệu đính kèm.
+Chức năng: Tự động lấy dữ liệu từ bảng tổng hợp báo giá để tạo hồ sơ trình duyệt, hạn chế nhập lại thông tin.
+4. Thẩm định hồ sơ
+Đối tượng sử dụng: Bộ phận/cán bộ được giao thẩm định.
+Thông tin cần có:
+•	Hồ sơ trình duyệt.
+•	Kết quả kiểm tra tính đầy đủ, hợp lệ.
+•	Kết quả thẩm định giá gói thầu.
+•	Kết quả thẩm định dự toán và kế hoạch lựa chọn nhà thầu.
+•	Ý kiến thẩm định.
+•	Yêu cầu chỉnh sửa, bổ sung (nếu có).
+•	Báo cáo thẩm định đính kèm.
+Chức năng: Tiếp nhận hồ sơ, ghi nhận kết quả thẩm định, chuyển trả hoặc trình phê duyệt.
+5. Phê duyệt dự toán và kế hoạch lựa chọn nhà thầu
+Đối tượng sử dụng: Lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Hồ sơ trình duyệt.
+•	Báo cáo thẩm định.
+•	Kết quả phê duyệt: đồng ý, từ chối hoặc yêu cầu chỉnh sửa.
+•	Ý kiến chỉ đạo.
+•	Người phê duyệt, ngày phê duyệt.
+•	Số quyết định, ngày ban hành và file quyết định.
+6. Theo dõi việc công khai kế hoạch lựa chọn nhà thầu
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Tên gói thầu.
+•	Số và ngày quyết định phê duyệt.
+•	Ngày công khai.
+•	Người thực hiện.
+•	Đường dẫn/mã thông tin công khai.
+•	File hoặc minh chứng công khai.
+Giai đoạn 3. Lựa chọn nhà thầu và ký hợp đồng
+7. Đánh giá nhà thầu
+Đối tượng sử dụng: Tổ chuyên gia/cán bộ được giao đánh giá.
+Thông tin cần có:
+•	Danh sách nhà thầu tham gia.
+•	Hồ sơ dự thầu/báo giá của từng nhà thầu.
+•	Kết quả đánh giá tư cách hợp lệ.
+•	Kết quả đánh giá năng lực, kinh nghiệm.
+•	Kết quả đánh giá kỹ thuật.
+•	Khả năng đáp ứng tiến độ.
+•	Kết quả đánh giá và lý do.
+•	Biên bản đánh giá đính kèm.
+8. Soạn thảo và gửi dự thảo hợp đồng
+Đối tượng sử dụng: Cán bộ QTTB.
+Lưu ý: Chỉ thực hiện khi đã có kết quả đánh giá và xác định được nhà thầu dự kiến. Đây là dự thảo phục vụ hoàn thiện hồ sơ, chưa phải hợp đồng đã ký hoặc có hiệu lực.
+Thông tin cần có:
+•	Nhà thầu dự kiến được lựa chọn.
+•	Tên gói thầu.
+•	File dự thảo hợp đồng.
+•	Ngày gửi dự thảo.
+•	Người gửi.
+•	Ngày nhà thầu tiếp nhận.
+•	Phản hồi của nhà thầu.
+•	Minh chứng gửi và tiếp nhận.
+9. Hoàn thiện và thương thảo hợp đồng
+Đối tượng sử dụng: Cán bộ QTTB và nhà thầu (nếu được cấp quyền truy cập).
+Lưu ý: Thương thảo được thực hiện khi thuộc trường hợp cần thương thảo. Kết quả thương thảo là căn cứ hoàn thiện hồ sơ trình phê duyệt, không thay thế quyết định phê duyệt kết quả lựa chọn nhà thầu.
+Thông tin cần có:
+•	Phạm vi công việc.
+•	Số lượng, chủng loại hàng hóa/dịch vụ.
+•	Yêu cầu kỹ thuật.
+•	Giá hợp đồng.
+•	Tiến độ thực hiện, thời gian giao hàng.
+•	Điều kiện bảo hành.
+•	Điều khoản thanh toán.
+•	Nội dung thống nhất sau thương thảo.
+•	Biên bản thương thảo đính kèm.
+10. Phê duyệt kết quả lựa chọn nhà thầu
+Đối tượng sử dụng: Lãnh đạo có thẩm quyền.
+Sau khi có quyết định phê duyệt kết quả lựa chọn nhà thầu và hoàn tất các điều kiện liên quan, QTTB mới chuyển sang ký hợp đồng chính thức.
+Thông tin cần có:
+•	Tên gói thầu.
+•	Nhà thầu được đề nghị lựa chọn.
+•	Giá đề nghị trúng thầu.
+•	Biên bản đánh giá.
+•	Biên bản thương thảo (nếu có).
+•	Kết quả phê duyệt.
+•	Ý kiến chỉ đạo.
+•	Số quyết định, ngày ban hành và file quyết định.
+11. Công khai kết quả lựa chọn nhà thầu
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Tên gói thầu.
+•	Nhà thầu được lựa chọn.
+•	Giá trúng thầu.
+•	Số và ngày quyết định phê duyệt.
+•	Ngày công khai.
+•	Người thực hiện.
+•	Đường dẫn/mã thông tin và minh chứng công khai.
+12. Quản lý hợp đồng đã ký
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Số hợp đồng.
+•	Tên nhà thầu.
+•	Ngày ký, thời hạn hợp đồng.
+•	Giá trị hợp đồng.
+•	Phạm vi công việc.
+•	Tiến độ thực hiện.
+•	Điều khoản thanh toán.
+•	File hợp đồng đã ký.
+•	Phụ lục hợp đồng (nếu có).
+13. Công khai thông tin hợp đồng
+Đối tượng sử dụng: Cán bộ QTTB.
+Thông tin cần có:
+•	Số hợp đồng.
+•	Tên nhà thầu.
+•	Giá trị hợp đồng.
+•	Ngày ký.
+•	Ngày công khai.
+•	Người thực hiện.
+•	Đường dẫn/mã thông tin và minh chứng công khai.
+14. Quản lý hồ sơ và theo dõi tiến độ chung
+Đối tượng sử dụng: QTTB, bộ phận thẩm định, lãnh đạo và cán bộ liên quan.
+Thông tin cần có:
+•	Mã hồ sơ/gói thầu.
+•	Tên gói thầu.
+•	Đơn vị đề xuất.
+•	Cán bộ phụ trách.
+•	Giai đoạn hiện tại.
+•	Trạng thái xử lý.
+•	Người/bộ phận đang xử lý.
+•	Ngày tiếp nhận, hạn xử lý.
+•	Lịch sử chuyển xử lý và phê duyệt.
+•	Toàn bộ tài liệu đính kèm.
+Chức năng: Tra cứu hồ sơ, theo dõi tiến độ, thông báo hồ sơ chờ xử lý hoặc quá hạn, phân quyền theo vai trò.
+Giai đoạn 4 – Thực hiện hợp đồng, nghiệm thu, thanh toán và quản lý tài sản
+1. Theo dõi thực hiện hợp đồng
+Đối tượng sử dụng: Cán bộ đơn vị chủ trì, đơn vị sử dụng, Phòng QTTB.
+Thông tin cần có:
+•	Mã hợp đồng, tên nhà thầu.
+•	Tiến độ thực hiện, thời hạn giao hàng.
+•	Danh mục hàng hóa/dịch vụ theo hợp đồng.
+•	Số lượng, chủng loại, cấu hình, xuất xứ.
+•	Tình trạng thực hiện từng nội dung.
+•	Nội dung phát sinh hoặc thay đổi so với hợp đồng.
+•	Nhật ký theo dõi, biên bản kiểm tra và tài liệu liên quan.
+Chức năng: Cập nhật tiến độ, ghi nhận vấn đề phát sinh và đối chiếu với hợp đồng đã ký.
+2. Kiểm tra hàng hóa, dịch vụ được cung cấp
+Đối tượng sử dụng: Đơn vị chủ trì, đơn vị sử dụng, Phòng QTTB.
+Thông tin cần có:
+•	Hợp đồng liên quan.
+•	Danh mục hàng hóa/dịch vụ cần kiểm tra.
+•	Số lượng theo hợp đồng và số lượng thực tế.
+•	Chủng loại, cấu hình, xuất xứ.
+•	Tình trạng chất lượng.
+•	Hồ sơ chất lượng, tài liệu kỹ thuật.
+•	Nội dung không đạt yêu cầu và hướng xử lý.
+•	Biên bản kiểm tra, file minh chứng.
+Chức năng: Ghi nhận kết quả đạt/không đạt; trường hợp không đạt thì yêu cầu xử lý, không cho chuyển sang nghiệm thu khi chưa đáp ứng điều kiện.
+3. Nghiệm thu và bàn giao từ nhà cung cấp
+Đối tượng sử dụng: Hội đồng nghiệm thu, đơn vị chủ trì, đơn vị sử dụng, Phòng QTTB.
+Thông tin cần có:
+•	Hợp đồng liên quan.
+•	Danh mục hàng hóa/dịch vụ nghiệm thu.
+•	Số lượng thực tế.
+•	Kết quả kiểm tra chất lượng, thông số kỹ thuật.
+•	Kết quả chạy thử, lắp đặt, đào tạo (nếu có).
+•	Hồ sơ, tài liệu bàn giao.
+•	Thời hạn và điều kiện bảo hành.
+•	Kết quả nghiệm thu.
+•	Biên bản nghiệm thu.
+•	Biên bản bàn giao.
+Chức năng: Lập và lưu biên bản kiểm tra, nghiệm thu và xác nhận nhà cung cấp đã giao hàng hóa/dịch vụ. Sau khi nghiệm thu, chuyển dữ liệu hàng hóa sang M09 nếu thuộc đối tượng cần quản lý tài sản. Việc QTTB bàn giao tài sản cho đơn vị sử dụng là nghiệp vụ riêng tại M09.
+4. Xác nhận khối lượng hoàn thành
+Đối tượng sử dụng: Đơn vị chủ trì, Phòng Tài chính – Kế toán, nhà thầu; lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Giá trị hợp đồng ban đầu.
+•	Giá trị hàng hóa/dịch vụ được nghiệm thu.
+•	Khối lượng theo hợp đồng và khối lượng hoàn thành.
+•	Khoản phạt vi phạm (nếu có).
+•	Các khoản khấu trừ khác (nếu có).
+•	Tổng giá trị thanh toán thực tế.
+•	Tình trạng thực hiện các nghĩa vụ hợp đồng.
+Chức năng: Tự động tổng hợp giá trị từ hợp đồng và biên bản nghiệm thu; lập bảng xác định giá trị khối lượng hoàn thành làm căn cứ lập hồ sơ thanh toán.
+5. Quản lý hồ sơ thanh toán, quyết toán và thanh lý hợp đồng
+Đối tượng sử dụng: Phòng Tài chính – Kế toán, đơn vị chủ trì, lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Mã hợp đồng.
+•	Đơn vị thụ hưởng, thông tin tài khoản.
+•	Giá trị đề nghị thanh toán.
+•	Hợp đồng.
+•	Biên bản nghiệm thu.
+•	Bảng xác định giá trị khối lượng hoàn thành.
+•	Hóa đơn, chứng từ.
+•	Giấy đề nghị thanh toán.
+•	Kết quả kiểm tra hồ sơ.
+•	Số chứng từ, ngày thanh toán, số tiền đã thanh toán.
+•	Số tiền còn phải thanh toán.
+•	Tình trạng thực hiện các nghĩa vụ còn lại của hợp đồng.
+•	Biên bản thanh lý hợp đồng khi đủ điều kiện.
+Chức năng:
+•	Tiếp nhận và kiểm tra hồ sơ.
+•	Trả lại hồ sơ nếu thiếu hoặc không hợp lệ.
+•	Ghi nhận kết quả xử lý và thanh toán.
+•	Theo dõi nhiều lần thanh toán nếu hợp đồng cho phép.
+•	Tự động tính số tiền còn lại, tránh ghi nhận trùng giao dịch.
+•	Chỉ lập hồ sơ thanh lý sau khi đã đối chiếu việc thực hiện hợp đồng, thanh toán và các nghĩa vụ liên quan; không mặc định phải thanh lý trước khi thanh toán.
+6. Ghi tăng và bàn giao tài sản (M09)
+Đối tượng sử dụng: Phòng QTTB, Phòng Tài chính – Kế toán, đơn vị sử dụng.
+Thông tin cần có:
+Phần ghi tăng tài sản:
+•	Thông tin hàng hóa từ hồ sơ nghiệm thu.
+•	Tên tài sản, chủng loại, số lượng.
+•	Giá trị tài sản.
+•	Nguồn hình thành.
+•	Phân loại: tài sản, công cụ dụng cụ hoặc vật tư tiêu hao.
+•	Mã tài sản.
+•	Ngày ghi tăng.
+•	Phiếu ghi tăng tài sản, công cụ dụng cụ.
+Phần bàn giao quản lý:
+•	Mã tài sản, tên tài sản.
+•	Số lượng, tình trạng.
+•	Vị trí sử dụng.
+•	Đơn vị tiếp nhận.
+•	Người chịu trách nhiệm quản lý.
+•	Thời điểm bàn giao.
+•	Hồ sơ kỹ thuật, điều kiện bảo hành.
+•	Biên bản bàn giao.
+Chức năng:
+•	Tiếp nhận dữ liệu từ M08.
+•	Xác định hàng hóa có hình thành tài sản cần quản lý hay không.
+•	Chỉ tạo mã tài sản khi đủ căn cứ ghi nhận.
+•	Cập nhật danh mục tài sản M09.
+•	Lập biên bản bàn giao và cập nhật đơn vị, người quản lý, vị trí sử dụng.
+Lưu ý: Hàng hóa không mặc định trở thành tài sản cố định. Công cụ dụng cụ và vật tư tiêu hao được theo dõi theo loại tương ứng. 
+7. Theo dõi bảo hành, bảo trì và công khai kết quả thực hiện hợp đồng
+Đối tượng sử dụng: Đơn vị sử dụng, Phòng QTTB, cán bộ được giao đăng tải thông tin.
+Thông tin cần có:
+Theo dõi bảo hành, bảo trì:
+•	Mã tài sản, tên tài sản.
+•	Nhà cung cấp/đơn vị bảo hành.
+•	Thời gian bắt đầu, kết thúc bảo hành.
+•	Ngày phát sinh sự cố.
+•	Nội dung sự cố.
+•	Nội dung yêu cầu bảo hành, bảo trì.
+•	Kết quả xử lý của nhà cung cấp.
+•	Lịch sử bảo hành, bảo trì.
+Theo dõi công khai:
+•	Thông tin kết quả thực hiện hợp đồng.
+•	Ngày đăng tải, người thực hiện.
+•	Đường dẫn hoặc mã thông tin công khai.
+•	Minh chứng đăng tải.
+•	Thông tin chất lượng hàng hóa sau khi kết thúc bảo hành (khi thuộc trường hợp phải đăng tải).
+Chức năng: Nhắc thời hạn bảo hành, ghi nhận sự cố và kết quả xử lý; theo dõi việc đăng tải kết quả thực hiện hợp đồng và thông tin chất lượng sau bảo hành.
+PHẦN III. QUY TRÌNH SỬA CHỮA TÀI SẢN, THIẾT BỊ VÀ CÔNG TRÌNH – M09
+Đầu mối tiếp nhận và quản lý yêu cầu sửa chữa là M09. M08 không tiếp nhận lại yêu cầu sửa chữa; M08 chỉ xử lý phần mua sắm, thuê dịch vụ, lựa chọn nhà thầu, hợp đồng và thanh toán khi phương án sửa chữa phát sinh các nghiệp vụ này. Mã yêu cầu sửa chữa tại M09 được dùng để liên kết với hồ sơ mua sắm/hợp đồng tại M08.
+1. Phân loại nghiệp vụ sửa chữa
+Theo tài liệu, có thể chia thành ba nhóm. Việc phân nhóm được thực hiện sau khi M09 tiếp nhận và khảo sát yêu cầu:
+Nhóm	Ví dụ trong tài liệu	Cách xử lý
+Sửa chữa nhỏ, thông dụng	Sửa bàn ghế, thay bóng đèn, sửa khóa, sửa điện nước nhỏ	Theo hướng dẫn mua sắm giá trị nhỏ khi đủ điều kiện
+Sửa chữa thiết bị	Máy tính, máy in, máy chiếu, thiết bị văn phòng, điều hòa cục bộ	Ghi nhận tình trạng, thực hiện sửa chữa, xác nhận kết quả và hồ sơ
+Sửa chữa, cải tạo, nâng cấp công trình	Sửa chữa hạng mục công trình, cải tạo không gian, nâng cấp công trình	Có nhánh Giai đoạn 1B, dự toán hoặc Báo cáo kinh tế – kỹ thuật tùy trường hợp, sau đó thực hiện các giai đoạn mua sắm/lựa chọn nhà thầu
+2. Tiếp nhận yêu cầu sửa chữa
+Đối tượng sử dụng: Đơn vị sử dụng.
+Thông tin cần có:
+•	Mã yêu cầu, ngày gửi.
+•	Đơn vị đề nghị, người đề nghị.
+•	Loại yêu cầu: sửa chữa nhỏ / sửa chữa thiết bị / sửa chữa công trình.
+•	Tên tài sản, mã tài sản (nếu có).
+•	Vị trí tài sản hoặc hạng mục công trình.
+•	Mô tả tình trạng hư hỏng.
+•	Thời điểm phát hiện.
+•	Mức độ ảnh hưởng, mức độ khẩn cấp.
+•	Hình ảnh hiện trạng.
+•	Thời gian mong muốn xử lý.
+Chức năng: Tạo phiếu yêu cầu, tự động sinh mã và chuyển QTTB tiếp nhận. Đây là điểm tiếp nhận duy nhất của nghiệp vụ sửa chữa trên website.
+3. Tiếp nhận, phân loại và khảo sát hiện trạng
+Đối tượng sử dụng: Phòng QTTB.
+Thông tin cần có:
+•	Mã yêu cầu sửa chữa.
+•	Kết quả kiểm tra thông tin.
+•	Thông tin tài sản từ M09.
+•	Tình trạng bảo hành.
+•	Yêu cầu sửa chữa đang xử lý (nếu có).
+•	Thành phần tham gia khảo sát.
+•	Hiện trạng thực tế, nguyên nhân dự kiến.
+•	Mức độ hư hỏng.
+•	Ảnh hưởng đến hoạt động, an toàn.
+•	Khối lượng công việc dự kiến.
+•	Hình ảnh khảo sát.
+•	Biên bản khảo sát BM03.
+Chức năng:
+•	Tiếp nhận hoặc trả lại yêu cầu để bổ sung.
+•	Kiểm tra tài sản và thời hạn bảo hành.
+•	Ghi nhận kết quả khảo sát.
+•	Phân loại yêu cầu thành 3 nhóm sửa chữa.
+4. Đề xuất phương án và trình phê duyệt
+Đối tượng sử dụng: Phòng QTTB, đơn vị chủ trì, Phòng Tài chính – Kế toán, lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Kết quả khảo sát.
+•	Phương án xử lý: sửa chữa, bảo trì, thay thế vật tư, thay thế thiết bị, cải tạo hoặc chưa cần xử lý.
+•	Danh mục công việc cần thực hiện.
+•	Khối lượng dự kiến.
+•	Đơn vị thực hiện dự kiến.
+•	Kinh phí dự kiến và nguồn kinh phí.
+•	Hình thức triển khai.
+•	Tờ trình, tài liệu liên quan.
+•	Kết quả phê duyệt, người duyệt, ngày duyệt, quyết định đính kèm.
+Chức năng: Lập phương án, trình duyệt và ghi nhận kết quả. Nếu không được duyệt, trả lại hoặc kết thúc yêu cầu kèm lý do.
+5. Xử lý theo từng loại sửa chữa
+Đây là phần phân nhánh nghiệp vụ, không cần tạo 3 hệ thống riêng.
+Nhánh A – Sửa chữa nhỏ, thông dụng
+Đối tượng sử dụng: QTTB, đơn vị chủ trì, Phòng Tài chính – Kế toán, lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Nội dung sửa chữa.
+•	Khối lượng công việc.
+•	Căn cứ xác định giá/báo giá.
+•	Kinh phí được duyệt.
+•	Đơn vị thực hiện.
+•	Hóa đơn điện tử, chứng từ.
+•	Biên bản giao nhận, nghiệm thu hoặc xác nhận hoàn thành.
+Chức năng: Khi sửa chữa nhỏ cần mua hàng hóa hoặc thuê dịch vụ, tạo hồ sơ liên kết sang M08 để xử lý phần mua sắm/thanh toán theo điều kiện áp dụng. M09 vẫn giữ hồ sơ yêu cầu sửa chữa và theo dõi kết quả cuối cùng.
+Nhánh B – Sửa chữa thiết bị, tài sản
+Đối tượng sử dụng: QTTB, đơn vị sử dụng, đơn vị sửa chữa, Phòng Tài chính – Kế toán.
+Thông tin cần có:
+•	Mã và tên tài sản.
+•	Hiện trạng trước sửa chữa.
+•	Phương án và nội dung sửa chữa.
+•	Vật tư thay thế.
+•	Đơn vị sửa chữa.
+•	Chi phí dự kiến và thực tế.
+•	Thời gian thực hiện.
+•	Tiến độ, kết quả sửa chữa.
+•	Biên bản giao nhận thiết bị nếu mang ra ngoài sửa chữa.
+•	Xác nhận sao lưu, xóa hoặc tháo dữ liệu đối với thiết bị công nghệ thông tin mang ra ngoài.
+•	Biên bản nghiệm thu, chứng từ liên quan.
+Chức năng: M09 theo dõi yêu cầu và tiến độ sửa chữa. Nếu thuê nhà cung cấp và phát sinh thủ tục mua sắm/lựa chọn nhà thầu, liên kết hồ sơ sang M08; không tạo yêu cầu sửa chữa hoặc quy trình mua sắm trùng lặp.
+Nhánh C – Sửa chữa, cải tạo, nâng cấp công trình
+Đối tượng sử dụng: QTTB, đơn vị chủ trì, Phòng Tài chính – Kế toán, đơn vị tư vấn, bộ phận thẩm định, lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Tên công trình/hạng mục.
+•	Vị trí công trình.
+•	Hiện trạng và kết quả khảo sát.
+•	Phạm vi, khối lượng sửa chữa.
+•	Dự toán sửa chữa.
+•	Thông tin lập Báo cáo kinh tế – kỹ thuật (nếu thuộc trường hợp phải lập).
+•	Hồ sơ thẩm tra, thẩm định và phê duyệt.
+•	Hồ sơ thiết kế, bản vẽ và tài liệu chuyên ngành (nếu có).
+Chức năng: M09 quản lý yêu cầu, kết quả khảo sát và hồ sơ kỹ thuật của Giai đoạn 1B. Khi cần thuê tư vấn/nhà thầu hoặc mua sắm, liên kết sang M08 để xử lý các thủ tục tương ứng. Không tạo một hồ sơ sửa chữa độc lập thứ hai ở M08.
+6. Theo dõi quá trình thực hiện sửa chữa
+Đối tượng sử dụng: QTTB, đơn vị chủ trì, đơn vị sử dụng.
+Thông tin cần có:
+•	Mã yêu cầu sửa chữa.
+•	Đơn vị/cá nhân thực hiện.
+•	Nội dung công việc được duyệt.
+•	Tiến độ và thời gian thực hiện.
+•	Khối lượng đã thực hiện.
+•	Vật tư thay thế.
+•	Nội dung phát sinh.
+•	Hình ảnh trước, trong và sau sửa chữa.
+•	Nhật ký, biên bản thực hiện.
+Chức năng: Cập nhật tiến độ, ghi nhận phát sinh và theo dõi việc thực hiện đúng phương án được duyệt.
+7. Kiểm tra, nghiệm thu và thanh toán
+Đối tượng sử dụng: QTTB, đơn vị sử dụng, đơn vị chủ trì, Phòng Tài chính – Kế toán, lãnh đạo có thẩm quyền.
+Thông tin cần có:
+•	Nội dung sửa chữa được phê duyệt.
+•	Khối lượng thực tế hoàn thành.
+•	Kết quả kiểm tra khả năng hoạt động.
+•	Vật tư đã thay thế.
+•	Chi phí thực tế.
+•	Kết quả nghiệm thu: đạt/không đạt.
+•	Biên bản nghiệm thu hoặc xác nhận hoàn thành.
+•	Hóa đơn, chứng từ.
+•	Hồ sơ đề nghị thanh toán.
+•	Giá trị được thanh toán, ngày thanh toán, chứng từ thanh toán.
+Chức năng:
+•	Lập biên bản nghiệm thu.
+•	Nếu không đạt, chuyển lại đơn vị thực hiện để khắc phục.
+•	Nếu đạt, hoàn thiện hồ sơ thanh toán.
+•	Cập nhật trạng thái hoàn thành và lưu chứng từ.
+Đối với sửa chữa công trình, bổ sung hồ sơ nghiệm thu công việc, nghiệm thu giai đoạn, nghiệm thu hoàn thành, bản vẽ hoàn công và hồ sơ chất lượng theo trường hợp phát sinh.
+8. Cập nhật lịch sử sửa chữa và theo dõi bảo hành
+Đối tượng sử dụng: Phòng QTTB, đơn vị sử dụng.
+Thông tin cần có:
+•	Mã tài sản/mã công trình.
+•	Mã yêu cầu sửa chữa.
+•	Ngày sửa chữa.
+•	Nguyên nhân hư hỏng.
+•	Phương án đã thực hiện.
+•	Đơn vị thực hiện.
+•	Chi phí sửa chữa.
+•	Vật tư thay thế.
+•	Kết quả nghiệm thu.
+•	Thời hạn bảo hành sau sửa chữa (nếu có).
+•	Lịch sử sự cố và bảo trì.
+•	Hồ sơ, hình ảnh đính kèm.
+Chức năng:
+•	Tự động lưu lịch sử sửa chữa vào hồ sơ tài sản M09.
+•	Cập nhật tình trạng tài sản sau sửa chữa.
+•	Theo dõi thời hạn bảo hành.
+•	Tra cứu lịch sử sửa chữa theo mã tài sản.
+Đối với công trình, cập nhật hồ sơ và giá trị công trình theo nghiệp vụ tương ứng, không ghi nhận như một tài sản thiết bị mới.
+PHẦN IV. QUY TRÌNH QUẢN LÝ TÀI SẢN – M09
+1. Mục tiêu nghiệp vụ
+M09 quản lý tài sản từ khi tiếp nhận dữ liệu hàng hóa đã nghiệm thu từ M08, phân loại, ghi nhận/cấp mã, bàn giao, theo dõi sử dụng, tiếp nhận yêu cầu sửa chữa và kiểm kê. M09 là nơi quản lý hồ sơ sửa chữa; dữ liệu mua sắm, hợp đồng và thanh toán vẫn thuộc M08. 
+Bước 1. Tiếp nhận thông tin từ M08
+Sau khi hàng hóa được nhà cung cấp giao và nghiệm thu theo quy trình mua sắm, M09 tiếp nhận thông tin.
+Thông tin nhận từ M08 có thể gồm:
+•	Mã hồ sơ mua sắm.
+•	Tên gói mua sắm.
+•	Nhà cung cấp.
+•	Danh sách hàng hóa.
+•	Số lượng thực tế được nghiệm thu.
+•	Thông số kỹ thuật.
+•	Giá trị theo hồ sơ.
+•	Ngày tiếp nhận.
+•	Hóa đơn.
+•	Biên bản nghiệm thu.
+•	Biên bản bàn giao.
+•	Thời hạn bảo hành.
+Logic hệ thống:
+M08 chỉ chuyển thông tin hàng hóa đã được xác nhận tiếp nhận/nghiệm thu. M09 không nên tự tạo tài sản từ một đề nghị mua sắm chưa hoàn thành.
+Trạng thái: Chờ M09 tiếp nhận.
+Bước 2. Kiểm tra hồ sơ và xác định đối tượng quản lý
+QTTB kiểm tra thông tin hàng hóa và chứng từ được chuyển sang.
+Cần xác định:
+•	Hàng hóa đã được nghiệm thu chưa?
+•	Số lượng thực tế có khớp hồ sơ không?
+•	Thông tin hàng hóa có đầy đủ không?
+•	Có phải đối tượng cần quản lý riêng trong danh mục tài sản không?
+•	Có phải công cụ, dụng cụ hoặc vật tư tiêu hao không?
+Đây là bước quan trọng vì tài liệu yêu cầu không mặc nhiên coi mỗi dòng mua sắm là một tài sản.
+Ví dụ:
+Trường mua 20 chiếc máy tính và 100 hộp giấy in.
+•	Máy tính có thể cần tạo hồ sơ tài sản riêng hoặc theo cách quản lý phù hợp.
+•	Giấy in là vật tư tiêu hao, không nên tự động tạo 100 hồ sơ tài sản.
+Kết quả: Danh sách đối tượng được xác định để tiếp tục ghi nhận.
+Bước 3. Phân loại tài sản
+QTTB phân loại đối tượng theo danh mục quản lý của hệ thống.
+Các thông tin cần lưu:
+•	Tên tài sản.
+•	Nhóm tài sản.
+•	Loại tài sản.
+•	Hãng sản xuất.
+•	Model.
+•	Thông số kỹ thuật.
+•	Số serial nếu có.
+•	Đơn vị tính.
+•	Số lượng.
+•	Nguồn hình thành.
+•	Giá trị tham chiếu theo hồ sơ.
+•	Tình trạng tiếp nhận.
+Phân loại cần thống nhất để phục vụ tra cứu, kiểm kê và báo cáo.
+Bước 4. Nhập kho hoặc ghi nhận tiếp nhận
+Sau khi xác định đối tượng quản lý, QTTB ghi nhận hàng hóa đã tiếp nhận.
+Nếu hàng hóa được đưa vào kho:
+•	Lập phiếu nhập kho.
+•	Ghi nhận số lượng nhập.
+•	Ghi nhận ngày nhập.
+•	Ghi nhận người giao.
+•	Ghi nhận người nhận.
+•	Lưu chứng từ giao nhận.
+Nếu tài sản được bàn giao trực tiếp cho đơn vị sử dụng, hệ thống vẫn phải ghi nhận đầy đủ việc tiếp nhận và hồ sơ bàn giao, không nhất thiết tạo một lần nhập kho vật lý không có thật.
+Kết quả: Có bản ghi tiếp nhận hàng hóa.
+Bước 5. Cấp mã và tạo hồ sơ tài sản
+QTTB thực hiện ghi tăng tài sản, cấp mã và cập nhật cơ sở dữ liệu theo quy trình.
+Hồ sơ tài sản cần có:
+Nhóm thông tin	Nội dung
+Định danh	Mã tài sản, tên tài sản
+Phân loại	Nhóm, loại tài sản
+Đặc điểm	Hãng, model, serial, thông số
+Nguồn hình thành	Mua sắm, hồ sơ mua sắm liên quan
+Giá trị	Thông tin giá trị theo hồ sơ
+Vị trí	Tòa nhà, tầng, phòng
+Đơn vị sử dụng	Đơn vị tiếp nhận
+Người quản lý	Người chịu trách nhiệm
+Tình trạng	Mới tiếp nhận, đang sử dụng, hư hỏng...
+Hồ sơ	Hóa đơn, nghiệm thu, bàn giao, bảo hành
+Lưu ý: Tài liệu yêu cầu chốt đầu mối quản lý giá trị kế toán và đầu mối quản lý hiện vật. Website cần phân biệt hai nhóm thông tin này, không tự suy diễn giá trị kế toán từ một trường dữ liệu do người dùng nhập.
+Kết quả: Hồ sơ tài sản được tạo và mã tài sản được ghi nhận.
+Bước 6. Bàn giao trách nhiệm quản lý cho đơn vị sử dụng
+QTTB bàn giao tài sản cho đơn vị sử dụng.
+Ví dụ: Một máy chiếu được bàn giao cho phòng học thuộc một đơn vị quản lý.
+Biên bản bàn giao cần thể hiện:
+•	Mã tài sản.
+•	Tên tài sản.
+•	Số lượng.
+•	Tình trạng khi bàn giao.
+•	Vị trí.
+•	Đơn vị nhận.
+•	Người nhận.
+•	Người bàn giao.
+•	Ngày bàn giao.
+•	Hồ sơ kỹ thuật.
+•	Điều kiện bảo hành.
+Sau khi xác nhận, hệ thống cập nhật:
+•	Đơn vị quản lý.
+•	Người sử dụng/người chịu trách nhiệm.
+•	Vị trí hiện tại.
+•	Ngày bắt đầu quản lý.
+Kết quả: Tài sản được ghi nhận đã bàn giao và chuyển sang trạng thái quản lý phù hợp, thường là đang sử dụng. Thông tin bàn giao cho đơn vị sử dụng không đồng nhất với việc nhà cung cấp giao hàng cho trường.
+Bước 7. Theo dõi quá trình sử dụng
+Trong quá trình sử dụng, QTTB theo dõi hồ sơ tài sản.
+Các chức năng cần có:
+•	Xem danh sách tài sản.
+•	Tìm kiếm theo mã hoặc tên.
+•	Lọc theo loại tài sản.
+•	Lọc theo đơn vị.
+•	Lọc theo vị trí.
+•	Xem thông số kỹ thuật.
+•	Xem lịch sử bàn giao.
+•	Xem lịch sử sửa chữa.
+•	Xem thông tin bảo hành.
+•	Cập nhật thông tin quản lý khi có thay đổi được xác nhận.
+Mỗi lần thay đổi vị trí hoặc đơn vị sử dụng nên tạo một bản ghi lịch sử, thay vì ghi đè mất thông tin cũ.
+Bước 8. Theo dõi sửa chữa và bảo trì
+Khi tài sản phát sinh hư hỏng, hệ thống tạo hoặc tiếp nhận yêu cầu sửa chữa.
+Quy trình sửa chữa do M09 quản lý đã được trình bày tại Phần III. M08 chỉ cung cấp dữ liệu liên quan đến hợp đồng, nhà cung cấp và thanh toán khi phát sinh.
+Sau khi sửa chữa hoàn thành, M09 cập nhật:
+•	Nguyên nhân.
+•	Phương án sửa chữa.
+•	Đơn vị thực hiện.
+•	Chi phí.
+•	Ngày hoàn thành.
+•	Kết quả nghiệm thu.
+•	Vật tư đã thay thế.
+•	Trạng thái tài sản.
+Điểm quan trọng: Sửa chữa là một nhánh phát sinh trong vòng đời tài sản, không phải bước bắt buộc ngay sau khi mua sắm.
+Bước 9. Kiểm kê tài sản
+QTTB tổ chức kiểm kê tài sản theo kỳ hoặc theo yêu cầu.
+Hệ thống hỗ trợ tạo kỳ kiểm kê với các thông tin:
+•	Tên đợt kiểm kê.
+•	Thời gian.
+•	Phạm vi.
+•	Đơn vị được kiểm kê.
+•	Danh sách tài sản cần kiểm tra.
+•	Người thực hiện.
+•	Người xác nhận.
+Người kiểm kê đối chiếu hiện vật với dữ liệu hệ thống.
+Ví dụ: Hệ thống ghi nhận phòng A có 10 máy tính. Khi kiểm kê thực tế chỉ có 9 máy.
+Người kiểm kê ghi nhận:
+•	Số lượng trên hệ thống: 10.
+•	Số lượng thực tế: 9.
+•	Chênh lệch: thiếu 1.
+•	Tình trạng thực tế.
+•	Ghi chú và minh chứng.
+Bước 10. Đối chiếu và xử lý kết quả kiểm kê
+Sau khi kiểm kê, QTTB tổng hợp kết quả.
+Có hai trường hợp:
+Trường hợp A: Khớp dữ liệu
+•	Số lượng thực tế khớp hệ thống.
+•	Vị trí đúng.
+•	Tình trạng phù hợp.
+Hệ thống ghi nhận kết quả kiểm kê bình thường.
+Trường hợp B: Có chênh lệch
+Ví dụ:
+•	Thiếu tài sản.
+•	Thừa tài sản.
+•	Sai vị trí.
+•	Sai đơn vị sử dụng.
+•	Tài sản hư hỏng nhưng hệ thống vẫn ghi đang sử dụng.
+•	Tài sản thực tế không tìm thấy.
+Khi đó:
+1.	Ghi nhận chênh lệch.
+2.	Yêu cầu đơn vị sử dụng giải trình hoặc xác nhận.
+3.	QTTB kiểm tra và xác minh.
+4.	Tổng hợp kết quả.
+5.	Trình người có thẩm quyền xử lý khi cần.
+6.	Cập nhật dữ liệu sau khi có kết luận và phê duyệt phù hợp.
+Không nên cho phép người kiểm kê tự sửa dữ liệu gốc ngay khi phát hiện chênh lệch. Cần lưu kết quả kiểm kê và trạng thái xử lý để đảm bảo truy vết.
+PHẦN V. QUY TRÌNH TẠM ỨNG, THANH TOÁN VÀ ĐỐI SOÁT
+1. Phân biệt các nghiệp vụ tài chính
+Trong tài liệu dự án, M08 có các nghiệp vụ:
+•	Đề nghị tạm ứng.
+•	Đề nghị thanh toán.
+•	Quyết toán.
+•	Chuyển dữ liệu đủ điều kiện sang kế toán.
+•	Theo dõi trạng thái.
+•	Đối soát.
+Trong quy trình chỉ định thầu rút gọn, bước 24 quy định việc thanh toán, quyết toán hợp đồng dựa trên hợp đồng, biên bản nghiệm thu, bảng xác định giá trị khối lượng hoàn thành, hóa đơn và chứng từ.
+Tuy nhiên, tài liệu không đặc tả đầy đủ một quy trình tạm ứng độc lập, cũng không quy định chi tiết các bước xử lý tạm ứng trong mọi loại hợp đồng. Vì vậy, không nên tự động coi tạm ứng là bước bắt buộc của mọi hồ sơ mua sắm. 
+2. Luồng thanh toán cần số hóa
+Đơn vị chủ trì lập đề nghị thanh toán → đính kèm chứng từ → Phòng Tài chính – Kế toán tiếp nhận và kiểm tra → trả hồ sơ nếu cần bổ sung hoặc trình phê duyệt nếu đủ điều kiện → thực hiện thanh toán → cập nhật chứng từ → đối soát, quyết toán và lưu trữ.
+Bước 1. Lập đề nghị thanh toán
+Đơn vị chủ trì tạo đề nghị thanh toán gắn với hồ sơ mua sắm và hợp đồng.
+Thông tin:
+•	Mã hồ sơ mua sắm.
+•	Số hợp đồng.
+•	Nhà cung cấp.
+•	Giá trị hợp đồng.
+•	Giá trị đề nghị thanh toán.
+•	Nội dung thanh toán.
+•	Số lần thanh toán.
+•	Tài liệu đính kèm.
+Bước 2. Đính kèm chứng từ
+Hệ thống yêu cầu tài liệu phù hợp với loại giao dịch:
+•	Hợp đồng.
+•	Biên bản nghiệm thu.
+•	Bảng xác định giá trị khối lượng hoàn thành.
+•	Hóa đơn điện tử.
+•	Chứng từ giao nhận.
+•	Các tài liệu khác theo hồ sơ.
+Bước 3. Kế toán tiếp nhận và kiểm tra
+Phòng Tài chính – Kế toán kiểm tra:
+•	Có hợp đồng hợp lệ không?
+•	Đã nghiệm thu chưa?
+•	Giá trị đề nghị có khớp hồ sơ không?
+•	Hóa đơn có đầy đủ không?
+•	Có bị đề nghị thanh toán trùng không?
+•	Giá trị đã thanh toán trước đó là bao nhiêu?
+Bước 4. Xử lý kết quả kiểm tra
+•	Nếu thiếu hồ sơ: trả lại và ghi lý do.
+•	Nếu có sai lệch: yêu cầu giải trình, điều chỉnh.
+•	Nếu đủ điều kiện: chuyển trình phê duyệt.
+Bước 5. Phê duyệt và thực hiện thanh toán
+Người có thẩm quyền xem xét hồ sơ.
+Nếu được phê duyệt, kế toán thực hiện thanh toán và ghi nhận chứng từ.
+Bước 6. Đối soát và quyết toán
+Hệ thống tổng hợp:
+•	Tổng giá trị hợp đồng.
+•	Tổng giá trị đã nghiệm thu.
+•	Tổng giá trị đã đề nghị thanh toán.
+•	Tổng giá trị đã thanh toán.
+•	Số tiền còn phải thanh toán.
+•	Các khoản tạm ứng, hoàn ứng nếu có và được xác nhận trong hồ sơ.
+Một hồ sơ có thể phát sinh nhiều lần nhận hàng hoặc thanh toán. Vì vậy, website cần quản lý lịch sử từng lần, không chỉ có một trường “Đã thanh toán/Chưa thanh toán”. 
+PHẦN VI. LOGIC LIÊN KẾT GIỮA CÁC MODULE TRÊN WEBSITE
+Đây là phần rất quan trọng khi triển khai bằng Flask và SQLite. Nếu M08, M09 hoạt động độc lập, dữ liệu sẽ bị trùng lặp và khó kiểm soát.
+1. Luồng liên kết giữa M08 và M09
+Ví dụ: Trường mua 10 máy tính cho một đơn vị.
+Thứ tự	Module	Hoạt động	Dữ liệu chuyển tiếp
+1	M08	Đơn vị lập đề xuất mua 10 máy tính	Hồ sơ đề xuất
+2	M08	Lãnh đạo phê duyệt chủ trương	Quyết định phê duyệt
+3	M08	Xác định giá, lựa chọn nhà cung cấp	Hồ sơ lựa chọn
+4	M08	Ký hợp đồng	Thông tin hợp đồng
+5	M08	Nhà cung cấp giao hàng theo hợp đồng	Thông tin giao nhận thực tế
+6	M08	Kiểm tra và nghiệm thu	Biên bản nghiệm thu
+7	M09	Tiếp nhận thông tin hàng hóa	Phiếu tiếp nhận
+8	M09	Phân loại và cấp mã	Hồ sơ tài sản
+9	M09	Bàn giao cho đơn vị sử dụng	Biên bản bàn giao
+10	M09	Theo dõi sử dụng và kiểm kê	Lịch sử tài sản
+11	M08	Xử lý thanh toán, quyết toán	Hồ sơ thanh toán
+Lưu ý: Thanh toán có thể diễn ra song song với việc M09 ghi nhận và bàn giao tài sản theo điều kiện thực tế. Không bắt buộc thanh toán xong mới cho M09 tiếp nhận hàng hóa đã nghiệm thu. Hồ sơ thanh lý hợp đồng được lập sau khi đối chiếu việc thực hiện hợp đồng, thanh toán và các nghĩa vụ liên quan; không mặc định đặt trước bước thanh toán.
+2. Các quy tắc nghiệp vụ bắt buộc phải có
+Mã	Quy tắc	Ý nghĩa
+BR01	Không tạo hồ sơ mua sắm khi chưa có đề xuất	Đảm bảo có nguồn gốc nhu cầu
+BR02	Đề xuất phải qua bước khảo sát và đối chiếu định mức	Tránh mua sắm không cần thiết
+BR03	Khi phương pháp xác định giá sử dụng báo giá, phải lưu báo giá và căn cứ so sánh; nếu sử dụng phương pháp khác, lưu tài liệu chứng minh tương ứng	Bảo đảm có căn cứ xác định giá, không áp dụng cứng một loại tài liệu cho mọi trường hợp
+BR04	Chỉ ký hợp đồng chính thức sau khi có quyết định phê duyệt kết quả lựa chọn nhà thầu và đáp ứng điều kiện liên quan	Đảm bảo trình tự phê duyệt và ký kết
+BR05	Hàng hóa phải được kiểm tra trước nghiệm thu	Tránh nghiệm thu hàng hóa không đạt
+BR06	Không ghi nhận tài sản chỉ dựa trên đề nghị mua sắm	Phải có căn cứ tiếp nhận
+BR07	Không mặc định mỗi dòng hàng hóa là một tài sản	Phải phân loại
+BR08	Không thanh toán khi chưa đủ điều kiện hồ sơ	Kiểm soát tài chính
+BR09	Một hồ sơ có thể có nhiều lần nhận hàng hoặc thanh toán	Theo dõi được từng lần phát sinh
+BR10	Mỗi tài sản cần có lịch sử bàn giao và sửa chữa	Truy xuất vòng đời
+BR11	Chênh lệch kiểm kê phải được ghi nhận và xác minh	Không tự ý sửa dữ liệu gốc
+BR12	Sửa chữa là nhánh phát sinh, không phải bước bắt buộc sau mua sắm	Đúng logic vòng đời
+3. Thiết kế trạng thái xử lý trên website
+Để người dùng biết hồ sơ đang ở đâu, mỗi nghiệp vụ cần có trạng thái riêng.
+M08 – Mua sắm
+•	Nháp.
+•	Chờ phê duyệt chủ trương.
+•	Đã phê duyệt chủ trương.
+•	Đang khảo sát giá.
+•	Chờ thẩm định.
+•	Chờ phê duyệt dự toán và kế hoạch.
+•	Đang lựa chọn nhà thầu.
+•	Chờ phê duyệt kết quả.
+•	Chờ ký hợp đồng.
+•	Đang thực hiện hợp đồng.
+•	Chờ kiểm tra hàng hóa.
+•	Chờ nghiệm thu.
+•	Đã nghiệm thu.
+•	Chờ thanh toán.
+•	Đang thanh toán.
+•	Đã thanh toán.
+•	Đang theo dõi bảo hành.
+•	Hoàn thành.
+M09 – Quản lý tài sản
+Trạng thái tiếp nhận và ghi nhận:
+•	Chờ tiếp nhận.
+•	Đã tiếp nhận.
+•	Chờ phân loại.
+•	Chờ cấp mã.
+•	Đã ghi nhận tài sản.
+Trạng thái quản lý, sử dụng:
+•	Chờ bàn giao.
+•	Đã bàn giao.
+•	Đang sử dụng.
+•	Tạm ngừng sử dụng.
+•	Ngừng sử dụng theo quyết định.
+Tình trạng kỹ thuật:
+•	Bình thường.
+•	Có hư hỏng.
+•	Cần kiểm tra/bảo trì.
+Trạng thái kiểm kê:
+•	Chưa kiểm kê.
+•	Đang kiểm kê.
+•	Đã kiểm kê.
+•	Có chênh lệch cần xác minh.
+•	Đã xác nhận kết quả kiểm kê.
+Trạng thái yêu cầu sửa chữa tại M09:
+•	Mới gửi.
+•	Chờ tiếp nhận.
+•	Chờ khảo sát.
+•	Đang khảo sát.
+•	Chờ phê duyệt phương án.
+•	Chờ thực hiện thủ tục mua sắm/dịch vụ tại M08 (nếu có).
+•	Đã được duyệt.
+•	Đang sửa chữa.
+•	Chờ nghiệm thu.
+•	Đã nghiệm thu.
+•	Không đạt yêu cầu.
+Lưu ý: Các trạng thái trên là đề xuất để tổ chức quy trình trên phần mềm. Trạng thái quản lý tài sản, tình trạng kỹ thuật, trạng thái kiểm kê và trạng thái yêu cầu sửa chữa là các nhóm độc lập; không gộp thành một trường trạng thái chung. Ví dụ, tài sản vẫn có trạng thái quản lý “Đang sử dụng” trong khi tình trạng kỹ thuật là “Có hư hỏng” và yêu cầu sửa chữa đang ở trạng thái “Đang khảo sát”.
+PHẦN VII. WEBSITE CẦN CÓ NHỮNG CHỨC NĂNG GÌ?
+Từ các luồng nghiệp vụ trên, mình đề xuất chia giao diện website như sau:
+1. Module M08 – Mua sắm và thanh toán
+Nhóm chức năng	Chức năng cụ thể
+Quản lý đề xuất	Tạo, sửa, gửi và theo dõi đề xuất mua sắm hàng hóa/dịch vụ
+Khảo sát nhu cầu mua sắm	Lập biên bản khảo sát nhu cầu, đối chiếu khả năng đáp ứng và định mức
+Phê duyệt	Xem xét, phê duyệt hoặc trả hồ sơ
+Quản lý báo giá	Đăng yêu cầu báo giá, nhập và so sánh báo giá
+Quản lý dự toán	Lập dự toán và kế hoạch lựa chọn nhà thầu
+Quản lý nhà cung cấp	Lưu thông tin và hồ sơ nhà cung cấp
+Quản lý lựa chọn nhà thầu	Đánh giá năng lực, lựa chọn và phê duyệt kết quả
+Quản lý hợp đồng	Lập, theo dõi và lưu hợp đồng
+Quản lý kiểm tra, nghiệm thu	Kiểm tra hàng hóa/dịch vụ, lập biên bản nghiệm thu và chuyển dữ liệu cần thiết sang M09
+Quản lý thanh toán	Đề nghị, kiểm tra, phê duyệt, theo dõi thanh toán
+Quản lý chứng từ	Lưu hóa đơn, biên bản và tài liệu liên quan
+2. Module M09 – Quản lý tài sản
+Nhóm chức năng	Chức năng cụ thể
+Tiếp nhận	Nhận dữ liệu từ M08, lập phiếu tiếp nhận
+Danh mục tài sản	Phân loại và quản lý danh mục
+Hồ sơ tài sản	Tạo, xem và cập nhật thông tin tài sản
+Mã tài sản	Cấp và quản lý mã tài sản
+Tiếp nhận hàng hóa	Ghi nhận hàng hóa được nghiệm thu; nhập kho khi thực tế có nghiệp vụ nhập kho
+Bàn giao	Lập và theo dõi biên bản bàn giao
+Theo dõi sử dụng	Theo dõi đơn vị, người quản lý, vị trí
+Sửa chữa	Tiếp nhận, khảo sát, xử lý yêu cầu sửa chữa và liên kết hồ sơ M08 khi phát sinh mua sắm/dịch vụ
+Lịch sử sửa chữa	Theo dõi chi phí, nội dung và kết quả sửa chữa
+Kiểm kê	Lập kỳ kiểm kê, đối chiếu và ghi nhận chênh lệch
+Báo cáo tài sản	Tổng hợp số lượng, vị trí, tình trạng tài sản
+3. Module M17 – Dashboard, báo cáo và đánh giá
+M17 lấy dữ liệu từ M08 và M09 để tổng hợp:
+•	Tổng số đề xuất mua sắm.
+•	Số hồ sơ đang chờ phê duyệt.
+•	Giá trị mua sắm theo thời gian.
+•	Số hợp đồng đang thực hiện.
+•	Số hồ sơ đã nghiệm thu.
+•	Tình hình thanh toán.
+•	Tổng số tài sản.
+•	Tài sản theo loại.
+•	Tài sản theo đơn vị.
+•	Tài sản theo tình trạng.
+•	Số yêu cầu sửa chữa.
+•	Số yêu cầu sửa chữa đã hoàn thành.
+•	Kết quả kiểm kê.
+•	Thời gian xử lý từng quy trình.
+Tài liệu dự án yêu cầu dữ liệu báo cáo phải có nguồn và phạm vi tính rõ ràng; không mặc nhiên cho người chỉ xem báo cáo tổng hợp truy cập dữ liệu cá nhân chi tiết. 

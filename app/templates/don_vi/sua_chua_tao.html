@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Tạo yêu cầu sửa chữa - NEU Facility Hub{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <div class="neu-page-header mb-4">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-screwdriver-wrench text-danger me-2"></i> LẬP YÊU CẦU SỬA CHỮA</h2>
+      <p class="text-muted mb-0">Hệ thống tự động xác thực danh tính cán bộ và đơn vị công tác</p>
+    </div>
+    <div>
+      <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <!-- Box tự động xác thực danh tính người dùng -->
+      <div class="alert alert-light border border-primary shadow-sm mb-4 p-3">
+        <div class="d-flex align-items-center mb-2">
+          <i class="fa-solid fa-id-card fa-2x text-primary me-3"></i>
+          <div>
+            <strong class="text-primary fs-6"><i class="fa-solid fa-circle-check text-success me-1"></i> Cơ chế xác thực tài khoản tự động khi lập phiếu:</strong>
+            <div class="small text-muted">Hệ thống đã tự động định danh cán bộ và đơn vị chịu trách nhiệm đề xuất.</div>
+          </div>
+        </div>
+        <div class="row g-2 pt-2 border-top small">
+          <div class="col-md-4">
+            <span class="text-muted">Cán bộ đề xuất:</span> <strong>{{ user.ho_ten }}</strong>
+          </div>
+          <div class="col-md-4">
+            <span class="text-muted">Đơn vị công tác:</span> <strong class="text-primary">{{ user.don_vi }}</strong>
+          </div>
+          <div class="col-md-4">
+            <span class="text-muted">Thông tin liên hệ:</span> <strong>{{ user.so_dien_thoai or user.email }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="neu-card">
+        <div class="neu-card-header bg-danger text-white">
+          <span><i class="fa-solid fa-wrench me-2"></i> Thông tin yêu cầu sửa chữa</span>
+        </div>
+        <div class="neu-card-body p-4">
+
+          <form method="POST" action="{{ url_for('don_vi.tao_sua_chua') }}">
+            <div class="row g-3">
+
+              <!-- 1. Loại yêu cầu -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Loại yêu cầu sửa chữa <span class="text-danger">*</span></label>
+                <select name="loai_yeu_cau" class="form-select neu-form-control" required>
+                  <option value="sua_chua_thiet_bi" {% if not du_lieu_form or du_lieu_form.get('loai_yeu_cau') == 'sua_chua_thiet_bi' %}selected{% endif %}>Sửa chữa thiết bị (Máy chiếu, điều hòa, máy tính, âm thanh...)</option>
+                  <option value="sua_chua_nho" {% if du_lieu_form and du_lieu_form.get('loai_yeu_cau') == 'sua_chua_nho' %}selected{% endif %}>Sửa chữa nhỏ (Điện, nước, khóa cửa, bóng đèn, van vòi...)</option>
+                  <option value="sua_chua_cong_trinh" {% if du_lieu_form and du_lieu_form.get('loai_yeu_cau') == 'sua_chua_cong_trinh' %}selected{% endif %}>Sửa chữa công trình (Trần, tường, sàn, cửa kính, thấm dột...)</option>
+                </select>
+              </div>
+
+              <!-- 2. Độ khẩn cấp -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ khẩn cấp <span class="text-danger">*</span></label>
+                <select name="do_khan_cap" class="form-select neu-form-control" required>
+                  <option value="binh_thuong" {% if not du_lieu_form or du_lieu_form.get('do_khan_cap') == 'binh_thuong' %}selected{% endif %}>Bình thường (Xử lý theo kế hoạch tuần)</option>
+                  <option value="can_som" {% if du_lieu_form and du_lieu_form.get('do_khan_cap') == 'can_som' %}selected{% endif %}>Cần sớm (Ảnh hưởng đến công việc / giảng dạy ngày mai)</option>
+                  <option value="khan_cap" {% if du_lieu_form and du_lieu_form.get('do_khan_cap') == 'khan_cap' %}selected{% endif %}>Khẩn cấp (Sự cố mất điện, rò rỉ nước, ảnh hưởng an toàn)</option>
+                </select>
+              </div>
+
+              <!-- 3. Chọn tài sản nếu có -->
+              <div class="col-md-12">
+                <label class="neu-form-label">Chọn tài sản trong danh mục của đơn vị (nếu có)</label>
+                <select name="tai_san_id" class="form-select neu-form-control" id="selectTaiSan"
+                        data-refresh-url="{{ url_for('don_vi.danh_muc_tai_san_sua_chua') }}">
+                  <option value="">-- Không gắn mã tài sản / Sự cố chung tại khu vực --</option>
+                  {% for ts in tai_san_list %}
+                  <option value="{{ ts.id }}" data-ten="{{ ts.ten_tai_san }}" data-vitri="{{ ts.vi_tri }}" {% if (tai_san_id_chon and tai_san_id_chon|int == ts.id) or (du_lieu_form and du_lieu_form.get('tai_san_id')|int == ts.id) %}selected{% endif %}>
+                    [{{ ts.ma_tai_san }}] {{ ts.ten_tai_san }} - Vị trí: {{ ts.vi_tri or 'Chưa rõ' }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if tai_san_list %}
+                  <small class="text-muted">Chỉ tài sản được phân bổ cho {{ user.don_vi }} mới xuất hiện. Chọn tài sản để tự điền tên và vị trí; để trống nếu báo sự cố chung.</small>
+                {% else %}
+                  <small class="text-muted">Đơn vị chưa có tài sản trong danh mục. Bạn vẫn có thể gửi yêu cầu chung bằng cách nhập tên hạng mục và vị trí bên dưới.</small>
+                {% endif %}
+                <small class="d-block text-muted mt-1" id="taiSanRefreshStatus" aria-live="polite">
+                  Danh mục tự làm mới mỗi 30 giây.
+                </small>
+              </div>
+
+              <!-- 4. Tên thiết bị / Hạng mục -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Tên thiết bị / Hạng mục cần sửa <span class="text-danger">*</span></label>
+                <input type="text" name="ten_vat_chat" id="tenVatChat" value="{{ du_lieu_form.get('ten_vat_chat', '') if du_lieu_form else '' }}" class="form-control neu-form-control" placeholder="Ví dụ: Máy chiếu Sony, Điều hòa Daikin 18000BTU, Vòi nước bồn rửa...">
+              </div>
+
+              <!-- 5. Vị trí -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Vị trí cụ thể (Tòa nhà / Phòng) <span class="text-danger">*</span></label>
+                <input type="text" name="vi_tri" id="viTri" value="{{ du_lieu_form.get('vi_tri', '') if du_lieu_form else '' }}" class="form-control neu-form-control" placeholder="Ví dụ: Phòng học A1-305, Giảng đường D2, Nhà vệ sinh tầng 4...">
+              </div>
+
+              <!-- 6. Thời điểm ghi nhận -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Thời điểm ghi nhận</label>
+                <input type="datetime-local" name="thoi_gian_phat_hien" value="{{ du_lieu_form.get('thoi_gian_phat_hien', '') if du_lieu_form else '' }}" class="form-control neu-form-control">
+              </div>
+
+              <!-- 7. Mức độ ảnh hưởng -->
+              <div class="col-md-6">
+                <label class="neu-form-label">Mức độ ảnh hưởng</label>
+                <select name="muc_do" class="form-select neu-form-control">
+                  <option value="nhe" {% if du_lieu_form and du_lieu_form.get('muc_do') == 'nhe' %}selected{% endif %}>Nhẹ (Vẫn sử dụng tạm được, chưa gián đoạn)</option>
+                  <option value="trung_binh" {% if not du_lieu_form or du_lieu_form.get('muc_do') == 'trung_binh' %}selected{% endif %}>Trung bình (Gián đoạn một phần hoạt động)</option>
+                  <option value="nghiem_trong" {% if du_lieu_form and du_lieu_form.get('muc_do') == 'nghiem_trong' %}selected{% endif %}>Nghiêm trọng (Không thể sử dụng được, dừng hoàn toàn)</option>
+                </select>
+              </div>
+
+              <!-- 8. Mô tả yêu cầu sửa chữa -->
+              <div class="col-12">
+                <label class="neu-form-label">Mô tả yêu cầu sửa chữa <span class="text-danger">*</span></label>
+                <textarea name="mo_ta_chi_tiet" rows="4" class="form-control neu-form-control" placeholder="Mô tả hiện trạng và nội dung cần sửa chữa..." required>{{ du_lieu_form.get('mo_ta_chi_tiet', '') if du_lieu_form else '' }}</textarea>
+              </div>
+
+              <!-- 9. Hình ảnh / Tài liệu đính kèm -->
+              <div class="col-12">
+                <label class="neu-form-label">Tài liệu / ảnh đính kèm (nếu có)</label>
+                <input type="text" name="hinh_anh" value="{{ du_lieu_form.get('hinh_anh', '') if du_lieu_form else '' }}" class="form-control neu-form-control" placeholder="Dán link ảnh hiện trường hoặc ghi chú vị trí chụp ảnh...">
+              </div>
+
+              <div class="col-12 text-end mt-4 pt-3 border-top">
+                <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-outline-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-danger px-4 py-2 fw-bold shadow">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Gửi yêu cầu sửa chữa
+                </button>
+              </div>
+
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const sel = document.getElementById('selectTaiSan');
+  const txtTen = document.getElementById('tenVatChat');
+  const txtViTri = document.getElementById('viTri');
+  const refreshStatus = document.getElementById('taiSanRefreshStatus');
+
+  function capNhatThongTinTaiSan() {
+    const opt = sel.options[sel.selectedIndex];
+    if (sel.value) {
+      if (opt.dataset.ten) txtTen.value = opt.dataset.ten;
+      if (opt.dataset.vitri) txtViTri.value = opt.dataset.vitri;
+      txtTen.required = false;
+      txtViTri.required = false;
+    } else {
+      txtTen.required = true;
+      txtViTri.required = true;
+    }
+  }
+
+  if (sel) {
+    sel.addEventListener('change', capNhatThongTinTaiSan);
+    capNhatThongTinTaiSan();
+
+    async function capNhatDanhMucTaiSan() {
+      try {
+        const response = await fetch(sel.dataset.refreshUrl, {
+          cache: 'no-store',
+          headers: {'Accept': 'application/json'}
+        });
+        if (!response.ok) throw new Error('Không tải được danh mục tài sản.');
+
+        const danhSach = await response.json();
+        const giaTriDangChon = sel.value;
+        const optionCu = new Map(
+          Array.from(sel.options)
+            .filter(option => option.value)
+            .map(option => [option.value, option])
+        );
+        const optionsMoi = [sel.options[0]];
+
+        danhSach.forEach(function(taiSan) {
+          const value = String(taiSan.id);
+          const option = optionCu.get(value) || document.createElement('option');
+          option.value = value;
+          option.dataset.ten = taiSan.ten_tai_san;
+          option.dataset.vitri = taiSan.vi_tri || '';
+          option.textContent = '[' + taiSan.ma_tai_san + '] ' + taiSan.ten_tai_san
+            + ' - Vị trí: ' + (taiSan.vi_tri || 'Chưa rõ');
+          optionsMoi.push(option);
+        });
+
+        sel.replaceChildren(...optionsMoi);
+        if (danhSach.some(taiSan => String(taiSan.id) === giaTriDangChon)) {
+          sel.value = giaTriDangChon;
+        } else if (giaTriDangChon) {
+          sel.value = '';
+          refreshStatus.textContent = 'Tài sản đang chọn không còn thuộc danh mục đơn vị; vui lòng chọn lại.';
+          capNhatThongTinTaiSan();
+          return;
+        }
+
+        refreshStatus.textContent = 'Danh mục đã cập nhật lúc ' +
+          new Date().toLocaleTimeString('vi-VN') + '. Tự làm mới mỗi 30 giây.';
+      } catch (error) {
+        refreshStatus.textContent = 'Chưa cập nhật được danh mục; sẽ thử lại sau 30 giây.';
+      }
+    }
+
+    window.setInterval(capNhatDanhMucTaiSan, 30000);
+  }
+});
+</script>
+{% endblock %}

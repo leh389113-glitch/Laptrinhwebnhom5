@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Kế toán - Chờ thanh toán - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> KẾ TOÁN - THEO DÕI & THANH TOÁN</h2>
+      <small class="text-muted">Danh sách phiếu đề nghị thanh toán M08 đã gửi sang Kế toán sau khi M09 tiếp nhận hàng</small>
+    </div>
+    <div>
+      <a href="{{ url_for('ke_toan.lich_su') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử thanh toán
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-hand-holding-dollar me-2"></i> Đề nghị chờ thanh toán ({{ de_nghi_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã thanh toán</th>
+            <th>Hồ sơ mua sắm</th>
+            <th>Nội dung thanh toán</th>
+            <th>Nhà cung cấp</th>
+            <th>Đơn vị đề xuất</th>
+            <th>Giá trị đề nghị</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if de_nghi_list %}
+            {% for dn in de_nghi_list %}
+            <tr>
+              <td><strong class="text-primary">{{ dn.ma_thanh_toan }}</strong></td>
+              <td><strong>{{ dn.ma_de_nghi }}</strong></td>
+              <td>{{ dn.noi_dung_thanh_toan }}</td>
+              <td>{{ dn.nha_cung_cap or '-' }}</td>
+              <td>{{ dn.don_vi_de_nghi }}</td>
+              <td class="text-danger fw-bold fs-6">{{ dn.gia_tri_de_nghi | tien_vnd }}</td>
+              <td><span class="badge bg-warning text-dark">Chờ kế toán kiểm tra</span></td>
+              <td class="text-end">
+                <a href="{{ url_for('ke_toan.chi_tiet', id=dn.de_nghi_id) }}" class="btn btn-sm btn-warning text-dark fw-bold">
+                  <i class="fa-solid fa-folder-open me-1"></i> Kiểm tra hồ sơ
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-circle-check fa-3x text-success mb-2 d-block"></i>
+                Hiện không có phiếu mua sắm nào chờ Kế toán kiểm tra.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="neu-card mt-4">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-screwdriver-wrench me-2"></i> Hồ sơ thanh toán sửa chữa M09 ({{ ho_so_sua_chua_list|length }})</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã hồ sơ</th>
+            <th>Yêu cầu sửa chữa</th>
+            <th>Đơn vị sử dụng</th>
+            <th>Đơn vị thụ hưởng</th>
+            <th>Số tiền đề nghị</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for hs in ho_so_sua_chua_list %}
+          <tr>
+            <td><strong class="text-primary">SC-{{ hs.yeu_cau_sua_chua_id }}</strong></td>
+            <td><strong>{{ hs.ma_yeu_cau }}</strong><br><small>{{ hs.noi_dung_sua_chua }}</small></td>
+            <td>{{ hs.don_vi_su_dung or '-' }}</td>
+            <td>{{ hs.don_vi_thu_huong or '-' }}</td>
+            <td class="text-danger fw-bold">{{ hs.so_tien | tien_vnd }}</td>
+            <td><span class="{{ hs.trang_thai | badge_trang_thai }}">{{ hs.trang_thai | ten_trang_thai }}</span></td>
+            <td class="text-end">
+              <a href="{{ url_for('ke_toan.chi_tiet_thanh_toan_sua_chua', id=hs.yeu_cau_sua_chua_id) }}" class="btn btn-sm btn-warning text-dark fw-bold">
+                <i class="fa-solid fa-folder-open me-1"></i> Kiểm tra hồ sơ
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">Hiện không có hồ sơ thanh toán sửa chữa nào chờ xử lý.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

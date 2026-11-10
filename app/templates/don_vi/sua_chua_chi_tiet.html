@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết yêu cầu sửa chữa {{ yc.ma_yeu_cau }} - NEU{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="small text-decoration-none">← Danh sách yêu cầu</a>
+    <h2 class="fw-bold text-primary mt-2">Tiến độ xử lý: {{ yc.ma_yeu_cau }}</h2>
+    <p class="text-muted">{{ yc.ten_vat_chat or yc.noi_dung }} · {{ yc.vi_tri or yc.hien_trang }}</p>
+    <span class="{{ yc.trang_thai | badge_trang_thai }}">{% if yc.trang_thai == 'da_thanh_toan' %}Hoàn tất{% else %}{{ yc.trang_thai | ten_trang_thai }}{% endif %}</span>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">Luồng trạng thái M09</h5>
+      <div class="row g-2">
+        {% for step in [
+          ('cho_tiep_nhan', 'Chờ tiếp nhận'),
+          ('cho_khao_sat', 'Chờ khảo sát'),
+          ('dang_khao_sat', 'Đang khảo sát BM03'),
+          ('cho_duyet_phuong_an', 'Chờ duyệt phương án'),
+          ('cho_thu_tuc_m08', 'Thủ tục tại M08'),
+          ('dang_sua_chua', 'Đã duyệt / Đang sửa chữa'),
+          ('cho_nghiem_thu', 'Chờ nghiệm thu'),
+          ('cho_lap_ho_so_thanh_toan', 'Chờ lập hồ sơ thanh toán'),
+          ('cho_thanh_toan', 'Chờ thanh toán'),
+          ('dang_xu_ly_thanh_toan', 'Đang xử lý thanh toán'),
+          ('yeu_cau_bo_sung_ho_so', 'Yêu cầu bổ sung hồ sơ'),
+          ('da_thanh_toan', 'Hoàn tất')
+        ] %}
+        <div class="col-md-3 col-6">
+          <div class="border rounded p-2 h-100 {% if yc.trang_thai == step[0] or (step[0] == 'dang_sua_chua' and yc.trang_thai == 'khong_dat_yeu_cau') %}border-primary bg-light{% endif %}">
+            <div class="small text-muted">Bước {{ loop.index }}</div><strong class="small">{{ step[1] }}</strong>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if yc.trang_thai == 'tra_lai' %}<div class="alert alert-warning mt-3 mb-0"><strong>QTTB yêu cầu bổ sung:</strong> {{ yc.ly_do_tra_lai }}</div>{% endif %}
+      {% if yc.trang_thai == 'khong_dat_yeu_cau' %}<div class="alert alert-danger mt-3 mb-0">Nghiệm thu không đạt; đơn vị thi công cần khắc phục lại.</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold">Thông tin yêu cầu</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Người đề nghị</dt><dd class="col-sm-7">{{ yc.nguoi_tao_ten or '—' }}</dd>
+            <dt class="col-sm-5">Đơn vị</dt><dd class="col-sm-7">{{ yc.don_vi }}</dd>
+            <dt class="col-sm-5">Thiết bị</dt><dd class="col-sm-7">{{ yc.ten_tai_san or yc.ten_vat_chat or '—' }}</dd>
+            <dt class="col-sm-5">Mã tài sản</dt><dd class="col-sm-7">{{ yc.ma_tai_san or 'Chưa gắn mã tài sản' }}</dd>
+            <dt class="col-sm-5">Vị trí</dt><dd class="col-sm-7">{{ yc.vi_tri or yc.tai_san_vi_tri or '—' }}</dd>
+            <dt class="col-sm-5">Bảo hành</dt><dd class="col-sm-7">{{ yc.tinh_trang_bao_hanh or yc.thoi_han_bao_hanh or 'Chưa xác định' }}</dd>
+            <dt class="col-sm-5">Độ khẩn cấp</dt><dd class="col-sm-7">{{ yc.do_khan_cap | ten_trang_thai }}</dd>
+            <dt class="col-sm-5">Mô tả</dt><dd class="col-sm-7">{{ yc.noi_dung }}</dd>
+          </dl>
+          {% if yc.hinh_anh %}<img src="{{ yc.hinh_anh }}" alt="Ảnh hiện trạng ban đầu" class="img-fluid rounded border mt-2" style="max-height:220px">{% endif %}
+        </div>
+      </div>
+
+      {% if yc.trang_thai == 'tra_lai' %}
+      <div class="card border-warning shadow-sm mb-4">
+        <div class="card-header fw-bold">Bổ sung thông tin theo yêu cầu QTTB</div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('don_vi.bo_sung_sua_chua', id=yc.id) }}">
+            <label class="form-label">Thông tin bổ sung</label>
+            <textarea name="noi_dung" class="form-control mb-3" rows="4" required></textarea>
+            <button class="btn btn-warning">Gửi bổ sung</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if yc.da_khao_sat and not yc.xac_nhan_khao_sat_don_vi and yc.trang_thai not in ['tra_lai', 'cho_tiep_nhan'] %}
+      <div class="card border-primary shadow-sm mb-4">
+        <div class="card-header fw-bold">Xác nhận khảo sát BM03</div>
+        <div class="card-body">
+          <p class="small">Vui lòng xem biên bản khảo sát trong lịch sử trước khi xác nhận.</p>
+          <form method="post" action="{{ url_for('don_vi.xac_nhan_khao_sat', id=yc.id) }}">
+            <textarea name="ghi_chu" class="form-control mb-3" rows="2" placeholder="Ý kiến bổ sung (nếu có)"></textarea>
+            <button class="btn btn-primary">Ký xác nhận khảo sát</button>
+          </form>
+        </div>
+      </div>
+      {% elif yc.xac_nhan_khao_sat_don_vi %}
+      <div class="alert alert-success">Đơn vị đã ký xác nhận biên bản khảo sát BM03.</div>
+      {% endif %}
+
+      {% if yc.trang_thai == 'cho_nghiem_thu' %}
+      <div class="card border-success shadow-sm mb-4">
+        <div class="card-header fw-bold">Nghiệm thu sửa chữa</div>
+        <div class="card-body">
+          <p class="small">Kiểm tra khả năng hoạt động thực tế và ghi nhận kết quả nghiệm thu.</p>
+          <form method="post" action="{{ url_for('don_vi.nghiem_thu_sua_chua', id=yc.id) }}">
+            <label class="form-label">Kết quả</label>
+            <select name="ket_qua" class="form-select mb-2" required>
+              <option value="dat">Đạt yêu cầu</option><option value="khong_dat">Không đạt — yêu cầu khắc phục</option>
+            </select>
+            <label class="form-label">Ý kiến nghiệm thu</label>
+            <textarea name="ghi_chu" class="form-control mb-3" rows="3" required></textarea>
+            <button class="btn btn-success">Gửi kết quả nghiệm thu</button>
+          </form>
+        </div>
+      </div>
+      {% elif yc.trang_thai in ['cho_lap_ho_so_thanh_toan', 'cho_thanh_toan', 'dang_xu_ly_thanh_toan', 'yeu_cau_bo_sung_ho_so'] %}
+      <div class="alert alert-info">Sửa chữa đã nghiệm thu đạt; hồ sơ thanh toán đang được M09 và Kế toán xử lý.</div>
+      {% elif yc.trang_thai == 'da_thanh_toan' %}
+      <div class="alert alert-success">Đã thanh toán cho đơn vị sửa chữa; quy trình sửa chữa hoàn tất.</div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold">Phương án và tiến độ hiện tại</div>
+        <div class="card-body">
+          <p><strong>Phương án:</strong> {{ yc.phuong_an | ten_trang_thai if yc.phuong_an else 'Chưa lập phương án' }}</p>
+          <p><strong>Nội dung:</strong> {{ yc.phuong_an_chi_tiet or '—' }}</p>
+          <p><strong>Dự toán:</strong> {{ (yc.chi_phi_du_kien or 0) | tien_vnd }}</p>
+          {% if yc.ma_de_nghi_m08 %}
+            <p class="mb-0"><strong>Đề nghị M08:</strong> {{ yc.ma_de_nghi_m08 }} · {{ yc.trang_thai_m08 | ten_trang_thai }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử hồ sơ</div>
+        <div class="card-body">
+          {% for event in yc.lich_su %}
+          <div class="border-start border-3 ps-3 pb-3 mb-3">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+              <strong>{{ event.tieu_de }}</strong><small class="text-muted">{{ event.ngay_tao[:16].replace('T', ' ') }}</small>
+            </div>
+            {% if event.nguoi_tao_ten %}<small class="text-muted">Thực hiện: {{ event.nguoi_tao_ten }}</small>{% endif %}
+            {% if event.noi_dung %}<div class="mt-1">{{ event.noi_dung }}</div>{% endif %}
+            {% if event.du_lieu %}
+              <div class="small mt-2">
+                {% for key, value in event.du_lieu.items() %}
+                  {% if value %}<div><strong>{{ key | replace('_', ' ') | capitalize }}:</strong> {{ value }}</div>{% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% for tep in event.tep_dinh_kem %}
+              <a href="{{ url_for('tai_san.xem_tep_sua_chua', id=tep.id) }}" target="_blank" rel="noopener">
+                <img src="{{ url_for('tai_san.xem_tep_sua_chua', id=tep.id) }}" alt="{{ tep.ten_tep }}" class="img-thumbnail mt-2" style="max-height:140px">
+              </a>
+            {% endfor %}
+          </div>
+          {% else %}<p class="text-muted mb-0">Chưa có cập nhật tiến độ.</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

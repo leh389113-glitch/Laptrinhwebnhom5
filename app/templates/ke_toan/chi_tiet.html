@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Xác nhận thanh toán - {{ de_nghi.ma_de_nghi }} - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-receipt text-warning me-2"></i> KIỂM TRA HỒ SƠ ĐỀ NGHỊ THANH TOÁN</h2>
+      <small class="text-muted">Mã thanh toán: {{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }} | Hồ sơ mua sắm: {{ de_nghi.ma_de_nghi }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="neu-card">
+        <div class="neu-card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-file-invoice-dollar me-2"></i> Giấy đề nghị thanh toán chuyển khoản cho nhà cung cấp</span>
+          <span class="badge bg-warning text-dark">Chờ kế toán kiểm tra</span>
+        </div>
+        <div class="neu-card-body">
+          <div class="row g-3">
+            <div class="col-md-6"><strong>Hồ sơ mua sắm:</strong> {{ de_nghi.ma_de_nghi }} (Mã thanh toán: <code>{{ de_nghi.de_nghi_thanh_toan.ma_thanh_toan }}</code>)</div>
+            <div class="col-md-6"><strong>Người đề nghị:</strong> {{ de_nghi.de_nghi_thanh_toan.nguoi_de_nghi_ten or de_nghi.nguoi_de_nghi_ten }} ({{ de_nghi.de_nghi_thanh_toan.don_vi or de_nghi.don_vi_de_nghi }})</div>
+            <div class="col-12"><strong>Về khoản:</strong> {{ de_nghi.de_nghi_thanh_toan.noi_dung_thanh_toan or de_nghi.de_nghi_thanh_toan.ve_khoan }}</div>
+            <div class="col-md-6"><strong>Căn cứ:</strong> HĐ số <u>{{ de_nghi.de_nghi_thanh_toan.hop_dong_so or de_nghi.so_hop_dong or ('HĐ-' ~ de_nghi.ma_de_nghi) }}</u> ngày {{ de_nghi.de_nghi_thanh_toan.hop_dong_ngay or de_nghi.ngay_phe_duyet | dinh_dang_ngay }} & Biên bản nghiệm thu số <u>{{ de_nghi.de_nghi_thanh_toan.ma_nghiem_thu }}</u></div>
+            <div class="col-md-6"><strong>Nhà cung cấp (Đơn vị thụ hưởng):</strong> <span class="badge bg-success fs-6">{{ de_nghi.de_nghi_thanh_toan.don_vi_thu_huong or de_nghi.de_nghi_thanh_toan.nha_cung_cap }}</span></div>
+            <div class="col-md-6"><strong>Số tài khoản:</strong> <code>{{ de_nghi.de_nghi_thanh_toan.so_tai_khoan or '0241000688999' }}</code> tại {{ de_nghi.de_nghi_thanh_toan.ngan_hang or 'Vietcombank - CN Hà Nội' }}</div>
+            <div class="col-md-6"><strong>Số tiền đề nghị:</strong> <span class="text-danger fw-bold fs-5">{{ de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | tien_vnd }}</span></div>
+            <div class="col-12"><strong>Viết bằng chữ:</strong> <em>{{ de_nghi.de_nghi_thanh_toan.so_tien_bang_chu or (de_nghi.de_nghi_thanh_toan.gia_tri_de_nghi | doc_so_thanh_chu) }}</em></div>
+            <div class="col-12">
+              <strong>Danh mục hồ sơ kèm theo đối chiếu:</strong>
+              <ul class="mb-0 mt-2">
+                {% for muc in de_nghi.de_nghi_thanh_toan.ho_so_dinh_kem.split('\n') %}
+                <li>{{ muc }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột trái: Tóm tắt đề nghị & Hàng hóa -->
+    <div class="col-lg-7">
+      <div class="neu-card">
+        <div class="neu-card-header">
+          <span><i class="fa-solid fa-list-check me-2"></i> Danh sách thiết bị đã tiếp nhận tại kho</span>
+        </div>
+        <div class="table-responsive">
+          <table class="neu-table">
+            <thead>
+              <tr>
+                <th>Thiết bị</th>
+                <th>ĐVT</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in de_nghi['items'] %}
+              <tr>
+                <td><strong>{{ it.ten_hang_hoa }}</strong></td>
+                <td>{{ it.don_vi_tinh }}</td>
+                <td class="text-center">{{ it.so_luong }}</td>
+                <td class="text-end">{{ it.don_gia_du_kien | tien_vnd }}</td>
+                <td class="text-end text-danger fw-bold">{{ it.thanh_tien | tien_vnd }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-light">
+                <td colspan="4" class="text-end fw-bold">TỔNG KINH PHÍ QUYẾT TOÁN:</td>
+                <td class="text-end text-danger fw-bold fs-6">{{ de_nghi.tong_du_toan | tien_vnd }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Form thực hiện thanh toán -->
+    <div class="col-lg-5">
+      <div class="neu-card">
+        <div class="neu-card-header bg-warning text-dark">
+          <span><i class="fa-solid fa-money-check-dollar me-2"></i> Thủ tục kế toán thanh toán</span>
+        </div>
+        <div class="neu-card-body">
+          
+          {% if session.get('vai_tro') == 'ke_toan' %}
+          <div class="alert alert-info small">
+            Đối chiếu hóa đơn điện tử và chứng từ thanh toán với hồ sơ đã tiếp nhận trước khi ghi nhận giải ngân.
+          </div>
+
+          <form method="POST" action="{{ url_for('ke_toan.thanh_toan', id=de_nghi.id) }}">
+            <div class="mb-3">
+              <label class="neu-form-label">Số tiền giải ngân (VNĐ) <span class="text-danger">*</span></label>
+              <input type="number" name="so_tien" class="form-control neu-form-control fw-bold text-danger fs-5" value="{{ de_nghi.de_nghi_thanh_toan.so_tien_con_lai }}" readonly required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Số hóa đơn tài chính / Chứng từ</label>
+              <input type="text" name="so_hoa_don" class="form-control neu-form-control" placeholder="Ví dụ: HD-0012984" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="neu-form-label">Phương thức thanh toán <span class="text-danger">*</span></label>
+              <select name="phuong_thuc" class="form-select neu-form-control">
+                <option value="chuyen_khoan" selected>Chuyển khoản qua Kho bạc / Ngân hàng</option>
+                <option value="tien_mat">Tiền mặt</option>
+                <option value="khac">Khác</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="neu-form-label">Ghi chú thanh toán</label>
+              <textarea name="ghi_chu" rows="3" class="form-control neu-form-control" placeholder="Ghi chú số tài khoản chuyển tiền, đợt thanh toán..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2">
+              <i class="fa-solid fa-check-circle me-1"></i> Xác nhận hồ sơ hợp lệ và ghi nhận giải ngân
+            </button>
+          </form>
+          {% else %}
+          <div class="alert alert-info border-0 p-3 mb-0">
+            <i class="fa-solid fa-circle-info fs-4 text-primary d-block mb-2"></i>
+            <strong>Chế độ giám sát của Lãnh đạo / Admin:</strong>
+            <p class="small text-secondary mt-1 mb-0">Admin có quyền kiểm tra, xem chứng từ và tiến độ thanh toán của hồ sơ. Thao tác ghi nhận giải ngân thực tế do Cán bộ Kế toán thực hiện.</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Thanh toán sửa chữa {{ yc.ma_yeu_cau }} - Kế toán{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title">HỒ SƠ THANH TOÁN SỬA CHỮA</h2>
+      <small class="text-muted">Yêu cầu {{ yc.ma_yeu_cau }} · M09 → Kế toán M08</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('ke_toan.danh_sach') }}" class="btn btn-outline-secondary">Quay lại</a>
+      <a href="{{ url_for('tai_san.in_ho_so_thanh_toan_sua_chua', id=yc.id) }}" target="_blank" rel="noopener" class="btn btn-outline-primary">In giấy đề nghị</a>
+    </div>
+  </div>
+
+  <div class="alert alert-info d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><strong>Trạng thái:</strong> {% if ho_so.trang_thai == 'da_thanh_toan' %}Hoàn tất{% else %}{{ ho_so.trang_thai | ten_trang_thai }}{% endif %}</span>
+    {% if ho_so.ghi_chu_ke_toan %}<span><strong>Ý kiến gần nhất:</strong> {{ ho_so.ghi_chu_ke_toan }}</span>{% endif %}
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold">Thông tin yêu cầu và nghiệm thu M09</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Mã yêu cầu</dt><dd class="col-sm-7">{{ yc.ma_yeu_cau }}</dd>
+            <dt class="col-sm-5">Đơn vị sử dụng</dt><dd class="col-sm-7">{{ yc.don_vi or '—' }}</dd>
+            <dt class="col-sm-5">Người đề nghị ban đầu</dt><dd class="col-sm-7">{{ yc.nguoi_tao_ten or '—' }}</dd>
+            <dt class="col-sm-5">Tài sản / vị trí</dt><dd class="col-sm-7">{{ yc.ten_tai_san or yc.ten_vat_chat or '—' }} · {{ yc.vi_tri or yc.tai_san_vi_tri or '—' }}</dd>
+            <dt class="col-sm-5">Nội dung sửa chữa</dt><dd class="col-sm-7">{{ yc.noi_dung }}</dd>
+            <dt class="col-sm-5">Đơn vị thực hiện</dt><dd class="col-sm-7">{{ yc.don_vi_thuc_hien or '—' }}</dd>
+            <dt class="col-sm-5">Chi phí thực tế</dt><dd class="col-sm-7">{{ (yc.chi_phi_thuc_te or 0) | tien_vnd }}</dd>
+            <dt class="col-sm-5">Kết quả nghiệm thu</dt><dd class="col-sm-7">{{ yc.ket_qua_nghiem_thu | ten_trang_thai }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header fw-bold">Lịch sử và tài liệu liên quan</div>
+        <div class="card-body">
+          {% for event in yc.lich_su %}
+          <div class="border-start border-3 ps-3 pb-3 mb-3">
+            <strong>{{ event.tieu_de }}</strong>
+            <div class="small text-muted">{{ event.ngay_tao[:16].replace('T', ' ') }}{% if event.nguoi_tao_ten %} · {{ event.nguoi_tao_ten }}{% endif %}</div>
+            {% if event.noi_dung %}<div>{{ event.noi_dung }}</div>{% endif %}
+            {% for tep in event.tep_dinh_kem %}
+              <a class="d-block mt-1" href="{{ url_for('tai_san.xem_tep_sua_chua', id=tep.id) }}" target="_blank" rel="noopener">{{ tep.ten_tep }}</a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">Chưa có tài liệu hoặc hoạt động đính kèm.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header fw-bold">Giấy đề nghị thanh toán chuyển khoản cho đơn vị sửa chữa</div>
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-sm-4">Người đề nghị</dt><dd class="col-sm-8">{{ ho_so.nguoi_de_nghi_ten }}</dd>
+            <dt class="col-sm-4">Đơn vị / địa chỉ</dt><dd class="col-sm-8">{{ ho_so.don_vi }}</dd>
+            <dt class="col-sm-4">Về khoản</dt><dd class="col-sm-8">{{ ho_so.ve_khoan }}</dd>
+            <dt class="col-sm-4">Căn cứ hợp đồng</dt><dd class="col-sm-8">{{ ho_so.hop_dong_so or 'Không có' }}{% if ho_so.hop_dong_ngay %}, ngày {{ ho_so.hop_dong_ngay }}{% endif %}</dd>
+            <dt class="col-sm-4">Số tiền đề nghị</dt><dd class="col-sm-8 text-danger fw-bold">{{ ho_so.so_tien | tien_vnd }}</dd>
+            <dt class="col-sm-4">Viết bằng chữ</dt><dd class="col-sm-8">{{ ho_so.so_tien_bang_chu }}</dd>
+            <dt class="col-sm-4">Đơn vị thụ hưởng</dt><dd class="col-sm-8">{{ ho_so.don_vi_thu_huong }}</dd>
+            <dt class="col-sm-4">Số tài khoản</dt><dd class="col-sm-8">{{ ho_so.so_tai_khoan }}</dd>
+            <dt class="col-sm-4">Tại ngân hàng</dt><dd class="col-sm-8">{{ ho_so.ngan_hang }}</dd>
+            <dt class="col-sm-4">Hồ sơ kèm theo</dt>
+            <dd class="col-sm-8">
+              {% if ho_so.ho_so_kem_theo %}
+              <ul class="mb-0">
+                {% for muc in ho_so.ho_so_kem_theo %}<li>{{ muc | replace('_', ' ') | capitalize }}</li>{% endfor %}
+                {% if ho_so.ho_so_khac %}<li>{{ ho_so.ho_so_khac }}</li>{% endif %}
+              </ul>
+              {% else %}Chưa khai báo{% endif %}
+            </dd>
+            <dt class="col-sm-4">Tệp chứng từ</dt>
+            <dd class="col-sm-8">
+              {% if ho_so.tep_dinh_kem %}
+                <ul class="mb-0">
+                  {% for tep in ho_so.tep_dinh_kem %}
+                    <li><a href="{{ url_for('tai_san.xem_tep_ho_so_thanh_toan_sua_chua', id=tep.id) }}" target="_blank" rel="noopener">{{ tep.ten_tep }}</a></li>
+                  {% endfor %}
+                </ul>
+              {% else %}Chưa có tệp chứng từ đính kèm{% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+      {% if session.get('vai_tro') == 'ke_toan' and ho_so.trang_thai == 'cho_thanh_toan' %}
+      <div class="card border-primary shadow-sm mt-4">
+        <div class="card-body">
+          <p>Kế toán tiếp nhận hồ sơ để bắt đầu kiểm tra chứng từ và thủ tục thanh toán.</p>
+          <form method="post" action="{{ url_for('ke_toan.tiep_nhan_ho_so_sua_chua', id=yc.id) }}">
+            <button class="btn btn-primary">Tiếp nhận và bắt đầu xử lý</button>
+          </form>
+        </div>
+      </div>
+      {% elif session.get('vai_tro') == 'ke_toan' and ho_so.trang_thai == 'dang_xu_ly_thanh_toan' %}
+      <div class="row g-4 mt-1">
+        <div class="col-md-6">
+          <div class="card border-warning shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="fw-bold">Yêu cầu M09 bổ sung hồ sơ</h5>
+              <form method="post" action="{{ url_for('ke_toan.yeu_cau_bo_sung_ho_so_sua_chua', id=yc.id) }}">
+                <label class="form-label">Nội dung cần bổ sung</label>
+                <textarea class="form-control mb-3" name="ghi_chu" rows="3" required></textarea>
+                <button class="btn btn-warning">Gửi yêu cầu bổ sung</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card border-success shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="fw-bold">Xác nhận đã thanh toán</h5>
+              <p class="small">Chỉ xác nhận sau khi đã hoàn tất chuyển khoản cho đơn vị sửa chữa.</p>
+              <form method="post" action="{{ url_for('ke_toan.xac_nhan_thanh_toan_sua_chua', id=yc.id) }}">
+                <label class="form-label">Ghi chú / chứng từ giải ngân</label>
+                <textarea class="form-control mb-3" name="ghi_chu" rows="2"></textarea>
+                <button class="btn btn-success">Xác nhận đã thanh toán</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% elif session.get('vai_tro') == 'ke_toan' and ho_so.trang_thai == 'yeu_cau_bo_sung_ho_so' %}
+      <div class="alert alert-warning mt-4">Đang chờ M09 bổ sung hồ sơ theo ý kiến của Kế toán.</div>
+      {% elif ho_so.trang_thai == 'da_thanh_toan' %}
+      <div class="alert alert-success mt-4">Quy trình sửa chữa đã Hoàn tất.</div>
+      {% else %}
+      <div class="alert alert-info mt-4">Chế độ giám sát: chỉ cán bộ Kế toán được tiếp nhận, yêu cầu bổ sung hoặc xác nhận thanh toán.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

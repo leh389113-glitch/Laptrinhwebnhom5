@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Giấy đề nghị thanh toán {{ yc.ma_yeu_cau }}{% endblock %}
+{% block content %}
+<style>
+  .payment-paper { max-width: 900px; margin: 24px auto; padding: 40px; color: #111; background: #fff; font-family: "Times New Roman", serif; }
+  .paper-header { display: grid; grid-template-columns: 1fr 1fr; text-align: center; gap: 20px; font-size: 15px; }
+  .paper-title { text-align: center; margin: 28px 0; }
+  .paper-title h2 { font-size: 21px; font-weight: bold; }
+  .paper-content p { margin: 13px 0; }
+  .paper-signatures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-top: 56px; }
+  .paper-signatures strong { display: block; min-height: 48px; }
+  @media print {
+    nav, .no-print, footer { display: none !important; }
+    .payment-paper { max-width: none; margin: 0; padding: 10mm; }
+  }
+</style>
+<div class="container no-print mt-3 d-flex justify-content-end">
+  <button class="btn btn-primary" onclick="window.print()">In / Lưu PDF</button>
+</div>
+<main class="payment-paper">
+  <header class="paper-header">
+    <div>
+      <strong>ĐẠI HỌC KINH TẾ QUỐC DÂN</strong><br>
+      Đơn vị: {{ ho_so.don_vi }}
+    </div>
+    <div>
+      <strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+      Độc lập – Tự do – Hạnh phúc
+    </div>
+  </header>
+
+  <div class="paper-title">
+    <h2>GIẤY ĐỀ NGHỊ THANH TOÁN</h2>
+    <h2>CHUYỂN KHOẢN CHO ĐƠN VỊ SỬA CHỮA</h2>
+  </div>
+
+  <section class="paper-content">
+    <p><strong>Kính gửi:</strong> Ban Giám đốc Đại học Kinh tế Quốc dân (qua Phòng Tài chính – Kế toán)</p>
+    <p><strong>Người đề nghị thanh toán:</strong> {{ ho_so.nguoi_de_nghi_ten }}</p>
+    <p><strong>Đơn vị (hoặc địa chỉ):</strong> {{ ho_so.don_vi }}</p>
+    <p><strong>Về khoản:</strong> {{ ho_so.ve_khoan }} (Yêu cầu sửa chữa {{ yc.ma_yeu_cau }})</p>
+    <p><strong>Căn cứ hợp đồng số:</strong> {{ ho_so.hop_dong_so or '................................' }}
+      ngày {{ ho_so.hop_dong_ngay or '...... tháng ...... năm 202......' }}
+      và biên bản nghiệm thu, thanh lý hợp đồng (nếu có).</p>
+    <p><strong>Số tiền đề nghị thanh toán:</strong> {{ ho_so.so_tien | tien_vnd }} đồng</p>
+    <p><strong>Viết bằng chữ:</strong> {{ ho_so.so_tien_bang_chu }}</p>
+    <p><strong>Đơn vị thụ hưởng:</strong> {{ ho_so.don_vi_thu_huong }}</p>
+    <p><strong>Số tài khoản:</strong> {{ ho_so.so_tai_khoan }}</p>
+    <p><strong>Tại ngân hàng:</strong> {{ ho_so.ngan_hang }}</p>
+    <p><strong>Hồ sơ kèm theo:</strong></p>
+    <ul class="list-unstyled ms-3">
+      {% set docs = ho_so.ho_so_kem_theo %}
+      <li>{{ '☒' if 'hop_dong' in docs else '☐' }} Hợp đồng</li>
+      <li>{{ '☒' if 'bien_ban_nghiem_thu' in docs else '☐' }} Biên bản nghiệm thu</li>
+      <li>{{ '☒' if 'bang_xac_dinh_khoi_luong' in docs else '☐' }} Bảng xác định giá trị khối lượng công việc hoàn thành</li>
+      <li>{{ '☒' if 'hoa_don' in docs else '☐' }} Hóa đơn</li>
+      <li>☐ Khác: {{ ho_so.ho_so_khac or '................................................' }}</li>
+    </ul>
+    <p>Kính đề nghị Ban Giám đốc và Phòng Tài chính – Kế toán xem xét, giải quyết.</p>
+    <p class="text-end">Hà Nội, ngày {{ ngay_in.day }} tháng {{ ngay_in.month }} năm {{ ngay_in.year }}</p>
+  </section>
+
+  <footer class="paper-signatures">
+    <div><strong>BAN GIÁM ĐỐC</strong>(Ký, họ tên)</div>
+    <div><strong>KẾ TOÁN TRƯỞNG</strong>(Ký, họ tên)</div>
+    <div><strong>XÁC NHẬN ĐƠN VỊ</strong>(Ký, họ tên)</div>
+    <div><strong>NGƯỜI ĐỀ NGHỊ THANH TOÁN</strong>(Ký, họ tên)</div>
+  </footer>
+</main>
+{% endblock %}

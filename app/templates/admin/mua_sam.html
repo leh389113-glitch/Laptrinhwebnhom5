@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Quản trị Mua sắm - Admin - NEU{% endblock %}
+{% block content %}
+<div class="container">
+
+  <div class="neu-page-header">
+    <div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-cart-shopping text-primary me-2"></i> QUẢN TRỊ ĐỀ NGHỊ MUA SẮM (ADMIN)</h2>
+      <small class="text-muted">Xem xét, kiểm tra và ra quyết định phê duyệt / từ chối các đề xuất mua sắm</small>
+    </div>
+    <div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="neu-card">
+    <div class="neu-card-header bg-primary-neu">
+      <span><i class="fa-solid fa-list-check me-2"></i> Toàn bộ danh sách đề nghị mua sắm</span>
+    </div>
+    <div class="table-responsive">
+      <table class="neu-table">
+        <thead>
+          <tr>
+            <th>Mã đề nghị</th>
+            <th>Tiêu đề đề nghị</th>
+            <th>Đơn vị đề xuất</th>
+            <th>Tổng kinh phí</th>
+            <th>Trạng thái</th>
+            <th>Ngày lập</th>
+            <th class="text-end">Phê duyệt / Xử lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if de_nghi_list %}
+            {% for dn in de_nghi_list %}
+            <tr>
+              <td><strong class="text-primary">{{ dn.ma_de_nghi }}</strong></td>
+              <td><a href="{{ url_for('mua_sam.chi_tiet', id=dn.id) }}" class="fw-bold text-dark text-decoration-none">{{ dn.tieu_de }}</a></td>
+              <td><span class="badge bg-light text-dark border">{{ dn.don_vi_de_nghi }}</span></td>
+              <td class="text-danger fw-bold">{{ dn.tong_du_toan | tien_vnd }}</td>
+              <td><span class="{{ dn.trang_thai | badge_trang_thai }}">{{ dn.trang_thai | ten_trang_thai }}</span></td>
+              <td class="text-muted small">{{ dn.ngay_tao | dinh_dang_ngay }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('mua_sam.chi_tiet', id=dn.id) }}" class="btn btn-sm btn-neu-primary">
+                  <i class="fa-solid fa-eye me-1"></i> Xem & Duyệt
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">Không có đề nghị mua sắm nào.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

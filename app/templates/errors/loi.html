@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Lỗi nghiệp vụ - NEU{% endblock %}
+{% block content %}
+<div class="container text-center py-5">
+  <div class="neu-card p-5 mx-auto" style="max-width: 600px;">
+    <div class="text-danger mb-3"><i class="fa-solid fa-circle-exclamation fa-4x"></i></div>
+    <h3 class="fw-bold text-danger">LỖI XỬ LÝ NGHIỆP VỤ</h3>
+    <div class="alert alert-danger mt-3">
+      <strong>{{ loi.ma_loi }}:</strong> {{ loi.thong_bao }}
+    </div>
+    <div class="mt-4">
+      <button onclick="window.history.back()" class="btn btn-outline-secondary me-2"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại</button>
+      <a href="{{ url_for('main.trang_chu') }}" class="btn btn-neu-primary"><i class="fa-solid fa-house me-1"></i> Về trang chủ</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Bảng điều khiển Đơn vị sử dụng - NEU Facility Hub{% endblock %}
+{% block content %}
+<div class="container py-3">
+
+  <!-- Header Đơn vị -->
+  <div class="neu-page-header mb-4">
+    <div>
+      <div class="badge bg-primary px-3 py-2 mb-2"><i class="fa-solid fa-building-columns me-1"></i> {{ user.don_vi }}</div>
+      <h2 class="neu-page-title"><i class="fa-solid fa-gauge-high text-primary me-2"></i> BẢNG ĐIỀU KHIỂN ĐƠN VỊ SỬ DỤNG</h2>
+      <p class="text-muted mb-0">Quản lý tài sản được giao, theo dõi tiến độ sửa chữa, đề xuất mua sắm mới và phối hợp kiểm kê</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('don_vi.tao_sua_chua') }}" class="btn btn-danger fw-bold shadow-sm">
+        <i class="fa-solid fa-screwdriver-wrench me-1"></i> Báo hỏng / Yêu cầu sửa chữa
+      </a>
+      <a href="{{ url_for('don_vi.tao_de_xuat_mua_sam') }}" class="btn btn-primary fw-bold shadow-sm">
+        <i class="fa-solid fa-cart-plus me-1"></i> Lập đề xuất mua sắm
+      </a>
+    </div>
+  </div>
+
+  <!-- Thông báo tài sản chờ xác nhận bàn giao nếu có -->
+  {% if ts_cho_ban_giao %}
+  <div class="alert alert-warning border-warning shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <i class="fa-solid fa-triangle-exclamation fa-lg text-warning me-2"></i>
+      <strong>Bạn có {{ ts_cho_ban_giao|length }} tài sản mới đang chờ ký nhận bàn giao từ Phòng QTTB!</strong>
+    </div>
+    <a href="{{ url_for('don_vi.danh_sach_tai_san', cho_xac_nhan=1) }}" class="btn btn-sm btn-dark fw-bold">
+      <i class="fa-solid fa-handshake me-1"></i> Xem và Ký nhận ngay
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- 4 Thẻ KPI của Đơn vị -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #0B4F9C, #002D62);">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.tai_san.tong_so or 0 }}</h3>
+          <p>Tài sản đang quản lý</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+          <i class="fa-solid fa-money-bill-wave"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ (thong_ke.tai_san.tong_gia_tri or 0) | tien_vnd }}</h3>
+          <p>Tổng giá trị tài sản</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #EF4444, #B91C1C);">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.sua_chua.dang_xu_ly or 0 }}</h3>
+          <p>Sự cố đang xử lý</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="neu-kpi-card">
+        <div class="neu-kpi-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="neu-kpi-info">
+          <h3>{{ thong_ke.mua_sam.cho_duyet or 0 }}</h3>
+          <p>Đề xuất mua sắm chờ duyệt</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Cột trái: Tiến độ yêu cầu sửa chữa gần nhất -->
+    <div class="col-lg-6">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-danger text-white d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-wrench me-2"></i> Yêu cầu sửa chữa gần đây</span>
+          <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-sm btn-light text-danger fw-bold">Xem tất cả</a>
+        </div>
+        <div class="neu-card-body p-0">
+          {% if sua_chua_list %}
+          <div class="list-group list-group-flush">
+            {% for sc in sua_chua_list %}
+            <a href="{{ url_for('don_vi.chi_tiet_sua_chua', id=sc.id) }}" class="list-group-item list-group-item-action p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-primary">{{ sc.ma_yeu_cau }}</strong>
+                <span class="{{ sc.trang_thai | badge_trang_thai }}">{{ sc.trang_thai | ten_trang_thai }}</span>
+              </div>
+              <div class="fw-bold text-dark">{{ sc.ten_vat_chat or sc.noi_dung }}</div>
+              <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> {{ sc.vi_tri or sc.hien_trang }} | <i class="fa-regular fa-clock me-1"></i> {{ sc.ngay_tiep_nhan[:16] if sc.ngay_tiep_nhan else '' }}</small>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="fa-regular fa-circle-check fa-3x text-success mb-2 d-block"></i>
+            Hiện tại đơn vị chưa có yêu cầu sửa chữa nào.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Đề xuất mua sắm gần nhất -->
+    <div class="col-lg-6">
+      <div class="neu-card h-100">
+        <div class="neu-card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-cart-shopping me-2"></i> Đề xuất mua sắm trang thiết bị</span>
+          <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-sm btn-light text-primary fw-bold">Xem tất cả</a>
+        </div>
+        <div class="neu-card-body p-0">
+          {% if mua_sam_list %}
+          <div class="list-group list-group-flush">
+            {% for ms in mua_sam_list %}
+            <a href="{{ url_for('don_vi.chi_tiet_mua_sam', id=ms.id) }}" class="list-group-item list-group-item-action p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-primary">{{ ms.ma_de_nghi }}</strong>
+                <span class="{{ ms.trang_thai | badge_trang_thai }}">{{ ms.trang_thai | ten_trang_thai }}</span>
+              </div>
+              <div class="fw-bold text-dark">{{ ms.tieu_de }}</div>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <small class="text-danger fw-bold">{{ ms.tong_du_toan | tien_vnd }}</small>
+                <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> {{ ms.ngay_tao[:10] if ms.ngay_tao else '' }}</small>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="fa-solid fa-cart-arrow-down fa-3x text-secondary mb-2 d-block"></i>
+            Chưa có đề xuất mua sắm mới nào.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 Khối chức năng chi tiết của Đơn vị -->
+  <div class="row g-4 mt-2">
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm text-center p-3">
+        <div class="card-body">
+          <i class="fa-solid fa-wrench fa-3x text-danger mb-3"></i>
+          <h5 class="fw-bold">1. Yêu cầu sửa chữa</h5>
+          <p class="small text-muted">Gửi yêu cầu sửa chữa thiết bị/công trình, theo dõi tiến độ và nghiệm thu.</p>
+          <a href="{{ url_for('don_vi.danh_sach_sua_chua') }}" class="btn btn-sm btn-outline-danger w-100">Truy cập</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm text-center p-3">
+        <div class="card-body">
+          <i class="fa-solid fa-cart-shopping fa-3x text-primary mb-3"></i>
+          <h5 class="fw-bold">2. Đề xuất Mua sắm</h5>
+          <p class="small text-muted">Lập phiếu BM01, theo dõi duyệt, khảo sát nhu cầu BM02, nghiệm thu hàng.</p>
+          <a href="{{ url_for('don_vi.danh_sach_mua_sam') }}" class="btn btn-sm btn-outline-primary w-100">Truy cập</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm text-center p-3">
+        <div class="card-body">
+          <i class="fa-solid fa-boxes-stacked fa-3x text-info mb-3"></i>
+          <h5 class="fw-bold">3. Tài sản Đơn vị</h5>
+          <p class="small text-muted">Tra cứu tài sản phòng học/làm việc, lịch sử bảo hành, ký nhận bàn giao.</p>
+          <a href="{{ url_for('don_vi.danh_sach_tai_san') }}" class="btn btn-sm btn-outline-info w-100">Truy cập</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100 border-0 shadow-sm text-center p-3">
+        <div class="card-body">
+          <i class="fa-solid fa-clipboard-check fa-3x text-success mb-3"></i>
+          <h5 class="fw-bold">4. Phối hợp Kiểm kê</h5>
+          <p class="small text-muted">Tham gia kiểm kê tài sản định kỳ, gửi văn bản giải trình chênh lệch.</p>
+          <a href="{{ url_for('don_vi.kiem_ke') }}" class="btn btn-sm btn-outline-success w-100">Truy cập</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
